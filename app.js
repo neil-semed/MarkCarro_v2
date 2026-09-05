@@ -2,7 +2,7 @@
 // MARKCARRO - MAIN APP
 // Inicialização e controle principal da aplicação
 // ============================================================
-
+ 
 // Fallback global para Components.Toast (garante que existe antes de qualquer script)
 if (typeof window.Components === 'undefined') window.Components = {};
 if (typeof window.Components.Toast === 'undefined') {
@@ -56,7 +56,7 @@ if (typeof window.Components.Toast === 'undefined') {
     info(message, duration) { this.show(message, 'info', duration); }
   };
 }
-
+ 
 // Função utilitária para timeout
 function withTimeout(promise, ms, errorMsg) {
   return Promise.race([
@@ -64,25 +64,25 @@ function withTimeout(promise, ms, errorMsg) {
     new Promise((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms))
   ]);
 }
-
+ 
 const App = {
   initialized: false,
   initTimeout: 10000, // 10s timeout para inicialização
-
+ 
   async init() {
     if (this.initialized) return;
-
+ 
     // Garante que a tela de login apareça RÁPIDO (fallback visual imediato)
     this.mostrarLogin();
-
+ 
     try {
       // Inicializa Supabase COM TIMEOUT
       await withTimeout(window.supabaseApi.init(), 8000, 'Timeout ao inicializar Supabase');
-
+ 
       // Verifica se há sessão ativa COM TIMEOUT
       const sessionPromise = window.supabaseApi.client.auth.getSession();
       const { data: { session } } = await withTimeout(window.supabaseApi.client.auth.getSession(), 5000, 'Timeout ao buscar sessão');
-
+ 
       if (session) {
         // Já logado - carrega perfil e mostra app
         await withTimeout(window.supabaseApi.loadUserProfile(session.user.id), 5000, 'Timeout ao carregar perfil');
@@ -91,7 +91,7 @@ const App = {
         // Não logado - mostra tela de login
         this.mostrarLogin();
       }
-
+ 
       this.initialized = true;
       console.log('MarkCarro inicializado');
     } catch (error) {
@@ -100,44 +100,44 @@ const App = {
       this.mostrarLogin();
     }
   },
-
+ 
   mostrarLogin() {
     this.esconderTodasTelas();
     document.getElementById('tela-login')?.classList.remove('hidden');
     document.getElementById('tela-cadastro')?.classList.add('hidden');
     document.getElementById('app-principal')?.classList.add('hidden');
   },
-
+ 
   mostrarCadastro() {
     this.esconderTelasAutenticadas();
     document.getElementById('tela-cadastro')?.classList.remove('hidden');
     document.getElementById('tela-login')?.classList.add('hidden');
     if (window.CadastroPage?.init) CadastroPage.init();
   },
-
+ 
   mostrarTelaAposLogin() {
     const perfil = API.getUsuario();
     if (!perfil) {
       this.mostrarLogin();
       return;
     }
-
+ 
     this.esconderTodasTelas();
     document.getElementById('app-principal')?.classList.remove('hidden');
-
+ 
     // Atualiza header
     this.atualizarHeader(perfil);
-
+ 
     // Configura botões do header baseado no perfil
     this.configurarHeaderPorPerfil(perfil);
-
+ 
     // Carrega tela inicial baseada no perfil
     this.carregarTelaInicial(perfil);
-
+ 
     // Inicializa notificações
     this.inicializarNotificacoes();
   },
-
+ 
   atualizarHeader(perfil) {
     const saudacao = this.getSaudacao();
     const saudacaoEl = document.getElementById('txt-saudacao');
@@ -146,7 +146,7 @@ const App = {
     const emailEl = document.getElementById('usuario-email');
     const perfilEl = document.getElementById('usuario-perfil');
     const iniciaisEl = document.getElementById('usuario-iniciais');
-
+ 
     if (saudacaoEl) saudacaoEl.textContent = `${saudacao}, ${perfil.nome}`;
     if (subtituloEl) subtituloEl.textContent = `Perfil: ${perfil.tipo?.charAt(0).toUpperCase() + perfil.tipo?.slice(1)}`;
     if (nomeEl) nomeEl.textContent = perfil.nome;
@@ -154,20 +154,20 @@ const App = {
     if (perfilEl) perfilEl.textContent = perfil.tipo;
     if (iniciaisEl) iniciaisEl.textContent = Utils.iniciais(perfil.nome);
   },
-
+ 
   getSaudacao() {
     const hora = new Date().getHours();
     if (hora >= 5 && hora < 12) return 'Bom dia';
     if (hora >= 12 && hora < 18) return 'Boa tarde';
     return 'Boa noite';
   },
-
+ 
   configurarHeaderPorPerfil(perfil) {
     const tipo = perfil.tipo?.toLowerCase();
     const isGestor = ['gestor', 'admin'].includes(tipo);
     const isCondutor = tipo === 'condutor';
     const isSolicitante = tipo === 'solicitante';
-
+ 
     // Botões do header
     const botoes = {
       'btn-painel-gestor': isGestor,
@@ -181,7 +181,7 @@ const App = {
       'btn-agenda-condutor': isCondutor,
       'btn-registrar-km': isCondutor
     };
-
+ 
     Object.entries(botoes).forEach(([id, show]) => {
       const btn = document.getElementById(id);
       if (btn) {
@@ -189,19 +189,19 @@ const App = {
         else btn.classList.add('hidden');
       }
     });
-
+ 
     // Botões comuns
     ['btn-sair', 'btn-sino', 'btn-alterar-senha'].forEach(id => {
       const btn = document.getElementById(id);
       if (btn) btn.classList.remove('hidden');
     });
   },
-
+ 
   carregarTelaInicial(perfil) {
     const tipo = perfil.tipo?.toLowerCase();
-
+ 
     this.esconderTelasConteudo();
-
+ 
     if (['gestor', 'admin'].includes(tipo)) {
       document.getElementById('tela-gestor')?.classList.remove('hidden');
       if (window.GestorPage?.init) GestorPage.init();
@@ -215,8 +215,12 @@ const App = {
       if (window.MinhasSolicitacoesPage?.init) MinhasSolicitacoesPage.init();
     }
   },
-
+ 
   esconderTodasTelas() {
+    // Esconde a tela de loading inicial (spinner "Carregando MarkCarro...")
+    // assim que qualquer tela real vai ser exibida.
+    document.getElementById('loading-screen')?.remove();
+ 
     const telas = [
       'tela-login',
       'tela-cadastro',
@@ -231,15 +235,15 @@ const App = {
       'tela-gerenciar-usuarios',
       'tela-alterar-senha'
     ];
-
+ 
     telas.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
     });
-
+ 
     document.getElementById('tela-alterar-senha')?.setAttribute('hidden', 'true');
   },
-
+ 
   esconderTelasAutenticadas() {
     const telas = [
       'tela-nova-solicitacao',
@@ -252,15 +256,15 @@ const App = {
       'tela-gerenciar-km',
       'tela-gerenciar-usuarios'
     ];
-
+ 
     telas.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
     });
-
+ 
     document.getElementById('tela-alterar-senha')?.setAttribute('hidden', 'true');
   },
-
+ 
   esconderTelasConteudo() {
     const telas = [
       'tela-nova-solicitacao',
@@ -273,13 +277,13 @@ const App = {
       'tela-gerenciar-km',
       'tela-gerenciar-usuarios'
     ];
-
+ 
     telas.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
     });
   },
-
+ 
   // Navegação entre telas
   abrirNovaSolicitacao() {
     this.esconderTelasConteudo();
@@ -287,67 +291,67 @@ const App = {
     document.getElementById('tela-minhas-solicitacoes')?.classList.remove('hidden');
     if (window.NovaSolicitacaoPage?.init) NovaSolicitacaoPage.init();
   },
-
+ 
   abrirNovaSolicitacaoGestor() {
     this.esconderTelasConteudo();
     document.getElementById('tela-nova-solicitacao').classList.remove('hidden');
     if (window.NovaSolicitacaoPage?.init) NovaSolicitacaoPage.init();
   },
-
+ 
   abrirMinhasSolicitacoes() {
     this.esconderTelasConteudo();
     document.getElementById('tela-minhas-solicitacoes')?.classList.remove('hidden');
     if (window.MinhasSolicitacoesPage?.init) MinhasSolicitacoesPage.init();
   },
-
+ 
   abrirPainelGestor() {
     this.esconderTelasConteudo();
     document.getElementById('tela-gestor')?.classList.remove('hidden');
     if (window.GestorPage?.init) GestorPage.init();
   },
-
+ 
   abrirAgenda() {
     this.esconderTelasConteudo();
     document.getElementById('tela-agenda')?.classList.remove('hidden');
     if (window.AgendaPage?.init) AgendaPage.init();
   },
-
+ 
   abrirAgendaCondutor() {
     this.esconderTelasConteudo();
     document.getElementById('tela-agenda-condutor')?.classList.remove('hidden');
     if (window.AgendaCondutorPage?.init) AgendaCondutorPage.init();
   },
-
+ 
   abrirRegistroKm() {
     this.esconderTelasConteudo();
     document.getElementById('tela-registro-km')?.classList.remove('hidden');
     if (window.RegistroKmPage?.init) RegistroKmPage.init();
   },
-
+ 
   abrirGerenciarCondutores() {
     this.esconderTelasConteudo();
     document.getElementById('tela-gerenciar-condutores')?.classList.remove('hidden');
     if (window.GerenciarCondutoresPage?.init) GerenciarCondutoresPage.init();
   },
-
+ 
   abrirGerenciarKm() {
     this.esconderTelasConteudo();
     document.getElementById('tela-gerenciar-km')?.classList.remove('hidden');
     if (window.GerenciarKmPage?.init) GerenciarKmPage.init();
   },
-
+ 
   abrirGerenciarUsuarios() {
     this.esconderTelasConteudo();
     document.getElementById('tela-gerenciar-usuarios')?.classList.remove('hidden');
     if (window.GerenciarUsuariosPage?.init) GerenciarUsuariosPage.init();
   },
-
+ 
   abrirAlterarSenha() {
     this.esconderTelasConteudo();
     document.getElementById('tela-alterar-senha')?.removeAttribute('hidden');
     if (window.AlterarSenhaPage?.init) AlterarSenhaPage.init();
   },
-
+ 
   async fazerLogout() {
     try {
       await API.logout();
@@ -355,17 +359,17 @@ const App = {
     } catch (error) {
       console.error('Erro no logout:', error);
     }
-
+ 
     this.mostrarLogin();
   },
-
+ 
   // Notificações
   inicializarNotificacoes() {
     this.atualizarBadgeNotificacoes();
     // Atualiza a cada 30 segundos
     setInterval(() => this.atualizarBadgeNotificacoes(), 30000);
   },
-
+ 
   async atualizarBadgeNotificacoes() {
     try {
       const result = await API.contarNaoLidas();
@@ -384,13 +388,13 @@ const App = {
       console.error('Erro ao atualizar badge:', error);
     }
   },
-
+ 
   async toggleNotificacoes() {
     const painel = document.getElementById('painel-notificacoes');
     if (!painel) return;
-
+ 
     const isOpen = !painel.classList.contains('hidden');
-
+ 
     if (isOpen) {
       painel.classList.add('hidden');
     } else {
@@ -398,19 +402,19 @@ const App = {
       await this.carregarNotificacoes();
     }
   },
-
+ 
   async carregarNotificacoes() {
     const div = document.getElementById('lista-notificacoes');
     if (!div) return;
-
+ 
     div.innerHTML = '<div class="p-4 text-center text-slate-500 text-sm">Carregando...</div>';
-
+ 
     try {
       const result = await API.buscarNotificacoes();
-
+ 
       if (result.success) {
         const notificacoes = result.data || [];
-
+ 
         if (notificacoes.length === 0) {
           div.innerHTML = '<p class="text-center text-slate-500 text-sm py-4">Nenhuma notificação.</p>';
         } else {
@@ -433,7 +437,7 @@ const App = {
       div.innerHTML = '<p class="text-center text-red-500 text-sm py-4">Erro ao carregar</p>';
     }
   },
-
+ 
   async marcarTodasLidas() {
     try {
       await API.marcarComoLidas();
@@ -444,12 +448,12 @@ const App = {
     }
   }
 };
-
+ 
 // Inicialização global
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
-
+ 
 // Funções globais para onclick nos botões do header
 window.abrirNovaSolicitacao = () => App.abrirNovaSolicitacao();
 window.abrirNovaSolicitacaoGestor = () => App.abrirNovaSolicitacaoGestor();
@@ -467,6 +471,7 @@ window.toggleNotificacoes = () => App.toggleNotificacoes();
 window.marcarTodasLidas = () => App.marcarTodasLidas();
 window.voltarLogin = () => CadastroPage.voltarLogin();
 window.voltarDaAlterarSenha = () => AlterarSenhaPage.voltar();
-
+ 
 // Exporta App globalmente
 window.App = App;
+ 
