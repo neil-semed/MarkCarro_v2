@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base href="/MarkCarro_v2/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#044AAA">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MarkCarro">
+  <title>MarkCarro - SEMED Nova Lima</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- SheetJS para exportar Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Configuração do Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'mc-azul': '#044AAA',
+            'mc-azul-escuro': '#033A85',
+            'mc-verde': '#46BE6B',
+            'mc-verde-escuro': '#37A057',
+            'mc-vermelho': '#D85736',
+            'mc-vermelho-escuro': '#B8452A',
+            'mc-laranja': '#FF914D',
+            'mc-laranja-escuro': '#E67A38',
+            'mc-amarelo': '#FFDE59',
+            'mc-teal': '#1D5C63',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Fallback global para Components.Toast (executa ANTES de qualquer script de página) -->
+  <script>
+    if (typeof window.Components === 'undefined') window.Components = {};
+    if (typeof window.Components.Toast === 'undefined') {
+      window.Components.Toast = {
+        container: null,
+        init() {
+          if (!this.container) {
+            this.container = document.getElementById('toast-container');
+            if (!this.container) {
+              this.container = document.createElement('div');
+              this.container.id = 'toast-container';
+              this.container.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2';
+              document.body.appendChild(this.container);
+            }
+          }
+        },
+        show(message, type = 'info', duration = 4000) {
+          this.init();
+          const colors = {
+            success: 'bg-green-600',
+            error: 'bg-red-600',
+            warning: 'bg-amber-600',
+            info: 'bg-blue-600'
+          };
+          const icons = {
+            success: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"/></svg>',
+            error: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m-2 2l2-2"/></svg>',
+            warning: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+            info: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+          };
+          const toast = document.createElement('div');
+          toast.className = `toast ${colors[type] || colors.info} animate-slide-up flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg min-w-[280px] max-w-md`;
+          toast.innerHTML = `
+            ${icons[type] || icons.info}
+            <span class="flex-1 text-sm">${message}</span>
+            <button onclick="this.parentElement.remove()" class="text-white/70 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          `;
+          this.container.appendChild(toast);
+          setTimeout(() => {
+            if (toast.parentElement) {
+              toast.style.animation = 'slideUp 0.3s ease-in reverse';
+              setTimeout(() => toast.remove(), 300);
+            }
+          }, duration);
+        },
+        success(message, duration) { this.show(message, 'success', duration); },
+        error(message, duration) { this.show(message, 'error', duration); },
+        warning(message, duration) { this.show(message, 'warning', duration); },
+        info(message, duration) { this.show(message, 'info', duration); }
+      };
+    }
+  </script>
+  
+  <link rel="icon" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f4f6f9 0%, #e9edf2 100%);
+      min-height: 100vh;
+    }
+    
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.5; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    .animate-slide-up { animation: slideUp 0.4s ease-out; }
+    
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    /* Focus visible */
+    *:focus-visible {
+      outline: 2px solid #044AAA;
+      outline-offset: 2px;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* Badge status */
+    .badge-pendente { @apply bg-amber-100 text-amber-800; }
+    .badge-confirmada { @apply bg-green-100 text-green-800; }
+    .badge-cancelada { @apply bg-red-100 text-red-800; }
+    .badge-em-analise { @apply bg-blue-100 text-blue-800; }
+    .badge-ocupado { @apply bg-gray-100 text-gray-800; }
+    .badge-desprezado { @apply bg-gray-100 text-gray-600; }
+    .badge-em-analise { @apply bg-blue-100 text-blue-800; }
+    
+    /* Inputs */
+    .input-field {
+      @apply w-full px-4 py-2.5 border border-slate-300 rounded-lg text-slate-900 
+             placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-mc-azul/20 
+             focus:border-mc-azul transition-all duration-200;
+    }
+    .input-field:disabled {
+      @apply bg-slate-50 text-slate-500 cursor-not-allowed;
+    }
+    
+    /* Botões */
+    .btn-primary {
+      @apply bg-mc-azul text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-azul-escuro focus:outline-none focus:ring-2 focus:ring-mc-azul/30
+             focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    .btn-secondary {
+      @apply bg-white text-slate-700 px-4 py-2.5 rounded-lg font-medium border border-slate-300
+             hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-success {
+      @apply bg-mc-verde text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-verde-escuro focus:outline-none focus:ring-2 focus:ring-mc-verde/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-danger {
+      @apply bg-mc-vermelho text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-vermelho-escuro focus:outline-none focus:ring-2 focus:ring-mc-vermelho/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-warning {
+      @apply bg-mc-laranja text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-laranja-escuro focus:outline-none focus:ring-2 focus:ring-mc-laranja/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-outline {
+      @apply bg-transparent border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg font-medium
+             hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    
+    /* Tabelas */
+    .table-container {
+      @apply overflow-x-auto rounded-lg border border-slate-200;
+    }
+    .table-th {
+      @apply px-3 py-2 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider bg-slate-50 border-b border-slate-200;
+    }
+    .table-td {
+      @apply px-3 py-2.5 text-sm text-slate-900 border-b border-slate-100;
+    }
+    
+    /* Modal/Overlay */
+    .modal-overlay {
+      @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+    }
+    .modal-content {
+      @apply bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up;
+    }
+    
+    /* Toasts */
+    .toast {
+      @apply fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white animate-slide-up flex items-center gap-2;
+    }
+    .toast-success { @apply bg-mc-verde; }
+    .toast-error { @apply bg-mc-vermelho; }
+    .toast-warning { @apply bg-mc-laranja; }
+    .toast-info { @apply bg-mc-azul; }
+    
+    /* Loading spinner */
+    .spinner {
+      @apply w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin;
+    }
+    
+    /* Badge notificação */
+    .notification-badge {
+      @apply absolute -top-1 -right-1 w-5 h-5 bg-mc-vermelho text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse;
+    }
+    
+    /* Cards de estatística */
+    .stat-card {
+      @apply bg-white rounded-xl p-5 border border-slate-100 hover:shadow-md transition-shadow duration-200;
+    }
+
+    /* Células de tabelas geradas via JS (sem classe table-td por linha) */
+    .table-container table td {
+      @apply px-3 py-2.5 text-sm text-slate-900 border-b border-slate-100 align-middle;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- App Root -->
+  <div id="app">
+    <!-- Tela de Loading Inicial -->
+    <div id="loading-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-white z-[100]">
+      <div class="text-center animate-fade-in">
+        <img src="logo.png" alt="MarkCarro" class="w-24 h-24 mx-auto mb-4" style="width: 96px; height: 96px;">
+        <div class="w-8 h-8 border-3 border-mc-azul/20 border-t-mc-azul rounded-full animate-spin mx-auto"></div>
+        <p class="mt-4 text-slate-600 text-sm">Carregando MarkCarro...</p>
+      </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2" aria-live="polite"></div>
+    
+    <!-- Tela de Login -->
+    <div id="tela-login" class="hidden min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-md animate-fade-in">
+        <div class="text-center mb-8">
+          <img src="logo.png" alt="MarkCarro" class="w-20 h-20 mx-auto mb-4" style="width: 80px; height: 80px;">
+          <h1 class="text-2xl font-bold text-mc-azul">MarkCarro</h1>
+          <p class="text-slate-500 mt-1">SEMED Nova Lima</p>
+        </div>
+        
+        <div class="card p-6">
+          <h2 class="text-xl font-semibold text-slate-900 mb-6 text-center">Entrar no sistema</h2>
+          
+          <form id="form-login" class="space-y-4" novalidate>
+            <div>
+              <label for="login-email" class="block text-sm font-medium text-slate-700 mb-1.5">E-mail *</label>
+              <input type="email" id="login-email" class="input-field" required autocomplete="email" placeholder="seu@email.com">
+            </div>
+            
+            <div>
+              <label for="login-senha" class="block text-sm font-medium text-slate-700 mb-1.5">Senha *</label>
+              <input type="password" id="login-senha" class="input-field" required autocomplete="current-password" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="btn-primary w-full py-3 mt-2" id="btn-login">
+              <span class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a1 1 0 01-1 1h-1"/></svg>
+                Entrar
+              </span>
+            </button>
+          </form>
+          
+          <p class="mt-4 text-center text-sm text-slate-500">
+            <a href="#" id="link-cadastro" class="text-mc-azul hover:underline font-medium">Não tem conta? Cadastre-se</a>
+          </p>
+        </div>
+        
+        <p class="mt-4 text-center text-xs text-slate-400">
+          SEMED Nova Lima - Sistema de Gestão de Transportes
+        </p>
+      </div>
+    </div>
+    
+    <!-- Tela de Cadastro -->
+    <div id="tela-cadastro" class="hidden min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-2xl animate-fade-in">
+        <div class="flex items-center justify-between mb-6">
+          <button onclick="voltarLogin()" class="btn-outline text-sm px-3 py-2">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Voltar
+          </button>
+          <h1 class="text-xl font-bold text-mc-azul">MarkCarro</h1>
+          <div class="w-20"></div>
+        </div>
+        
+        <div class="card p-6">
+          <h2 class="text-xl font-semibold text-slate-900 mb-2 text-center">Criar conta</h2>
+          <p class="text-center text-slate-500 text-sm mb-6">Preencha seus dados para acessar o sistema</p>
+          
+          <form id="form-cadastro" class="space-y-4" novalidate>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Perfil *</label>
+              <select id="cad-tipo-perfil" class="input-field" onchange="alternarCamposPerfil()">
+                <option value="solicitante">Solicitante</option>
+                <option value="condutor">Motorista / Motoboy</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Nome Completo *</label>
+                <input type="text" id="cad-nome" class="input-field" required placeholder="João da Silva">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">E-mail *</label>
+                <input type="email" id="cad-email" class="input-field" required placeholder="joao@email.com">
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Senha *</label>
+                <input type="password" id="cad-senha" class="input-field" required placeholder="••••••••" minlength="6">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Telefone *</label>
+                <input type="tel" id="cad-telefone" class="input-field" required placeholder="(31) 99999-9999" oninput="aplicarMascaraTelefone(this)">
+              </div>
+            </div>
+            
+            <!-- Campos Solicitante -->
+            <div id="bloco-solicitante" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Unidade *</label>
+                  <select id="cad-unidade" class="input-field" required onchange="carregarSetoresCadastro()">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Setor *</label>
+                  <select id="cad-setor" class="input-field" required>
+                    <option value="">Selecione a unidade primeiro</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Campos Condutor -->
+            <div id="bloco-condutor" class="space-y-4 hidden">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Categoria *</label>
+                  <select id="cad-categoria" class="input-field" required>
+                    <option value="Motorista">Motorista</option>
+                    <option value="Motoboy">Motoboy</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Placa</label>
+                  <input type="text" id="cad-placa" class="input-field" placeholder="ABC-1234" style="text-transform: uppercase;">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Modelo</label>
+                  <input type="text" id="cad-modelo" class="input-field" placeholder="Fiat Toro">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Capacidade</label>
+                  <input type="text" id="cad-capacidade" class="input-field" placeholder="ex: 4L, 6L, 15L">
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">CNH</label>
+                  <input type="text" id="cad-cnh" class="input-field" placeholder="12345678901">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Validade CNH</label>
+                  <input type="date" id="cad-validade-cnh" class="input-field">
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+              <button type="button" onclick="voltarLogin()" class="btn-secondary flex-1">Voltar</button>
+              <button type="submit" class="btn-primary flex-1">Salvar Cadastro</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- App Principal (após login) -->
+    <div id="app-principal" class="hidden min-h-screen bg-slate-50">
+      <!-- Header/Topbar -->
+      <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+          <div class="flex items-center justify-between h-16">
+            <!-- Logo e Título -->
+            <div class="flex items-center gap-3">
+              <img src="logo.png" alt="MarkCarro" class="w-9 h-9" style="width: 36px; height: 36px;">
+              <div>
+                <h1 class="text-lg font-bold text-mc-azul">MarkCarro</h1>
+                <p id="header-subtitle" class="text-xs text-slate-500">SEMED Nova Lima</p>
+              </div>
+            </div>
+            
+            <!-- Ações do Header -->
+            <div class="flex items-center gap-2">
+              <!-- Botão Painel (Gestor) -->
+              <button id="btn-painel-gestor" onclick="abrirPainelGestor()" class="btn-outline text-sm hidden" title="Painel do Gestor">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/></svg>
+                Painel
+              </button>
+
+              <!-- Botão Agenda (Gestor) -->
+              <button id="btn-ir-agenda" onclick="abrirAgenda()" class="btn-outline text-sm hidden" title="Agenda de Corridas">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Agenda
+              </button>
+              
+              <!-- Botão Nova Solicitação (Gestor) -->
+              <button id="btn-nova-solicitacao-gestor" onclick="abrirNovaSolicitacaoGestor()" class="btn-success text-sm hidden" title="Nova Solicitação">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Nova Solicitação
+              </button>
+              
+              <!-- Botão Gerenciar Condutores (Gestor) -->
+              <button id="btn-gerenciar-condutores" onclick="abrirGerenciarCondutores()" class="btn-outline text-sm hidden" title="Gerenciar Condutores">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                Condutores
+              </button>
+              
+              <!-- Botão Gerenciar KM (Gestor) -->
+              <button id="btn-gerenciar-km" onclick="abrirGerenciarKm()" class="btn-outline text-sm hidden" title="Gerenciar KM">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                KM
+              </button>
+              
+              <!-- Botão Gerenciar Usuários (Gestor) -->
+              <button id="btn-gerenciar-usuarios" onclick="abrirGerenciarUsuarios()" class="btn-outline text-sm hidden" title="Gerenciar Usuários">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Usuários
+              </button>
+              
+              <!-- Botão Nova Solicitação (Solicitante) -->
+              <button id="btn-nova-solicitacao" onclick="abrirNovaSolicitacao()" class="btn-success text-sm hidden" title="Nova Solicitação">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Nova Solicitação
+              </button>
+              
+              <!-- Botão Minhas Solicitações (Solicitante) -->
+              <button id="btn-minhas-solicitacoes" onclick="abrirMinhasSolicitacoes()" class="btn-outline text-sm hidden" title="Minhas Solicitações">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                Minhas Solicitações
+              </button>
+              
+              <!-- Botão Agenda Condutor -->
+              <button id="btn-agenda-condutor" onclick="abrirAgendaCondutor()" class="btn-outline text-sm hidden" title="Minha Agenda">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Minha Agenda
+              </button>
+              
+              <!-- Botão Registrar KM (Condutor) -->
+              <button id="btn-registrar-km" onclick="abrirRegistroKm()" class="btn-warning text-sm hidden" title="Registrar KM">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                Registrar KM
+              </button>
+              
+              <!-- Sino de Notificações -->
+              <div class="relative">
+                <button id="btn-sino" onclick="toggleNotificacoes()" class="relative p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Notificações">
+                  <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 5.165 2 9.272 2 14.158V17A2 2 0 004 19h16a2 2 0 002-2v-3"/></svg>
+                  <span id="badge-notificacoes" class="notification-badge hidden">0</span>
+                </button>
+                
+                <!-- Painel de Notificações -->
+                <div id="painel-notificacoes" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 shadow-lg overflow-hidden z-50">
+                  <div class="p-3 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="font-semibold text-slate-900">Notificações</h3>
+                    <button onclick="marcarTodasLidas()" class="text-xs text-mc-azul hover:underline hidden" id="btn-marcar-todas-lidas">Marcar todas como lidas</button>
+                  </div>
+                  <div id="lista-notificacoes" class="max-h-96 overflow-y-auto">
+                    <div class="p-4 text-center text-slate-500 text-sm">Carregando...</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Menu do Usuário -->
+              <div class="relative">
+                <button id="btn-usuario-menu" onclick="toggleUsuarioMenu()" class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Menu do usuário">
+                  <div class="w-8 h-8 rounded-full bg-mc-azul/10 flex items-center justify-center">
+                    <span id="usuario-iniciais" class="text-sm font-semibold text-mc-azul">JD</span>
+                  </div>
+                  <span id="usuario-nome" class="text-sm font-medium text-slate-700 hidden sm:block">Usuário</span>
+                  <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                
+                <div id="usuario-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50">
+                  <div class="px-3 py-2 border-b border-slate-100">
+                    <p class="text-xs text-slate-500">Conectado como</p>
+                    <p id="usuario-email" class="text-sm font-medium text-slate-900 truncate">usuario@email.com</p>
+                    <p id="usuario-perfil" class="text-xs text-slate-500 capitalize">Solicitante</p>
+                  </div>
+                  <button onclick="abrirAlterarSenha()" class="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2h10"/></svg>
+                    Alterar Senha
+                  </button>
+                  <hr class="my-1 border-slate-100">
+                  <button onclick="fazerLogout()" class="w-full px-3 py-2 text-left text-sm text-mc-vermelho hover:bg-red-50 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Sair
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      </header>
+      
+      <!-- Container Principal -->
+      <main class="max-w-7xl mx-auto px-4 py-6" id="main-content">
+
+        <!-- Tela Nova Solicitação (Solicitante / Gestor) -->
+        <div id="tela-nova-solicitacao" class="hidden mb-6 animate-fade-in">
+          <div class="card p-6">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Nova Solicitação de Transporte</h2>
+
+            <form id="form-solicitacao" class="space-y-4" novalidate>
+              <!-- Bloco usado quando um Gestor solicita em nome de outra pessoa -->
+              <div id="bloco-solicitante-externo" class="hidden space-y-4 border border-slate-200 rounded-lg p-4 bg-slate-50">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="sol-nome-externo" class="block text-sm font-medium text-slate-700 mb-1.5">Nome do Solicitante *</label>
+                    <input type="text" id="sol-nome-externo" class="input-field" placeholder="Nome completo">
+                  </div>
+                  <div>
+                    <label for="sol-email-externo" class="block text-sm font-medium text-slate-700 mb-1.5">E-mail do Solicitante</label>
+                    <input type="email" id="sol-email-externo" class="input-field" placeholder="email@exemplo.com">
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="sol-unidade" class="block text-sm font-medium text-slate-700 mb-1.5">Unidade *</label>
+                    <select id="sol-unidade" class="input-field" disabled>
+                      <option value="">Selecione a Unidade...</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="sol-setor" class="block text-sm font-medium text-slate-700 mb-1.5">Setor *</label>
+                    <select id="sol-setor" class="input-field">
+                      <option value="">Selecione a Unidade primeiro</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label for="sol-data-viagem" class="block text-sm font-medium text-slate-700 mb-1.5">Data da Viagem *</label>
+                  <input type="date" id="sol-data-viagem" class="input-field" required>
+                </div>
+                <div>
+                  <label for="sol-hora-saida" class="block text-sm font-medium text-slate-700 mb-1.5">Hora de Saída *</label>
+                  <input type="time" id="sol-hora-saida" class="input-field" required>
+                </div>
+                <div>
+                  <label for="sol-hora-retorno" class="block text-sm font-medium text-slate-700 mb-1.5">Hora de Retorno *</label>
+                  <input type="time" id="sol-hora-retorno" class="input-field" required>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="sol-tipo-viagem" class="block text-sm font-medium text-slate-700 mb-1.5">Tipo de Viagem *</label>
+                  <select id="sol-tipo-viagem" class="input-field" required>
+                    <option value="Motorista">Motorista</option>
+                    <option value="Motoboy">Motoboy</option>
+                  </select>
+                </div>
+                <div>
+                  <label id="lbl-qtd" for="sol-qtd" class="block text-sm font-medium text-slate-700 mb-1.5">Nº Passageiros *</label>
+                  <input type="number" id="sol-qtd" min="1" class="input-field" required placeholder="Número de passageiros">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="sol-origem" class="block text-sm font-medium text-slate-700 mb-1.5">Origem *</label>
+                  <select id="sol-origem" class="input-field" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                  <div id="box-outro-origem" class="hidden mt-2">
+                    <input type="text" class="input-field" placeholder="Informe a origem">
+                  </div>
+                </div>
+                <div>
+                  <label for="sol-destino" class="block text-sm font-medium text-slate-700 mb-1.5">Destino *</label>
+                  <select id="sol-destino" class="input-field" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                  <div id="box-outro-destino" class="hidden mt-2">
+                    <input type="text" class="input-field" placeholder="Informe o destino">
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label for="sol-justificativa" class="block text-sm font-medium text-slate-700 mb-1.5">Justificativa *</label>
+                <textarea id="sol-justificativa" rows="3" class="input-field" required placeholder="Descreva o motivo da viagem"></textarea>
+              </div>
+
+              <button type="submit" class="btn-success w-full py-3 mt-2">
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  Enviar Solicitação
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tela Minhas Solicitações (Solicitante) -->
+        <div id="tela-minhas-solicitacoes" class="hidden animate-fade-in">
+          <div class="card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900">Minhas Solicitações</h2>
+              <button id="btn-exportar-minhas-solic" class="btn-outline text-sm">
+                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                Exportar Excel
+              </button>
+            </div>
+
+            <div class="table-container mb-6" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">ID</th>
+                    <th class="table-th">Solicitado em</th>
+                    <th class="table-th">Data Viagem</th>
+                    <th class="table-th">Horário</th>
+                    <th class="table-th">Trajeto</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Condutor</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-minhas-solicitacoes">
+                  <tr><td colspan="9" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="border-t border-slate-200 pt-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <h3 class="text-sm font-semibold text-slate-700">Distribuição por Status</h3>
+                <select id="pareto-solic-periodo" class="input-field w-auto text-sm">
+                  <option value="30">Últimos 30 dias</option>
+                  <option value="90">Últimos 90 dias</option>
+                  <option value="365">Último ano</option>
+                  <option value="0">Todo o período</option>
+                </select>
+              </div>
+              <div style="position:relative; height: 260px;">
+                <canvas id="pareto-solic-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tela Painel do Gestor -->
+        <div id="tela-gestor" class="hidden animate-fade-in">
+          <div class="card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900">Painel do Gestor</h2>
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="btn-atualizar-gestor" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  Atualizar
+                </button>
+                <button id="btn-exportar-xlsx" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                  Exportar Excel
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div>
+                <label for="filtro-gestor-data-solic" class="block text-xs font-medium text-slate-500 mb-1">Data da Solicitação</label>
+                <input type="date" id="filtro-gestor-data-solic" class="input-field text-sm">
+              </div>
+              <div>
+                <label for="filtro-gestor-data-viagem" class="block text-xs font-medium text-slate-500 mb-1">Data da Viagem</label>
+                <input type="date" id="filtro-gestor-data-viagem" class="input-field text-sm">
+              </div>
+              <div>
+                <label for="filtro-gestor-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                <select id="filtro-gestor-status" class="input-field text-sm">
+                  <option value="TODOS">Todos</option>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Em Análise">Em Análise</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Ocupado">Ocupado</option>
+                  <option value="Cancelada">Cancelada</option>
+                  <option value="Desprezado">Desprezado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Solicitado em</th>
+                    <th class="table-th">Data Viagem</th>
+                    <th class="table-th">Saída</th>
+                    <th class="table-th">Retorno</th>
+                    <th class="table-th">Origem</th>
+                    <th class="table-th">Destino</th>
+                    <th class="table-th">Solicitante</th>
+                    <th class="table-th">Unidade</th>
+                    <th class="table-th">Setor</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Tipo</th>
+                    <th class="table-th">Qtd</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Condutor Ida</th>
+                    <th class="table-th">Condutor Volta</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-gestor-geral">
+                  <tr><td colspan="16" class="text-center text-slate-500 p-4">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tela Agenda de Corridas (Gestor) -->
+        <div id="tela-agenda" class="hidden animate-fade-in">
+          <div class="card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900">Agenda de Corridas</h2>
+              <button id="btn-enviar-agenda-email" class="btn-primary text-sm">
+                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Enviar Agenda por E-mail
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div>
+                <label for="agenda-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">De</label>
+                <input type="date" id="agenda-data-inicio" class="input-field text-sm">
+              </div>
+              <div>
+                <label for="agenda-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Até</label>
+                <input type="date" id="agenda-data-fim" class="input-field text-sm">
+              </div>
+            </div>
+
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">ID</th>
+                    <th class="table-th">Data</th>
+                    <th class="table-th">Saída</th>
+                    <th class="table-th">Retorno</th>
+                    <th class="table-th">Trajeto</th>
+                    <th class="table-th">Solicitante</th>
+                    <th class="table-th">Condutor</th>
+                    <th class="table-th">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-agenda-body">
+                  <tr><td colspan="8" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="api.js"></script>
+  <script src="utils.js"></script>
+  <script src="components.js"></script>
+  <script src="pages/login.js"></script>
+  <script src="pages/cadastro.js"></script>
+  <script src="pages/nova-solicitacao.js"></script>
+  <script src="pages/minhas-solicitacoes.js"></script>
+  <!-- pages/minhas-solicitacoes-condutor.js: ainda não implementado (tela do Condutor,
+       fora do escopo desta rodada de correção) - removido daqui para não gerar 404.
+       Recolocar essa linha quando o arquivo for criado. -->
+  <script src="pages/agenda.js"></script>
+  <script src="pages/agenda-condutor.js"></script>
+  <script src="pages/registro-km.js"></script>
+  <script src="pages/gestor.js"></script>
+  <script src="pages/gerenciar-condutores.js"></script>
+  <script src="pages/gerenciar-km.js"></script>
+  <script src="pages/gerenciar-usuarios.js"></script>
+  <script src="pages/alterar-senha.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
