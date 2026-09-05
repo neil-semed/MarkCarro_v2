@@ -193,8 +193,7 @@ const GerenciarKmPage = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  GerenciarKmPage.init();
-});
-
+// GerenciarKmPage.init() é chamado pelo App (app.js) quando a tela é
+// aberta, não aqui — os elementos desta tela ainda não existem no HTML
+// (esta tela está pendente de construção).
 window.GerenciarKmPage = GerenciarKmPage;
