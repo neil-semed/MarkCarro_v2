@@ -152,8 +152,7 @@ const GerenciarCondutoresPage = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  GerenciarCondutoresPage.init();
-});
-
+// GerenciarCondutoresPage.init() é chamado pelo App (app.js) quando a tela é
+// aberta, não aqui — os elementos desta tela ainda não existem no HTML
+// (esta tela está pendente de construção).
 window.GerenciarCondutoresPage = GerenciarCondutoresPage;
