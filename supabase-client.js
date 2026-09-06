@@ -2,8 +2,8 @@
 // MARKCARRO - CONEXÃO SUPABASE
 // ============================================================
 
-const SUPABASE_URL = 'https://xzltbjinzlrzfrwdqtxm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRiamluemxyemZyd2RxdHhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MjMxODYsImV4cCI6MjEwNDA5OTE4Nn0.sV9vPOqhyvsyxj9IfIbvpR4_JKYF784an3juELQnDOA';
+const SUPABASE_URL = 'https://gvtgtdhfciqegnjqcqlf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dGd0ZGhmY2lxZWduanFjcWxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTMyNDcsImV4cCI6MjEwNDEyOTI0N30.9E3-rFSagbTmz5cUcCBER0RMvlwi0oLSy6LwxWazWcs';
 
 // Cliente Supabase via CDN (global)
 const supabase = window.supabase
