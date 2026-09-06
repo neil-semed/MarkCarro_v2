@@ -108,10 +108,11 @@ const LoginPage = {
   },
   
   async redirecionarAposLogin() {
-    // Aguarda o perfil carregar
+    // Aguarda o perfil carregar (até ~6s — cobre lentidão de rede ou o
+    // projeto Supabase "acordando" depois de um tempo sem uso)
     let tentativas = 0;
-    const maxTentativas = 20;
-    
+    const maxTentativas = 30;
+ 
     const esperarPerfil = () => {
       return new Promise(resolve => {
         const check = setInterval(() => {
@@ -125,11 +126,26 @@ const LoginPage = {
             clearInterval(check);
             resolve(null);
           }
-        }, 100);
+        }, 200);
       });
     };
  
-    await esperarPerfil();
+    let perfil = await esperarPerfil();
+ 
+    // Se ainda não carregou, tenta buscar o perfil mais uma vez direto
+    // (em vez de simplesmente desistir e pedir login de novo)
+    if (!perfil) {
+      try {
+        const { data: { session } } = await window.supabaseApi.client.auth.getSession();
+        if (session) {
+          await window.supabaseApi.loadUserProfile(session.user.id);
+          perfil = API.getUsuario();
+        }
+      } catch (e) {
+        console.error('Erro na tentativa extra de carregar perfil:', e);
+      }
+    }
+ 
     this.mostrarTelaAposLogin();
   },
   
