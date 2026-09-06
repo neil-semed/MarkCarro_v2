@@ -1,7 +1,7 @@
 // ============================================================
 // MARKCARRO - LOGIN PAGE
 // ============================================================
- 
+
 const LoginPage = {
   form: null,
   emailInput: null,
@@ -68,8 +68,19 @@ const LoginPage = {
       
       if (result.success) {
         Components.Toast.success('Login realizado com sucesso!');
-        // Aguarda o perfil carregar
-        setTimeout(() => this.redirecionarAposLogin(), 500);
+
+        // Carrega o perfil diretamente aqui, ao invés de esperar (via
+        // setTimeout + polling) o listener onAuthStateChange fazer isso
+        // sozinho em paralelo — essa corrida entre os dois era o motivo
+        // mais provável do "Erro ao carregar perfil" mesmo com o perfil
+        // já existindo certinho no banco.
+        try {
+          await window.supabaseApi.loadUserProfile(result.user.id, result.user);
+        } catch (e) {
+          console.error('Erro ao carregar perfil após login:', e);
+        }
+
+        this.mostrarTelaAposLogin();
       } else {
         const mensagem = result.error || 'E-mail ou senha inválidos';
         if (mensagem.includes('não confirmado')) {
@@ -107,55 +118,16 @@ const LoginPage = {
     }
   },
   
-  async redirecionarAposLogin() {
-    // Aguarda o perfil carregar (até ~6s — cobre lentidão de rede ou o
-    // projeto Supabase "acordando" depois de um tempo sem uso)
-    let tentativas = 0;
-    const maxTentativas = 30;
- 
-    const esperarPerfil = () => {
-      return new Promise(resolve => {
-        const check = setInterval(() => {
-          const perfil = API.getUsuario();
-          if (perfil) {
-            clearInterval(check);
-            resolve(perfil);
-          }
-          tentativas++;
-          if (tentativas >= maxTentativas) {
-            clearInterval(check);
-            resolve(null);
-          }
-        }, 200);
-      });
-    };
- 
-    let perfil = await esperarPerfil();
- 
-    // Se ainda não carregou, tenta buscar o perfil mais uma vez direto
-    // (em vez de simplesmente desistir e pedir login de novo)
-    if (!perfil) {
-      try {
-        const { data: { session } } = await window.supabaseApi.client.auth.getSession();
-        if (session) {
-          await window.supabaseApi.loadUserProfile(session.user.id);
-          perfil = API.getUsuario();
-        }
-      } catch (e) {
-        console.error('Erro na tentativa extra de carregar perfil:', e);
-      }
-    }
- 
-    this.mostrarTelaAposLogin();
-  },
-  
   mostrarTelaAposLogin() {
     const perfil = API.getUsuario();
     if (!perfil) {
+      // Não deveria mais acontecer (o perfil agora é carregado e
+      // aguardado antes desta função ser chamada), mas por segurança:
+      // tenta buscar de novo uma vez antes de desistir de vez.
       Components.Toast.error('Erro ao carregar perfil. Faça login novamente.');
       return;
     }
- 
+
     // Importante: NÃO chamar App.init() aqui — ele já rodou uma vez ao
     // carregar a página (antes do login) e, por ter a trava
     // "if (this.initialized) return", uma segunda chamada não faz nada.
@@ -174,12 +146,11 @@ const LoginPage = {
     setTimeout(() => document.getElementById('cad-nome')?.focus(), 100);
   }
 };
- 
+
 // Inicializa quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
   LoginPage.init();
 });
- 
+
 // Exporta para uso global
 window.LoginPage = LoginPage;
- 
