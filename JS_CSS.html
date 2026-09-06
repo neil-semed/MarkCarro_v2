@@ -1,63 +1,26 @@
-// Função para buscar o perfil na tabela 'profiles'
-async function buscarPerfilPorEmailOuId(userId, email) {
-  // 1. Tenta buscar pelo ID do usuário no banco
-  let data = await sbRequest('GET', 'profiles?id=eq.' + userId + '&select=*');
-  if (data && data.length > 0) return data[0];
+<!-- 1. Garanta que a CDN do Supabase v2 está sendo carregada no <head> -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  // 2. Se não encontrar pelo ID, busca pelo e-mail
-  if (email) {
-    data = await sbRequest('GET', 'profiles?email=eq.' + encodeURIComponent(email) + '&select=*');
-    if (data && data.length > 0) return data[0];
+<script>
+  // 2. Chaves do seu projeto
+  const SB_URL = 'https://xzltbjinzlrzfrwdqtxm.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRiamluemxyemZyd2RxdHhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MjMxODYsImV4cCI6MjEwNDA5OTE4Nn0.sV9vPOqhyvsyxj9IfIbvpR4_JKYF784an3juELQnDOA';
+
+  // 3. Inicialize o cliente do Supabase
+  const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+
+  // 4. Mapeie para 'supabaseApi' globalmente para compatibilidade com o seu código
+  window.supabaseApi = supabaseClient;
+
+  // 5. Função de Login Corrigida
+  async function supabaseLogin(email, senha) {
+    // Usa a sintaxe correta da V2: signInWithPassword
+    const { data, error } = await window.supabaseApi.auth.signInWithPassword({
+      email: email,
+      password: senha
+    });
+
+    if (error) throw error;
+    return data;
   }
-  return null;
-}
-
-// Função de Login atualizada
-async function processarLogin() {
-  let email = document.getElementById('loginEmail').value;
-  let senha = document.getElementById('loginSenha').value;
-
-  try {
-    const resultado = await supabaseLogin(email, senha);
-
-    if (resultado && resultado.user) {
-      // Busca o perfil na tabela 'profiles'
-      const perfil = await buscarPerfilPorEmailOuId(resultado.user.id, resultado.user.email);
-
-      if (perfil) {
-        if (!perfil.ativo) {
-          alert('Seu perfil está inativo. Entre em contato com o administrador.');
-          return;
-        }
-
-        // Armazena os dados do perfil do usuário logado
-        usuarioAtual = {
-          id: perfil.id || resultado.user.id,
-          nome: perfil.nome,
-          email: perfil.email,
-          tipo: perfil.tipo,
-          telefone: perfil.telefone,
-          unidade: perfil.unidade,
-          setor: perfil.setor,
-          placa: perfil.placa,
-          modelo: perfil.modelo,
-          capacidade: perfil.capacidade,
-          categoria: perfil.categoria,
-          cnh: perfil.cnh,
-          validade_cnh: perfil.validade_cnh,
-          ativo: perfil.ativo,
-          ver_agenda_geral: perfil.ver_agenda_geral
-        };
-
-        salvarSessao();
-        carregarSaudacao();
-        carregarPainelPorPerfil();
-      } else {
-        alert('Perfil não encontrado no sistema. Verifique a execução do script SQL de perfil.');
-      }
-    }
-  } catch (erro) {
-    console.error('Erro no login:', erro);
-    alert('Erro no login: ' + (erro.message || 'Verifique o e-mail e senha informados.'));
-  }
-}
+</script>
