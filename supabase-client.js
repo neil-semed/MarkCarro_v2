@@ -78,24 +78,41 @@ class SupabaseClient {
   // essencial e só criava mais um ponto onde isso podia travar/demorar.
   async loadUserProfile(userId, userObj = null) {
     try {
-      // Usa uma função no banco (RPC) que busca (ou cria, se ainda não
-      // existir) o perfil do próprio usuário logado. Ela roda com
-      // privilégio elevado (SECURITY DEFINER) dentro do Postgres, então
-      // não depende mais das policies/permissões de RLS da tabela
-      // "profiles" para funcionar — é o mesmo motivo de travamentos
-      // anteriores ("Erro ao carregar perfil" mesmo com o perfil
-      // existindo certinho no banco).
-      const { data, error } = await withTimeoutSC(
+      // Tenta primeiro pela função no banco (get_my_profile) -- ela roda
+      // com privilégio elevado e não depende das policies de RLS da
+      // tabela "profiles".
+      let { data, error } = await withTimeoutSC(
         this.client.rpc('get_my_profile'),
         8000,
         'Timeout ao buscar perfil'
       );
-
+ 
+      // PGRST202 = a função existe no banco mas o cache da API do
+      // Supabase ainda não foi atualizado (pode acontecer por alguns
+      // minutos logo depois de criar a função). Nesse caso, cai de
+      // volta para a consulta direta na tabela, do jeito que era antes,
+      // em vez de travar o login por causa disso.
+      if (error && error.code === 'PGRST202') {
+        console.warn('Função get_my_profile ainda não disponível na API, usando consulta direta.');
+        const direto = await withTimeoutSC(
+          this.client.from('profiles').select('*').eq('id', userId).single(),
+          8000,
+          'Timeout ao buscar perfil'
+        );
+        data = direto.data;
+        error = direto.error;
+ 
+        if (error && error.code === 'PGRST116') {
+          await this.createDefaultProfile(userId, userObj);
+          return;
+        }
+      }
+ 
       if (error) {
         console.error('Erro ao carregar perfil:', error);
         return;
       }
-
+ 
       this.currentUser = userObj || this.currentUser;
       this.userProfile = data;
       this.notifyAuthListeners('profile_loaded', data);
@@ -1057,4 +1074,5 @@ window.supabaseApi = new SupabaseClient();
 document.addEventListener('DOMContentLoaded', () => {
   window.supabaseApi.init().catch(console.error);
 });
+ 
  
