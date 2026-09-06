@@ -155,15 +155,16 @@ const LoginPage = {
       Components.Toast.error('Erro ao carregar perfil. Faça login novamente.');
       return;
     }
-    
-    // Esconde tela de login
-    document.getElementById('tela-login').classList.add('hidden');
-    
-    // Mostra app principal
-    document.getElementById('app-principal').classList.remove('hidden');
-    
-    // Inicializa app
-    if (window.App) window.App.init();
+ 
+    // Importante: NÃO chamar App.init() aqui — ele já rodou uma vez ao
+    // carregar a página (antes do login) e, por ter a trava
+    // "if (this.initialized) return", uma segunda chamada não faz nada.
+    // Quem realmente esconde o login, mostra o app principal, preenche o
+    // cabeçalho e abre a tela certa (Painel do Gestor / Nova Solicitação /
+    // Agenda do Condutor, conforme o tipo de usuário) é App.mostrarTelaAposLogin().
+    if (window.App) {
+      window.App.mostrarTelaAposLogin();
+    }
   },
   
   mostrarCadastro() {
