@@ -269,45 +269,63 @@
     
     <!-- Tela de Login -->
     <div id="tela-login" class="hidden min-h-screen flex items-center justify-center p-4">
-      <div class="w-full max-w-md animate-fade-in">
-        <div class="text-center mb-8">
-          <img src="logo.png" alt="MarkCarro" class="mx-auto mb-4" style="height: 80px; width: auto; max-width: 100%;" onerror="this.style.display='none'">
-          <h1 class="text-2xl font-bold text-mc-azul">MarkCarro</h1>
-          <p class="text-slate-500 mt-1">SEMED Nova Lima</p>
-        </div>
-        
-        <div class="card p-6">
-          <h2 class="text-xl font-semibold text-slate-900 mb-6 text-center">Entrar no sistema</h2>
-          
-          <form id="form-login" class="space-y-4" novalidate>
+      <div class="w-full max-w-md animate-fade-in relative bg-white rounded-[22px] border border-slate-200 shadow-xl overflow-hidden">
+        <!-- Faixa colorida no topo (cores da marca) -->
+        <div class="absolute top-0 left-0 w-full h-[5px] bg-gradient-to-r from-mc-vermelho via-mc-laranja to-mc-verde"></div>
+
+        <div class="px-8 pt-10 pb-8 text-center">
+          <div class="flex items-center justify-center mb-1" style="min-height: 90px;">
+            <img src="logo.png" alt="MarkCarro" style="max-height: 90px; max-width: 260px; width: auto; height: auto; object-fit: contain;" onerror="this.style.display='none'">
+          </div>
+
+          <h1 class="text-lg font-bold text-slate-800">Agendamento de Veículos</h1>
+          <div class="w-14 h-1.5 mx-auto my-3 rounded-full bg-gradient-to-r from-mc-vermelho via-mc-laranja to-mc-verde"></div>
+          <p class="text-sm font-semibold text-slate-600">SEMED - Nova Lima</p>
+          <p class="text-xs text-slate-400 mb-6">Digite seu e-mail e senha</p>
+
+          <form id="form-login" class="space-y-4 text-left" novalidate>
             <div>
-              <label for="login-email" class="block text-sm font-medium text-slate-700 mb-1.5">E-mail *</label>
-              <input type="email" id="login-email" class="input-field" required autocomplete="email" placeholder="seu@email.com">
+              <label for="login-email" class="block text-sm font-semibold text-slate-700 mb-1.5">E-mail</label>
+              <input type="email" id="login-email" class="w-full h-12 px-4 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-mc-laranja/20 focus:border-mc-laranja focus:bg-white transition-all duration-200" required autocomplete="email" placeholder="seu@email.com">
             </div>
-            
+
             <div>
-              <label for="login-senha" class="block text-sm font-medium text-slate-700 mb-1.5">Senha *</label>
-              <input type="password" id="login-senha" class="input-field" required autocomplete="current-password" placeholder="••••••••">
+              <label for="login-senha" class="block text-sm font-semibold text-slate-700 mb-1.5">Senha</label>
+              <div class="flex">
+                <input type="password" id="login-senha" class="w-full h-12 px-4 bg-slate-50 border border-slate-300 rounded-l-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-mc-laranja/20 focus:border-mc-laranja focus:bg-white transition-all duration-200" required autocomplete="current-password" placeholder="••••••••">
+                <button type="button" class="w-12 h-12 shrink-0 flex items-center justify-center bg-slate-100 border border-l-0 border-slate-300 rounded-r-lg text-slate-500 hover:bg-mc-laranja/10 hover:text-mc-laranja-escuro transition-colors" onclick="toggleSenhaVisibility('login-senha', this)" title="Mostrar/ocultar senha">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+              </div>
             </div>
-            
-            <button type="submit" class="btn-primary w-full py-3 mt-2" id="btn-login">
+
+            <button type="submit" class="w-full h-12 mt-2 rounded-lg font-bold text-white tracking-wide transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" style="background: linear-gradient(135deg, #FF914D, #E67A38);" id="btn-login">
               <span class="flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a1 1 0 01-1 1h-1"/></svg>
                 Entrar
               </span>
             </button>
           </form>
-          
-          <p class="mt-4 text-center text-sm text-slate-500">
-            <a href="#" id="link-cadastro" class="text-mc-azul hover:underline font-medium">Não tem conta? Cadastre-se</a>
+
+          <p class="mt-5 text-center text-sm">
+            <a href="#" id="link-cadastro" class="text-mc-verde hover:underline font-semibold">Não tem conta? Cadastre-se</a>
           </p>
         </div>
-        
-        <p class="mt-4 text-center text-xs text-slate-400">
-          SEMED Nova Lima - Sistema de Gestão de Transportes
-        </p>
       </div>
     </div>
+
+    <script>
+      // Alterna a visibilidade da senha (usado na tela de login)
+      function toggleSenhaVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const vaiMostrar = input.type === 'password';
+        input.type = vaiMostrar ? 'text' : 'password';
+        btn.innerHTML = vaiMostrar
+          ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.964 9.964 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/></svg>'
+          : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+      }
+    </script>
     
     <!-- Tela de Cadastro -->
     <div id="tela-cadastro" class="hidden min-h-screen flex items-center justify-center p-4">
