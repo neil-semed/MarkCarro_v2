@@ -1,7 +1,7 @@
 // ============================================================
 // MARKCARRO - LOGIN PAGE
 // ============================================================
-
+ 
 const LoginPage = {
   form: null,
   emailInput: null,
@@ -71,10 +71,11 @@ const LoginPage = {
         // Aguarda o perfil carregar
         setTimeout(() => this.redirecionarAposLogin(), 500);
       } else {
-        if (error.message.includes('não confirmado')) {
-          Components.Toast.warning(error.message);
+        const mensagem = result.error || 'E-mail ou senha inválidos';
+        if (mensagem.includes('não confirmado')) {
+          Components.Toast.warning(mensagem);
         } else {
-          Components.Toast.error(error.message);
+          Components.Toast.error(mensagem);
         }
       }
     } catch (error) {
@@ -127,7 +128,7 @@ const LoginPage = {
         }, 100);
       });
     };
-
+ 
     await esperarPerfil();
     this.mostrarTelaAposLogin();
   },
@@ -156,11 +157,12 @@ const LoginPage = {
     setTimeout(() => document.getElementById('cad-nome')?.focus(), 100);
   }
 };
-
+ 
 // Inicializa quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
   LoginPage.init();
 });
-
+ 
 // Exporta para uso global
 window.LoginPage = LoginPage;
+ 
