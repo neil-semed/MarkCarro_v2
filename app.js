@@ -63,8 +63,19 @@ function preencherDropdownUnidades(selectElem, comOpcaoOutro) {
 
 function preencherDropdownLocais(selectElem) {
   if (!selectElem) return;
+
   selectElem.innerHTML = '<option value="">Selecione...</option>';
-  cacheLocais.forEach(loc => selectElem.innerHTML += `<option value="${loc}">${loc}</option>`);
+
+  cacheLocais.forEach(loc => {
+    const nome = typeof loc === 'string' ? loc : loc.nome;
+
+    if (!nome) return;
+
+    selectElem.innerHTML += `
+      <option value="${nome}">${nome}</option>
+    `;
+  });
+
   selectElem.innerHTML += '<option value="Outro">Outro local</option>';
 }
 
