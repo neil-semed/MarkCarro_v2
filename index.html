@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base href="https://neil-semed.github.io/MarkCarro_v2/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#044AAA">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MarkCarro">
+  <meta name="description" content="Agendamento de veículos - SEMED Nova Lima">
+  <title>MarkCarro - SEMED Nova Lima</title>
+
+  <!-- PWA: instalável direto pelo navegador (Adicionar à tela inicial),
+       sem loja de aplicativos - basta abrir este link no celular. -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+
+  <!-- Bootstrap 5 CSS (para login e componentes) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- SheetJS para exportar Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
+  <!-- Configuração do Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'mc-azul': '#044AAA',
+            'mc-azul-escuro': '#033A85',
+            'mc-verde': '#46BE6B',
+            'mc-verde-escuro': '#37A057',
+            'mc-vermelho': '#D85736',
+            'mc-vermelho-escuro': '#B8452A',
+            'mc-laranja': '#FF914D',
+            'mc-laranja-escuro': '#E67A38',
+            'mc-amarelo': '#FFDE59',
+            'mc-teal': '#1D5C63',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Fallback global para Components.Toast (executa ANTES de qualquer script de página) -->
+  <script>
+    if (typeof window.Components === 'undefined') window.Components = {};
+    if (typeof window.Components.Toast === 'undefined') {
+      window.Components.Toast = {
+        container: null,
+        init() {
+          if (!this.container) {
+            this.container = document.getElementById('toast-container');
+            if (!this.container) {
+              this.container = document.createElement('div');
+              this.container.id = 'toast-container';
+              this.container.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2';
+              document.body.appendChild(this.container);
+            }
+          }
+        },
+        show(message, type = 'info', duration = 4000) {
+          this.init();
+          const colors = {
+            success: 'bg-green-600',
+            error: 'bg-red-600',
+            warning: 'bg-amber-600',
+            info: 'bg-blue-600'
+          };
+          const icons = {
+            success: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"/></svg>',
+            error: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m-2 2l2-2"/></svg>',
+            warning: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+            info: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+          };
+          const toast = document.createElement('div');
+          toast.className = `toast ${colors[type] || colors.info} animate-slide-up flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg min-w-[280px] max-w-md`;
+          toast.innerHTML = `
+            ${icons[type] || icons.info}
+            <span class="flex-1 text-sm">${message}</span>
+            <button onclick="this.parentElement.remove()" class="text-white/70 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          `;
+          this.container.appendChild(toast);
+          setTimeout(() => {
+            if (toast.parentElement) {
+              toast.style.animation = 'slideUp 0.3s ease-in reverse';
+              setTimeout(() => toast.remove(), 300);
+            }
+          }, duration);
+        },
+        success(message, duration) { this.show(message, 'success', duration); },
+        error(message, duration) { this.show(message, 'error', duration); },
+        warning(message, duration) { this.show(message, 'warning', duration); },
+        info(message, duration) { this.show(message, 'info', duration); }
+      };
+    }
+  </script>
+  
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" href="favicon.png">
+
+  <style type="text/tailwindcss">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f4f6f9 0%, #e9edf2 100%);
+      min-height: 100vh;
+    }
+    
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.5; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    .animate-slide-up { animation: slideUp 0.4s ease-out; }
+    
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    /* Focus visible */
+    *:focus-visible {
+      outline: 2px solid #044AAA;
+      outline-offset: 2px;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* Badge status - faltava a classe base ".badge" (só existiam as
+       variantes de cor ".badge-confirmada" etc.) - sem ela, toda pilulazinha
+       de status em qualquer tabela/card da aplicação (Minhas Solicitações,
+       Painel do Gestor, Agenda...) aparecia como texto colorido cru, sem
+       arredondamento nem preenchimento (padding), quase sem se destacar do
+       resto do texto. */
+    .badge { @apply inline-block px-2.5 py-1 rounded-full text-xs font-medium; }
+    .badge-pendente { @apply bg-amber-100 text-amber-800; }
+    .badge-confirmada { @apply bg-green-100 text-green-800; }
+    .badge-cancelada { @apply bg-red-100 text-red-800; }
+    .badge-em-analise { @apply bg-blue-100 text-blue-800; }
+    .badge-ocupado { @apply bg-gray-100 text-gray-800; }
+    .badge-desprezado { @apply bg-gray-100 text-gray-600; }
+
+    /* Caixas de aviso (usadas em Registro de KM) - substituem classes do
+       Bootstrap ("alert alert-success" etc.) que nunca existiram de verdade
+       neste app (só Tailwind), deixando aquela tela sem nenhum estilo. */
+    .alert-box { @apply rounded-lg border-l-4 p-4 text-sm; }
+    .alert-success { @apply bg-green-50 border-green-500 text-green-800; }
+    .alert-warning { @apply bg-amber-50 border-amber-500 text-amber-800; }
+    .alert-info { @apply bg-blue-50 border-blue-500 text-blue-800; }
+    .alert-danger { @apply bg-red-50 border-red-500 text-red-800; }
+
+    /* Inputs (também usada em <select> e <textarea> em toda a aplicação) -
+       borda mais grossa e mais escura que antes (era border-slate-300 fininha,
+       quase não dava pra perceber onde terminava um campo/dropdown e começava
+       o fundo da tela) - pedido do usuário pra "destacar/contornar" os campos. */
+    .input-field {
+      @apply w-full px-4 py-2.5 border-2 border-slate-400 rounded-lg text-slate-900
+             placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-mc-azul/20
+             focus:border-mc-azul transition-all duration-200;
+    }
+    .input-field:disabled {
+      @apply bg-slate-50 text-slate-500 cursor-not-allowed;
+    }
+    
+    /* Botões */
+    .btn-primary {
+      @apply bg-mc-azul text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-azul-escuro focus:outline-none focus:ring-2 focus:ring-mc-azul/30
+             focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    .btn-secondary {
+      @apply bg-white text-slate-700 px-4 py-2.5 rounded-lg font-medium border border-slate-300
+             hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-success {
+      @apply bg-mc-verde text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-verde-escuro focus:outline-none focus:ring-2 focus:ring-mc-verde/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-danger {
+      @apply bg-mc-vermelho text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-vermelho-escuro focus:outline-none focus:ring-2 focus:ring-mc-vermelho/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-warning {
+      @apply bg-mc-laranja text-white px-4 py-2.5 rounded-lg font-medium
+             hover:bg-mc-laranja-escuro focus:outline-none focus:ring-2 focus:ring-mc-laranja/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+    .btn-outline {
+      @apply bg-transparent border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg font-medium
+             hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30
+             focus:ring-offset-2 transition-all duration-200;
+    }
+
+    /* Pílulas de navegação (topo do Gestor/Admin) - cada seção tem uma cor
+       própria; a pílula ativa (tela aberta no momento) fica preenchida. */
+    .nav-pill {
+      @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium
+             border transition-colors duration-150 whitespace-nowrap;
+    }
+    .nav-pill-azul { @apply border-mc-azul text-mc-azul bg-white hover:bg-mc-azul/5; }
+    .nav-pill-azul.active { @apply bg-mc-azul text-white; }
+    .nav-pill-verde { @apply border-mc-verde-escuro text-mc-verde-escuro bg-white hover:bg-mc-verde/10; }
+    .nav-pill-verde.active { @apply bg-mc-verde text-white border-mc-verde; }
+    .nav-pill-roxo { @apply border-indigo-400 text-indigo-600 bg-white hover:bg-indigo-50; }
+    .nav-pill-roxo.active { @apply bg-indigo-500 text-white border-indigo-500; }
+    .nav-pill-laranja { @apply border-mc-laranja-escuro text-mc-laranja-escuro bg-white hover:bg-mc-laranja/10; }
+    .nav-pill-laranja.active { @apply bg-mc-laranja text-white border-mc-laranja; }
+    .nav-pill-amarelo { @apply border-amber-400 text-amber-700 bg-white hover:bg-amber-50; }
+    .nav-pill-amarelo.active { @apply bg-amber-400 text-white border-amber-400; }
+    .nav-pill-teal { @apply border-mc-teal text-mc-teal bg-white hover:bg-mc-teal/10; }
+    .nav-pill-teal.active { @apply bg-mc-teal text-white; }
+    .nav-pill-cinza { @apply border-slate-300 text-slate-600 bg-white hover:bg-slate-50; }
+    .nav-pill-cinza.active { @apply bg-slate-600 text-white border-slate-600; }
+    .nav-pill-vermelho { @apply border-mc-vermelho text-mc-vermelho bg-white hover:bg-mc-vermelho/10; }
+    .nav-pill-vermelho.active { @apply bg-mc-vermelho text-white; }
+
+    /* Variante "cheia" da pílula pro menu lateral (PC) do Condutor/Solicitante:
+       mesma cor/estado ativo do nav-pill normal, só troca o formato (pílula
+       arredondada -> barra retangular ocupando a largura toda da coluna). */
+    .nav-pill-full { @apply rounded-lg w-full justify-start py-2; }
+
+    /* Botões do Condutor/Solicitante no topo (celular): um pouco menores que
+       antes, já que no PC eles somem e viram o menu lateral (#sidebar-nav) -
+       no celular continuam no topo, só com texto/padding mais compactos. */
+    .btn-compact { @apply text-xs px-3 py-1.5; }
+
+    /* Indicação de "aba ativa" pros botões do Condutor/Solicitante no topo
+       (celular) - eles usam btn-success/btn-outline/btn-warning, não
+       nav-pill, então não ganham o preenchimento de cor que o admin tem;
+       aqui é um destaque (anel + sombra) em cima do estilo que já existe. */
+    #header-nav-admin button.active:not(.nav-pill) {
+      @apply ring-2 ring-offset-1 ring-mc-azul shadow-md;
+    }
+
+    /* Tabelas */
+    .table-container {
+      @apply overflow-x-auto rounded-lg border border-slate-200;
+    }
+    .table-th {
+      @apply px-3 py-2 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider bg-slate-50 border-b border-slate-200;
+    }
+    .table-td {
+      @apply px-3 py-2.5 text-sm text-slate-900 border-b border-slate-100;
+    }
+    
+    /* Modal/Overlay */
+    .modal-overlay {
+      @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+    }
+    .modal-content {
+      @apply bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up;
+    }
+    
+    /* Toasts */
+    .toast {
+      @apply fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white animate-slide-up flex items-center gap-2;
+    }
+    .toast-success { @apply bg-mc-verde; }
+    .toast-error { @apply bg-mc-vermelho; }
+    .toast-warning { @apply bg-mc-laranja; }
+    .toast-info { @apply bg-mc-azul; }
+    
+    /* Loading spinner */
+    .spinner {
+      @apply w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin;
+    }
+    
+    /* Badge notificação */
+    .notification-badge {
+      @apply absolute -top-1 -right-1 w-5 h-5 bg-mc-vermelho text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse;
+    }
+    
+    /* Cards de estatística */
+    .stat-card {
+      @apply bg-white rounded-xl p-5 border border-slate-100 hover:shadow-md transition-shadow duration-200;
+    }
+
+    /* Células de tabelas geradas via JS (sem classe table-td por linha) */
+    .table-container table td {
+      @apply px-3 py-2.5 text-sm text-slate-900 border-b border-slate-100 align-middle;
+    }
+
+    /* ============================================================
+       MOBILE / PWA
+       ============================================================ */
+
+    /* Evita zoom automático do iOS Safari ao focar em inputs com
+       font-size menor que 16px. */
+    input, select, textarea { font-size: 16px; }
+    @media (min-width: 640px) {
+      input, select, textarea { font-size: inherit; }
+    }
+
+    /* Respeita a "notch"/barra de gestos em iPhones mais novos. */
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+    #bottom-nav {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Barra de navegação inferior - só aparece em telas pequenas, some no desktop */
+    #bottom-nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 40;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    #bottom-nav button {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 4px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+    }
+    @media (min-width: 768px) {
+      #bottom-nav { display: none; }
+    }
+    /* Dá espaço no fim da página pra barra inferior não cobrir conteúdo/botões */
+    @media (max-width: 767.98px) {
+      #main-content { padding-bottom: 76px; }
+    }
+
+    /* Cards mobile (alternativa às tabelas em telas estreitas) */
+    .mobile-cards { display: block; }
+    .desktop-table { display: none; }
+    @media (min-width: 768px) {
+      .mobile-cards { display: none; }
+      .desktop-table { display: block; }
+    }
+
+    /* Banner de instalação do PWA */
+    #pwa-install-banner {
+      position: fixed;
+      left: 12px; right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      z-index: 60;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      #pwa-install-banner { left: auto; right: 24px; bottom: 24px; }
+    }
+
+    /* Menu lateral (Condutor/Solicitante) - é uma GAVETA que desliza da
+       esquerda, usada só no CELULAR (aberta pelo botão ☰ Menu no
+       cabeçalho). No PC esses dois perfis usam uma barra de botões fixos
+       no topo em vez disso (ver #header-nav-admin no HTML - o grupo
+       "hidden md:contents" logo abaixo dos botões do Admin). O Admin não
+       usa nada disso: continua com as pílulas horizontais no topo em tela
+       cheia, em qualquer tamanho de tela. */
+    #sidebar-nav {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 82vw;
+      max-width: 300px;
+      z-index: 70;
+      overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    }
+    #sidebar-nav.sidebar-ativa { display: block; }
+    #sidebar-nav.menu-lateral-aberto { transform: translateX(0); }
+    #sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 65;
+    }
+    #sidebar-backdrop.menu-lateral-aberto { display: block; }
+    @media (min-width: 768px) {
+      /* No PC nem a gaveta nem o fundo escuro existem - o botão ☰ some
+         (md:hidden no próprio botão) e ninguém mais chama pra abrir. */
+      #sidebar-nav, #sidebar-backdrop { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- App Root -->
+  <div id="app">
+    <!-- Tela de Loading Inicial -->
+    <div id="loading-screen" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white z-[100]">
+      <div class="text-center animate-fade-in">
+        <img src="logo.png" alt="MarkCarro" class="mx-auto mb-4" style="height: 96px; width: auto; max-width: 100%;" onerror="this.style.display='none'">
+        <div class="w-8 h-8 border-3 border-mc-azul/20 border-t-mc-azul rounded-full animate-spin mx-auto"></div>
+        <p class="mt-4 text-slate-600 text-sm">Carregando MarkCarro...</p>
+      </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2" aria-live="polite"></div>
+
+    <!-- Convite de instalação do PWA (aparece quando o navegador permite instalar) -->
+    <div id="pwa-install-banner" class="hidden card p-3 shadow-xl flex items-center gap-3 animate-slide-up">
+      <img src="logo.png" alt="" class="w-9 h-9 rounded-lg shrink-0" onerror="this.style.display='none'">
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-slate-900 truncate">Instalar o MarkCarro</p>
+        <p class="text-xs text-slate-500 truncate">Acesso rápido direto da tela inicial</p>
+      </div>
+      <button id="btn-pwa-install" class="btn-primary text-xs py-2 px-3 shrink-0">Instalar</button>
+      <button id="btn-pwa-dismiss" class="text-slate-400 hover:text-slate-600 shrink-0 p-1" aria-label="Fechar">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+<!-- Tela de Login (Bootstrap 5 - igual ao exemplo) -->
+    <div id="tela-login" class="min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-md animate-fade-in">
+        <div class="bg-white rounded-[22px] border border-slate-200 shadow-xl overflow-hidden relative">
+          <!-- Faixa colorida no topo (cores da marca: vermelho → laranja → verde) -->
+          <div class="absolute top-0 left-0 w-full h-[5px] bg-gradient-to-r from-red-600 via-orange-500 to-green-600"></div>
+
+          <div class="p-8 text-center">
+            <!-- Logo -->
+            <div class="flex items-center justify-center mb-2" style="min-height: 120px;">
+              <img src="logo.png" alt="MarkCarro" class="login-logo" style="max-height: 115px; max-width: 290px; width: auto; height: auto; object-fit: contain;" onerror="this.style.display='none'">
+            </div>
+
+            <h1 class="text-xl font-bold text-gray-800 mb-1">Agendamento de Veículos</h1>
+            <div class="w-[55px] h-[5px] mx-auto my-3 rounded-full bg-gradient-to-r from-red-600 via-orange-500 to-green-600"></div>
+            <p class="text-sm font-semibold text-gray-600 mb-1">SEMED - Nova Lima</p>
+            <p class="text-xs text-gray-400 mb-6">Digite seu e-mail e senha</p>
+
+            <form id="form-login" class="space-y-4 text-left" novalidate onsubmit="event.preventDefault(); processarLogin();">
+              <div class="mb-3 text-start">
+                <label for="login-email" class="block text-sm font-semibold text-gray-800 mb-1.5">E-mail</label>
+                <input type="email" id="login-email" class="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all duration-200" required autocomplete="email" placeholder="seu@email.com">
+              </div>
+
+              <div class="mb-4 text-start">
+                <label for="login-senha" class="block text-sm font-semibold text-gray-800 mb-1.5">Senha</label>
+                <!-- Era "input-group" (Bootstrap, não existe neste app) - sem o
+                     "display:flex" que essa classe daria, e sem o input ter
+                     "flex-1", o campo de senha ficava com a largura padrão
+                     do navegador (bem estreita) em vez de ocupar o espaço
+                     todo ao lado do botão de mostrar/ocultar. Trocado por um
+                     "flex" real do Tailwind. -->
+                <div class="flex">
+                  <input type="password" id="login-senha" class="flex-1 min-w-0 h-12 px-4 bg-gray-50 border border-gray-300 rounded-l-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all duration-200" required autocomplete="current-password" placeholder="••••••••">
+                  <button type="button" class="w-12 h-12 flex items-center justify-center bg-gray-100 border-l-0 border-gray-300 rounded-r-lg text-gray-500 hover:bg-orange-100 hover:text-orange-700 transition-colors" onclick="toggleSenhaVisibility('login-senha', this)" title="Mostrar/ocultar senha">
+                    <span class="text-lg">👁</span>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full h-12 mt-2 rounded-lg font-bold text-white text-base tracking-wide transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg" style="background: linear-gradient(135deg, #ff8a00, #f57c00);" id="btn-login">
+                ENTRAR
+              </button>
+            </form>
+
+            <p class="mt-5 text-center text-sm">
+              <a href="#" id="link-cadastro" class="text-green-600 hover:underline font-semibold" onclick="event.preventDefault(); abrirCadastro();">Criar conta</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Alterna a visibilidade da senha (usado na tela de login)
+      function toggleSenhaVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const vaiMostrar = input.type === 'password';
+        input.type = vaiMostrar ? 'text' : 'password';
+        btn.innerHTML = vaiMostrar ? '<span class="text-lg">🔒</span>' : '<span class="text-lg">👁</span>';
+      }
+    </script>
+    
+    <!-- Tela de Cadastro -->
+    <div id="tela-cadastro" class="hidden min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-2xl animate-fade-in">
+        <div class="flex items-center justify-between mb-6">
+          <button onclick="voltarLogin()" class="btn-outline text-sm px-3 py-2">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Voltar
+          </button>
+          <h1 class="text-xl font-bold text-mc-azul">MarkCarro</h1>
+          <div class="w-20"></div>
+        </div>
+        
+        <div class="card p-6">
+          <h2 class="text-xl font-semibold text-slate-900 mb-2 text-center">Criar conta</h2>
+          <p class="text-center text-slate-500 text-sm mb-6">Preencha seus dados para acessar o sistema</p>
+          
+          <form id="form-cadastro" class="space-y-4" novalidate onsubmit="event.preventDefault(); salvarCadastro();">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Perfil *</label>
+              <select id="cad-tipo-perfil" class="input-field" onchange="alternarCamposPerfil()">
+                <option value="solicitante">Solicitante</option>
+                <option value="condutor">Motorista / Motoboy</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Nome Completo *</label>
+                <input type="text" id="cad-nome" class="input-field" required placeholder="João da Silva">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">E-mail *</label>
+                <input type="email" id="cad-email" class="input-field" required placeholder="joao@email.com">
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Senha *</label>
+                <input type="password" id="cad-senha" class="input-field" required placeholder="••••••••" minlength="6">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Telefone *</label>
+                <input type="tel" id="cad-telefone" class="input-field" required placeholder="(31) 99999-9999" oninput="aplicarMascaraTelefone(this)">
+              </div>
+            </div>
+            
+            <!-- Campos Solicitante -->
+            <div id="bloco-solicitante" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Unidade *</label>
+                  <select id="cad-unidade" class="input-field" required onchange="carregarSetoresCadastro()">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Setor *</label>
+                  <select id="cad-setor" class="input-field" required>
+                    <option value="">Selecione a unidade primeiro</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Campos Condutor -->
+            <div id="bloco-condutor" class="space-y-4 hidden">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Categoria *</label>
+                  <select id="cad-categoria" class="input-field" required>
+                    <option value="Motorista">Motorista</option>
+                    <option value="Motoboy">Motoboy</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Placa</label>
+                  <input type="text" id="cad-placa" class="input-field" placeholder="ABC-1234" style="text-transform: uppercase;">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Modelo</label>
+                  <input type="text" id="cad-modelo" class="input-field" placeholder="Fiat Toro">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Capacidade</label>
+                  <input type="text" id="cad-capacidade" class="input-field" placeholder="ex: 4L, 6L, 15L">
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">CNH</label>
+                  <input type="text" id="cad-cnh" class="input-field" placeholder="12345678901">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Validade CNH</label>
+                  <input type="date" id="cad-validade-cnh" class="input-field">
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+              <button type="button" onclick="voltarLogin()" class="btn-secondary flex-1">Voltar</button>
+              <button type="submit" class="btn-primary flex-1">Salvar Cadastro</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- App Principal (após login) -->
+    <div id="app-principal" class="hidden min-h-screen bg-slate-50">
+      <!-- Header/Topbar -->
+      <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="px-4 sm:px-6">
+          <div class="flex flex-wrap items-center justify-between gap-y-2 py-2.5">
+            <!-- Título -->
+            <!-- A logo agora aparece só na tela de login (pedido do usuário) -
+                 aqui dentro do app fica só o nome/subtítulo em texto. O
+                 Perfil do usuário saiu daqui e foi para baixo da saudação,
+                 do outro lado do header (ver "saudacao-nome-perfil"). -->
+            <div class="flex items-center gap-3">
+              <div>
+                <p class="text-lg font-bold text-mc-azul leading-tight">MarkCarro</p>
+                <p id="header-subtitle" class="text-xs text-slate-500">SEMED Nova Lima</p>
+              </div>
+            </div>
+
+            <!-- Navegação do Gestor/Admin: pílulas coloridas, sempre visíveis (sem
+                 esconder atrás de ícone/menu) - cada uma é ligada/desligada por
+                 login.js conforme o perfil, igual antes; só o estilo mudou. -->
+            <div id="header-nav-admin" class="flex flex-wrap items-center gap-2 order-3 basis-full lg:basis-auto lg:order-2">
+              <button id="btn-painel-gestor" data-aba="gestor" onclick="abrirPainelGestor()" class="nav-pill nav-pill-azul hidden">
+                <span aria-hidden="true">📊</span> Dashboard
+              </button>
+              <button id="btn-ir-agenda" data-aba="agenda" onclick="abrirAgenda()" class="nav-pill nav-pill-teal hidden">
+                <span aria-hidden="true">📅</span> Agenda de Corridas
+              </button>
+              <button id="btn-nova-solicitacao-gestor" data-aba="nova-solicitacao" onclick="abrirNovaSolicitacaoGestor()" class="nav-pill nav-pill-verde hidden">
+                <span aria-hidden="true">➕</span> Nova Solicitação
+              </button>
+              <button id="btn-gerenciar-condutores" data-aba="gerenciar-condutores" onclick="abrirGerenciarCondutores()" class="nav-pill nav-pill-roxo hidden">
+                <span aria-hidden="true">👥</span> Condutores
+              </button>
+              <button id="btn-gerenciar-km" data-aba="gerenciar-km" onclick="abrirGerenciarKm()" class="nav-pill nav-pill-laranja hidden">
+                <span aria-hidden="true">🚗</span> Gerenciar Km
+              </button>
+              <button id="btn-gerenciar-usuarios" data-aba="gerenciar-usuarios" onclick="abrirGerenciarUsuarios()" class="nav-pill nav-pill-amarelo hidden">
+                <span aria-hidden="true">📁</span> Usuários
+              </button>
+              <button id="btn-gerenciar-unidades" data-aba="gerenciar-unidades" onclick="abrirGerenciarUnidades()" class="nav-pill nav-pill-cinza hidden">
+                <span aria-hidden="true">🏢</span> Unidades
+              </button>
+              <button id="btn-gerenciar-cooperativas" data-aba="gerenciar-cooperativas" onclick="abrirGerenciarCooperativas()" class="nav-pill nav-pill-teal hidden">
+                <span aria-hidden="true">🤝</span> Cooperativas
+              </button>
+              <button id="btn-senha-pill" data-aba="alterar-senha" onclick="abrirAlterarSenha()" class="nav-pill nav-pill-cinza hidden">
+                <span aria-hidden="true">🔑</span> Senha
+              </button>
+              <button id="btn-sair-pill" onclick="fazerLogout()" class="nav-pill nav-pill-vermelho hidden">
+                <span aria-hidden="true">🚪</span> Sair
+              </button>
+
+              <!-- Botões do Condutor/Solicitante no PC: barra de pílulas fixa
+                   no topo (Dashboard, Solicitações, extra do perfil, Trocar
+                   Senha, Sair) - só aparece a partir de 768px ("hidden
+                   md:contents"). No celular esses dois perfis usam a GAVETA
+                   lateral (#sidebar-nav, aberta pelo ☰ Menu) em vez disto. -->
+              <div class="hidden md:contents">
+                <!-- Condutor -->
+                <button id="topo-dashboard-condutor" data-aba="painel-dia" onclick="abrirPainelDoDia()" class="nav-pill nav-pill-azul hidden">
+                  <span aria-hidden="true">📊</span> Dashboard
+                </button>
+                <button id="topo-solicitacoes-condutor" data-aba="agenda-condutor" onclick="abrirAgendaCondutor()" class="nav-pill nav-pill-teal hidden">
+                  <span aria-hidden="true">📅</span> Solicitações
+                </button>
+                <button id="topo-registrar-km" data-aba="registro-km" onclick="abrirRegistroKm()" class="nav-pill nav-pill-laranja hidden">
+                  <span aria-hidden="true">🚗</span> Registrar Km
+                </button>
+
+                <!-- Solicitante -->
+                <button id="topo-dashboard-solicitante" data-aba="dashboard-solicitante" onclick="abrirDashboardSolicitante()" class="nav-pill nav-pill-azul hidden">
+                  <span aria-hidden="true">📊</span> Dashboard
+                </button>
+                <button id="topo-minhas-solicitacoes" data-aba="minhas-solicitacoes" onclick="abrirMinhasSolicitacoes()" class="nav-pill nav-pill-teal hidden">
+                  <span aria-hidden="true">📅</span> Solicitações
+                </button>
+                <button id="topo-nova-solicitacao" data-aba="nova-solicitacao" onclick="abrirNovaSolicitacao()" class="nav-pill nav-pill-verde hidden">
+                  <span aria-hidden="true">➕</span> Nova Solicitação
+                </button>
+
+                <!-- Fixos pros dois perfis -->
+                <button id="topo-senha-cs" data-aba="alterar-senha" onclick="abrirAlterarSenha()" class="nav-pill nav-pill-cinza hidden">
+                  <span aria-hidden="true">🔑</span> Trocar Senha
+                </button>
+                <button id="topo-sair-cs" onclick="fazerLogout()" class="nav-pill nav-pill-vermelho hidden">
+                  <span aria-hidden="true">🚪</span> Sair
+                </button>
+              </div>
+            </div>
+
+            <!-- Botão ☰ Menu: abre a gaveta lateral (#sidebar-nav) - só existe
+                 no celular (md:hidden) e só pro Condutor/Solicitante (login.js
+                 desconde pro Admin). -->
+            <button id="btn-menu-lateral" onclick="toggleMenuLateral()" class="md:hidden order-1 p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Menu">
+              <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+
+            <!-- Saudação + Sino + Menu do usuário -->
+            <div class="flex items-center gap-3 order-2 lg:order-3">
+              <div class="hidden sm:block text-right leading-tight">
+                <p id="saudacao-usuario" class="text-sm font-bold text-mc-azul">Bem-vindo!</p>
+                <p id="saudacao-nome-perfil" class="text-xs text-slate-500">—</p>
+              </div>
+
+              <!-- Sino de Notificações -->
+              <div class="relative">
+                <button id="btn-sino" onclick="toggleNotificacoes()" class="relative p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Notificações">
+                  <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 5.165 2 9.272 2 14.158V17A2 2 0 004 19h16a2 2 0 002-2v-3"/></svg>
+                  <span id="badge-notificacoes" class="notification-badge hidden">0</span>
+                </button>
+
+                <!-- Painel de Notificações -->
+                <div id="painel-notificacoes" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 shadow-lg overflow-hidden z-50">
+                  <div class="p-3 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="font-semibold text-slate-900">Notificações</h3>
+                    <button onclick="marcarTodasLidas()" class="text-xs text-mc-azul hover:underline hidden" id="btn-marcar-todas-lidas">Marcar todas como lidas</button>
+                  </div>
+                  <div id="lista-notificacoes" class="max-h-96 overflow-y-auto">
+                    <div class="p-4 text-center text-slate-500 text-sm">Carregando...</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Menu do Usuário -->
+              <div class="relative">
+                <!-- Antes mostrava as iniciais do nome aqui dentro (ex: "KS") -
+                     removido a pedido do usuário, já que o nome completo
+                     aparece do lado, na saudação ("Bom dia! Karla Silva
+                     (solicitante)") e repetir era informação duplicada. -->
+                <button id="btn-usuario-menu" onclick="toggleUsuarioMenu()" class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Menu do usuário">
+                  <div class="w-8 h-8 rounded-full bg-mc-azul/10 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-mc-azul" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  </div>
+                  <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+
+                <div id="usuario-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50">
+                  <div class="px-3 py-2 border-b border-slate-100">
+                    <p class="text-xs text-slate-500">Conectado como</p>
+                    <p id="usuario-email" class="text-sm font-medium text-slate-900 truncate">usuario@email.com</p>
+                    <p id="usuario-perfil" class="text-xs text-slate-500 capitalize">Solicitante</p>
+                  </div>
+                  <button onclick="abrirAlterarSenha()" class="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2h10"/></svg>
+                    Alterar Senha
+                  </button>
+                  <hr class="my-1 border-slate-100">
+                  <button onclick="fazerLogout()" class="w-full px-3 py-2 text-left text-sm text-mc-vermelho hover:bg-red-50 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Sair
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Fundo escuro atrás da gaveta (celular) - clicar nele fecha o menu. -->
+      <div id="sidebar-backdrop" onclick="fecharMenuLateral()"></div>
+
+      <!-- Menu lateral = GAVETA (celular) - só pro Condutor e Solicitante (a
+           classe "sidebar-ativa" é ligada por login.js pra esses dois
+           perfis; "menu-lateral-aberto" é ligada/desligada pelo botão ☰).
+           O Admin não usa isso, continua com as pílulas horizontais do
+           header em qualquer tamanho de tela. Some inteiro no PC (ver
+           #sidebar-nav no <style> acima) - lá esses perfis usam a barra de
+           botões fixos no topo (o grupo "hidden md:contents" mais abaixo). -->
+      <aside id="sidebar-nav" class="bg-white h-full">
+        <nav class="flex flex-col gap-1.5 p-4">
+          <!-- Condutor -->
+          <button id="side-dashboard-condutor" data-aba="painel-dia" onclick="abrirPainelDoDia()" class="nav-pill nav-pill-azul nav-pill-full hidden">
+            <span aria-hidden="true">📊</span> Dashboard
+          </button>
+          <button id="side-solicitacoes-condutor" data-aba="agenda-condutor" onclick="abrirAgendaCondutor()" class="nav-pill nav-pill-teal nav-pill-full hidden">
+            <span aria-hidden="true">📅</span> Solicitações
+          </button>
+          <button id="side-registrar-km" data-aba="registro-km" onclick="abrirRegistroKm()" class="nav-pill nav-pill-laranja nav-pill-full hidden">
+            <span aria-hidden="true">🚗</span> Registrar Km
+          </button>
+
+          <!-- Solicitante -->
+          <button id="side-dashboard-solicitante" data-aba="dashboard-solicitante" onclick="abrirDashboardSolicitante()" class="nav-pill nav-pill-azul nav-pill-full hidden">
+            <span aria-hidden="true">📊</span> Dashboard
+          </button>
+          <button id="side-minhas-solicitacoes" data-aba="minhas-solicitacoes" onclick="abrirMinhasSolicitacoes()" class="nav-pill nav-pill-teal nav-pill-full hidden">
+            <span aria-hidden="true">📅</span> Solicitações
+          </button>
+          <button id="side-nova-solicitacao" data-aba="nova-solicitacao" onclick="abrirNovaSolicitacao()" class="nav-pill nav-pill-verde nav-pill-full hidden">
+            <span aria-hidden="true">➕</span> Nova Solicitação
+          </button>
+
+          <div class="my-1 border-t border-slate-100"></div>
+
+          <!-- Trocar Senha / Sair: fixos, aparecem pros dois perfis -->
+          <button id="side-senha" data-aba="alterar-senha" onclick="abrirAlterarSenha()" class="nav-pill nav-pill-cinza nav-pill-full hidden">
+            <span aria-hidden="true">🔑</span> Trocar Senha
+          </button>
+          <button id="side-sair" onclick="fazerLogout()" class="nav-pill nav-pill-vermelho nav-pill-full hidden">
+            <span aria-hidden="true">🚪</span> Sair
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Container Principal -->
+      <!-- Sem limite de largura aqui de propósito: as telas do Gestor/Admin
+           (Dashboard, Agenda, Gerenciar *) usam a tela toda. As telas do
+           Solicitante/Motorista têm seu próprio "max-w-*/mx-auto" aplicado
+           individualmente (ver cada tela-* abaixo), pensadas pra uso
+           confortável tanto no celular quanto no PC (onde a barra de topo
+           substitui a gaveta, sem precisar de mais espaço lateral). -->
+      <main class="px-4 sm:px-6 py-6" id="main-content">
+
+        <!-- Tela Nova Solicitação (Solicitante / Gestor) -->
+        <div id="tela-nova-solicitacao" class="hidden mb-6 animate-fade-in max-w-4xl mx-auto w-full">
+          <div class="card p-6">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Nova Solicitação de Transporte</h2>
+
+            <form id="form-solicitacao" class="space-y-4" novalidate onsubmit="event.preventDefault(); enviarSolicitacao();">
+              <!-- Bloco usado quando um Gestor solicita em nome de outra pessoa
+                   (externa à Secretaria, sem conta no sistema) -->
+              <div id="bloco-solicitante-externo" class="hidden space-y-4 border border-slate-200 rounded-lg p-4 bg-slate-50">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label for="sol-nome-externo" class="block text-sm font-medium text-slate-700 mb-1.5">Nome do Solicitante (externo à Secretaria) *</label>
+                    <input type="text" id="sol-nome-externo" class="input-field" placeholder="Ex: Fulano - ONG XYZ">
+                  </div>
+                  <div>
+                    <label for="sol-telefone-externo" class="block text-sm font-medium text-slate-700 mb-1.5">Telefone do Solicitante</label>
+                    <input type="tel" id="sol-telefone-externo" class="input-field" placeholder="(31) 99999-9999" oninput="aplicarMascaraTelefone(this)">
+                  </div>
+                  <div>
+                    <label for="sol-email-externo" class="block text-sm font-medium text-slate-700 mb-1.5">E-mail de contato (opcional)</label>
+                    <input type="email" id="sol-email-externo" class="input-field" placeholder="email@exemplo.com">
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="sol-unidade" class="block text-sm font-medium text-slate-700 mb-1.5">Unidade *</label>
+                    <!-- "Outra Unidade" abre a caixa de texto abaixo pra digitar o nome -
+                         mesmo critério já usado em Origem/Destino (box-outro-origem/destino). -->
+                    <select id="sol-unidade" class="input-field" onchange="carregarSetoresSolicitacaoExterna(); alternarCampoOutroLocal('sol-unidade', 'box-outro-unidade-externa')">
+                      <option value="">Selecione a Unidade...</option>
+                    </select>
+                    <div id="box-outro-unidade-externa" class="hidden mt-2">
+                      <input type="text" id="sol-unidade-outro" class="input-field" placeholder="Informe o nome da unidade">
+                    </div>
+                  </div>
+                  <div>
+                    <label for="sol-setor" class="block text-sm font-medium text-slate-700 mb-1.5">Setor *</label>
+                    <select id="sol-setor" class="input-field" onchange="alternarCampoOutroLocal('sol-setor', 'box-outro-setor-externo')">
+                      <option value="">Selecione a Unidade primeiro</option>
+                    </select>
+                    <div id="box-outro-setor-externo" class="hidden mt-2">
+                      <input type="text" id="sol-setor-outro" class="input-field" placeholder="Informe o nome do setor">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quando é o próprio Solicitante pedindo (não o Gestor em nome de
+                   outra pessoa, bloco acima), mostra a Unidade/Setor gravados no
+                   cadastro dele - só pra conferência, sem poder editar aqui (quem
+                   muda isso é o Gestor, em Gerenciar Usuários). Antes essa
+                   informação não aparecia em lugar nenhum nesta tela, mesmo já
+                   sendo usada por baixo dos panos ao salvar a solicitação. -->
+              <div id="bloco-unidade-setor-proprio" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="sol-unidade-proprio" class="block text-sm font-medium text-slate-700 mb-1.5">Unidade</label>
+                  <input type="text" id="sol-unidade-proprio" class="input-field bg-slate-100 text-slate-500" disabled>
+                </div>
+                <div>
+                  <label for="sol-setor-proprio" class="block text-sm font-medium text-slate-700 mb-1.5">Setor</label>
+                  <input type="text" id="sol-setor-proprio" class="input-field bg-slate-100 text-slate-500" disabled>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label for="sol-data-viagem" class="block text-sm font-medium text-slate-700 mb-1.5">Data da Viagem *</label>
+                  <input type="date" id="sol-data-viagem" class="input-field" required>
+                </div>
+                <div>
+                  <label for="sol-hora-saida" class="block text-sm font-medium text-slate-700 mb-1.5">Hora de Saída *</label>
+                  <input type="time" id="sol-hora-saida" class="input-field" required>
+                </div>
+                <div>
+                  <label for="sol-hora-retorno" class="block text-sm font-medium text-slate-700 mb-1.5">Hora de Retorno *</label>
+                  <input type="time" id="sol-hora-retorno" class="input-field" required>
+                </div>
+                <div>
+                  <label for="sol-tipo-viagem" class="block text-sm font-medium text-slate-700 mb-1.5">Tipo *</label>
+                  <select id="sol-tipo-viagem" class="input-field" required>
+                    <option value="Motorista">Motorista</option>
+                    <option value="Motoboy">Motoboy</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label id="lbl-qtd" for="sol-qtd" class="block text-sm font-medium text-slate-700 mb-1.5">Nº Passageiros *</label>
+                  <input type="number" id="sol-qtd" min="1" class="input-field" required placeholder="Número de passageiros">
+                </div>
+                <div>
+                  <label for="sol-origem" class="block text-sm font-medium text-slate-700 mb-1.5">Origem *</label>
+                  <select id="sol-origem" class="input-field" required onchange="alternarCampoOutroLocal('sol-origem', 'box-outro-origem')">
+                    <option value="">Selecione...</option>
+                  </select>
+                  <div id="box-outro-origem" class="hidden mt-2">
+                    <input type="text" id="sol-origem-outro" class="input-field" placeholder="Informe a origem">
+                  </div>
+                </div>
+                <div>
+                  <label for="sol-destino" class="block text-sm font-medium text-slate-700 mb-1.5">Destino *</label>
+                  <select id="sol-destino" class="input-field" required onchange="alternarCampoOutroLocal('sol-destino', 'box-outro-destino')">
+                    <option value="">Selecione...</option>
+                  </select>
+                  <div id="box-outro-destino" class="hidden mt-2">
+                    <input type="text" id="sol-destino-outro" class="input-field" placeholder="Informe o destino">
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label for="sol-justificativa" class="block text-sm font-medium text-slate-700 mb-1.5">Justificativa *</label>
+                <textarea id="sol-justificativa" rows="3" class="input-field" required placeholder="Descreva o motivo da viagem"></textarea>
+              </div>
+
+              <button type="submit" class="btn-success w-full py-3 mt-2">
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  Enviar Solicitação
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tela Minhas Solicitações (Solicitante) -->
+        <div id="tela-minhas-solicitacoes" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
+          <div class="card p-4 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900">Minhas Solicitações</h2>
+              <button id="btn-exportar-minhas-solic" class="btn-outline text-sm" onclick="exportarMinhasSolicitacoesXlsxUI()">
+                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                Exportar Excel
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+              <div>
+                <label for="filtro-minhas-solic-data-solic" class="block text-xs font-medium text-slate-500 mb-1">Data Solic.</label>
+                <input type="date" id="filtro-minhas-solic-data-solic" class="input-field text-sm" onchange="aplicarFiltroMinhasSolicitacoes()">
+              </div>
+              <div>
+                <label for="filtro-minhas-solic-data-viagem" class="block text-xs font-medium text-slate-500 mb-1">Data Viagem</label>
+                <input type="date" id="filtro-minhas-solic-data-viagem" class="input-field text-sm" onchange="aplicarFiltroMinhasSolicitacoes()">
+              </div>
+              <div>
+                <label for="filtro-minhas-solic-horario" class="block text-xs font-medium text-slate-500 mb-1">Horário Saída</label>
+                <input type="time" id="filtro-minhas-solic-horario" class="input-field text-sm" onchange="aplicarFiltroMinhasSolicitacoes()">
+              </div>
+              <div>
+                <label for="filtro-minhas-solic-trajeto" class="block text-xs font-medium text-slate-500 mb-1">Origem/Destino</label>
+                <input type="text" id="filtro-minhas-solic-trajeto" class="input-field text-sm" placeholder="Buscar..." oninput="aplicarFiltroMinhasSolicitacoes()">
+              </div>
+              <div>
+                <label for="filtro-minhas-solic-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                <select id="filtro-minhas-solic-status" class="input-field text-sm" onchange="aplicarFiltroMinhasSolicitacoes()">
+                  <option value="TODOS">Todos</option>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Em Análise">Em Análise</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Ocupado">Ocupado</option>
+                  <option value="Cancelada">Cancelada</option>
+                  <option value="Desprezado">Desprezado</option>
+                </select>
+              </div>
+              <div>
+                <label for="filtro-minhas-solic-condutor" class="block text-xs font-medium text-slate-500 mb-1">Condutor</label>
+                <input type="text" id="filtro-minhas-solic-condutor" class="input-field text-sm" placeholder="Buscar..." oninput="aplicarFiltroMinhasSolicitacoes()">
+              </div>
+              <div class="col-span-2 sm:col-span-3 lg:col-span-6">
+                <button type="button" class="btn-outline text-sm w-full sm:w-auto" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
+              </div>
+            </div>
+
+            <!-- Mobile: cards (mais fácil de ler/rolar no celular que uma tabela larga) -->
+            <div id="cards-minhas-solicitacoes" class="mobile-cards mb-6">
+              <div class="text-center text-slate-500 py-8 text-sm">Carregando...</div>
+            </div>
+
+            <!-- Desktop: tabela -->
+            <div class="table-container mb-6 desktop-table" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">ID</th>
+                    <th class="table-th">Solicitado em</th>
+                    <th class="table-th">Data Viagem</th>
+                    <th class="table-th">Horário</th>
+                    <th class="table-th">Trajeto</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Condutor</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-minhas-solicitacoes">
+                  <tr><td colspan="9" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Tela Dashboard do Solicitante -->
+        <!-- O gráfico "Distribuição por Status" que antes ficava aqui embaixo
+             (em Minhas Solicitações) foi movido pra cá, junto com os novos
+             cartões de KPI e o resumo do setor - pra não repetir o mesmo
+             gráfico em duas telas diferentes. -->
+        <div id="tela-dashboard-solicitante" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
+          <div class="card p-4 sm:p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📊</span> Dashboard</h2>
+              <div>
+                <label for="dashsol-filtro-periodo" class="sr-only">Período</label>
+                <select id="dashsol-filtro-periodo" class="input-field w-auto text-sm" onchange="aplicarFiltroDashboardSolicitante()">
+                  <option value="30">Mês</option>
+                  <option value="90">Trimestre</option>
+                  <option value="365">Ano</option>
+                  <option value="0" selected>Tudo</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-slate-700 mb-3">Meus dados</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div class="stat-card border-l-4" style="border-color:#044AAA;">
+                <p class="text-2xl font-bold" style="color:#044AAA;" id="dashsol-meu-total">0</p>
+                <p class="text-xs text-slate-500 mt-1">Total</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#FF914D;">
+                <p class="text-2xl font-bold" style="color:#FF914D;" id="dashsol-meu-pendentes">0</p>
+                <p class="text-xs text-slate-500 mt-1">Pendentes</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#46BE6B;">
+                <p class="text-2xl font-bold" style="color:#46BE6B;" id="dashsol-meu-aprovadas">0</p>
+                <p class="text-xs text-slate-500 mt-1">Aprovadas</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#D85736;">
+                <p class="text-2xl font-bold" style="color:#D85736;" id="dashsol-meu-canceladas">0</p>
+                <p class="text-xs text-slate-500 mt-1">Canceladas</p>
+              </div>
+            </div>
+            <div class="card p-4 mb-2">
+              <h4 class="text-xs font-semibold text-slate-700 mb-3">Minhas solicitações por status</h4>
+              <div style="position:relative; height:220px;"><canvas id="dashsol-meu-status-canvas"></canvas></div>
+            </div>
+          </div>
+
+          <div class="card p-4 sm:p-6">
+            <h3 class="text-sm font-semibold text-slate-700 mb-1">Meu setor</h3>
+            <p id="dashsol-setor-label" class="text-xs text-slate-500 mb-4">—</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div class="stat-card border-l-4" style="border-color:#044AAA;">
+                <p class="text-2xl font-bold" style="color:#044AAA;" id="dashsol-setor-total">0</p>
+                <p class="text-xs text-slate-500 mt-1">Total do setor</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#FF914D;">
+                <p class="text-2xl font-bold" style="color:#FF914D;" id="dashsol-setor-pendentes">0</p>
+                <p class="text-xs text-slate-500 mt-1">Pendentes</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#46BE6B;">
+                <p class="text-2xl font-bold" style="color:#46BE6B;" id="dashsol-setor-aprovadas">0</p>
+                <p class="text-xs text-slate-500 mt-1">Aprovadas</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#D85736;">
+                <p class="text-2xl font-bold" style="color:#D85736;" id="dashsol-setor-canceladas">0</p>
+                <p class="text-xs text-slate-500 mt-1">Canceladas</p>
+              </div>
+            </div>
+            <div class="card p-4">
+              <h4 class="text-xs font-semibold text-slate-700 mb-3">Solicitações do setor por status</h4>
+              <div style="position:relative; height:220px;"><canvas id="dashsol-setor-status-canvas"></canvas></div>
+            </div>
+            <p class="text-xs text-slate-400 mt-3">
+              Mostra apenas totais e o gráfico acima - não lista as solicitações dos colegas uma a uma.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tela Painel do Gestor -->
+        <div id="tela-gestor" class="hidden animate-fade-in">
+          <div class="card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📊</span> Dashboard</h2>
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="btn-atualizar-gestor" onclick="carregarPainelGestor(true)" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  Atualizar
+                </button>
+                <button id="btn-exportar-xlsx" onclick="exportarSolicitacoesXlsxUI()" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                  Exportar Excel
+                </button>
+              </div>
+            </div>
+
+            <!-- Filtros do Dashboard: afetam os KPIs e os gráficos abaixo (não afetam
+                 a tabela "Gerenciamento de Solicitações", que tem seus próprios filtros) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+              <div>
+                <label for="dash-filtro-periodo" class="block text-xs font-medium text-slate-500 mb-1">Período</label>
+                <select id="dash-filtro-periodo" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
+                  <option value="30">Mês</option>
+                  <option value="90">Trimestre</option>
+                  <option value="365">Ano</option>
+                  <option value="0" selected>Tudo</option>
+                </select>
+              </div>
+              <div>
+                <label for="dash-filtro-unidade" class="block text-xs font-medium text-slate-500 mb-1">Unidade</label>
+                <select id="dash-filtro-unidade" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div>
+                <label for="dash-filtro-setor" class="block text-xs font-medium text-slate-500 mb-1">Setor</label>
+                <select id="dash-filtro-setor" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div>
+                <label for="dash-filtro-condutor" class="block text-xs font-medium text-slate-500 mb-1">Condutor</label>
+                <select id="dash-filtro-condutor" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="button" class="btn-outline text-sm w-full" onclick="limparFiltrosDashboard()">Limpar filtros</button>
+              </div>
+            </div>
+
+            <!-- Cartões de resumo (KPIs) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div class="stat-card border-l-4" style="border-color:#044AAA;">
+                <p class="text-2xl font-bold" style="color:#044AAA;" id="stat-total-solic">0</p>
+                <p class="text-xs text-slate-500 mt-1">Total Solicitações</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#FF914D;">
+                <p class="text-2xl font-bold" style="color:#FF914D;" id="stat-pendentes">0</p>
+                <p class="text-xs text-slate-500 mt-1">Pendentes</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#46BE6B;">
+                <p class="text-2xl font-bold" style="color:#46BE6B;" id="stat-aprovadas">0</p>
+                <p class="text-xs text-slate-500 mt-1">Aprovadas</p>
+              </div>
+              <div class="stat-card border-l-4" style="border-color:#D85736;">
+                <p class="text-2xl font-bold" style="color:#D85736;" id="stat-recusadas">0</p>
+                <p class="text-xs text-slate-500 mt-1">Recusadas</p>
+              </div>
+            </div>
+
+            <!-- Gráficos (3 por linha em telas largas e altura reduzida, já que o
+                 painel de admin agora ocupa a largura toda - "gráficos menores") -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+              <div class="card p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Solicitações por Status</h3>
+                <div style="position:relative; height:180px;"><canvas id="dash-status-canvas"></canvas></div>
+              </div>
+              <div class="card p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Total de KM rodado por Condutor</h3>
+                <div style="position:relative; height:180px;"><canvas id="dash-km-condutor-canvas"></canvas></div>
+              </div>
+              <div class="card p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Evolução de KM por Condutor</h3>
+                <div style="position:relative; height:180px;"><canvas id="dash-km-evolucao-canvas"></canvas></div>
+              </div>
+              <div class="card p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Destinos mais Agendados</h3>
+                <div style="position:relative; height:180px;"><canvas id="dash-destinos-canvas"></canvas></div>
+              </div>
+              <div class="card p-4">
+                <h3 class="text-sm font-semibold text-slate-700 mb-3">Solicitações por Setor</h3>
+                <div style="position:relative; height:180px;"><canvas id="dash-setores-canvas"></canvas></div>
+              </div>
+            </div>
+
+            <div id="aviso-cnh-painel" class="mb-4"></div>
+
+            <h3 class="text-base font-semibold text-slate-900 mb-3 border-t border-slate-200 pt-4">Gerenciamento de Solicitações</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+              <div>
+                <label for="filtro-gestor-data-solic" class="block text-xs font-medium text-slate-500 mb-1">Data da Solicitação</label>
+                <input type="date" id="filtro-gestor-data-solic" class="input-field text-sm" onchange="aplicarFiltrosGestor()">
+              </div>
+              <div>
+                <label for="filtro-gestor-data-viagem" class="block text-xs font-medium text-slate-500 mb-1">Data da Viagem</label>
+                <input type="date" id="filtro-gestor-data-viagem" class="input-field text-sm" onchange="aplicarFiltrosGestor()">
+              </div>
+              <div>
+                <label for="filtro-gestor-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                <select id="filtro-gestor-status" class="input-field text-sm" onchange="aplicarFiltrosGestor()">
+                  <option value="TODOS">Todos</option>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Em Análise">Em Análise</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Ocupado">Ocupado</option>
+                  <option value="Cancelada">Cancelada</option>
+                  <option value="Desprezado">Desprezado</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button onclick="limparFiltrosGestor()" class="btn-outline text-sm w-full">Limpar filtros</button>
+              </div>
+            </div>
+
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Solicitado em</th>
+                    <th class="table-th">Data Viagem</th>
+                    <th class="table-th">Saída</th>
+                    <th class="table-th">Retorno</th>
+                    <th class="table-th">Origem</th>
+                    <th class="table-th">Destino</th>
+                    <th class="table-th">Solicitante</th>
+                    <th class="table-th">Unidade</th>
+                    <th class="table-th">Setor</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Tipo</th>
+                    <th class="table-th">Qtd</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Condutor Ida</th>
+                    <th class="table-th">Condutor Volta</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-gestor-geral">
+                  <tr><td colspan="16" class="text-center text-slate-500 p-4">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tela Agenda de Corridas (Gestor) -->
+        <div id="tela-agenda" class="hidden animate-fade-in">
+          <div class="card p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📅</span> Agenda de Corridas</h2>
+              <div class="flex flex-wrap items-center gap-2">
+                <button onclick="window.print()" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                  Imprimir
+                </button>
+                <button id="btn-exportar-agenda" onclick="exportarAgendaXlsxUI()" class="btn-primary text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                  Exportar Excel
+                </button>
+                <!-- Era "d-print-none" (Bootstrap, não existe aqui) - o botão
+                     aparecia também na versão impressa da Agenda. Trocado
+                     pelo utilitário real do Tailwind. -->
+                <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm print:hidden">← Voltar ao Painel</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 print:hidden">
+              <div>
+                <label for="agenda-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">Data Inicial</label>
+                <input type="date" id="agenda-data-inicio" class="input-field text-sm" onchange="carregarTelaAgenda()">
+              </div>
+              <div>
+                <label for="agenda-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Data Final</label>
+                <input type="date" id="agenda-data-fim" class="input-field text-sm" onchange="carregarTelaAgenda()">
+              </div>
+              <div class="lg:col-span-2">
+                <label for="agenda-filtro-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                <select id="agenda-filtro-status" class="input-field text-sm" onchange="aplicarFiltrosAgenda()">
+                  <option value="TODOS">Todos</option>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Em Análise">Em Análise</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Ocupado">Ocupado</option>
+                  <option value="Cancelada">Cancelada</option>
+                  <option value="Desprezado">Desprezado</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button onclick="limparFiltrosAgenda()" class="btn-outline text-sm w-full">Limpar filtros</button>
+              </div>
+            </div>
+
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Data Solicitação</th>
+                    <th class="table-th">Data Viagem</th>
+                    <th class="table-th">Saída</th>
+                    <th class="table-th">Retorno</th>
+                    <th class="table-th">Origem</th>
+                    <th class="table-th">Destino</th>
+                    <th class="table-th">Solicitante</th>
+                    <th class="table-th">Unidade</th>
+                    <th class="table-th">Setor</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Tipo</th>
+                    <th class="table-th">Nº Passageiros</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Condutor Ida</th>
+                    <th class="table-th">Condutor Volta</th>
+                    <th class="table-th print:hidden">Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-agenda-body">
+                  <tr><td colspan="16" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Painel do Dia (Condutor) - tela inicial do motorista.
+             Antes não existia HTML nenhum pra isso; o app quebrava ao
+             logar como condutor porque tentava exibir uma tela inexistente.
+             ============================================================ -->
+        <div id="tela-painel-dia" class="hidden animate-fade-in max-w-2xl mx-auto w-full">
+          <div class="flex items-center justify-between mb-1">
+            <div>
+              <h2 class="text-lg font-semibold text-slate-900 capitalize" id="painel-dia-data">Hoje</h2>
+              <p class="text-sm text-slate-500" id="painel-dia-contador">Carregando...</p>
+            </div>
+            <button onclick="puxarParaAtualizarPainelDia()" class="btn-outline text-sm" title="Atualizar">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+          <div id="painel-dia-km-status" class="hidden"></div>
+          <div id="lista-painel-dia" class="mt-3"></div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Agenda do Condutor
+             ============================================================ -->
+        <div id="tela-agenda-condutor" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
+          <div class="card p-4 sm:p-6">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Minha Agenda</h2>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label for="agenda-condutor-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">De</label>
+                <input type="date" id="agenda-condutor-data-inicio" class="input-field text-sm" onchange="carregarAgendaCondutor()">
+              </div>
+              <div>
+                <label for="agenda-condutor-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Até</label>
+                <input type="date" id="agenda-condutor-data-fim" class="input-field text-sm" onchange="carregarAgendaCondutor()">
+              </div>
+            </div>
+            <button onclick="limparFiltroAgendaCondutor()" class="btn-outline text-sm mb-4">Limpar filtro (ver todas)</button>
+
+            <!-- Mobile: cards -->
+            <div id="cards-agenda-condutor" class="mobile-cards"></div>
+
+            <!-- Desktop: tabela -->
+            <div class="table-container desktop-table" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Data</th>
+                    <th class="table-th">Saída</th>
+                    <th class="table-th">Retorno</th>
+                    <th class="table-th">Trajeto</th>
+                    <th class="table-th">Solicitante</th>
+                    <th class="table-th">Papel</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-agenda-condutor">
+                  <tr><td colspan="8" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Registro de KM (Condutor)
+             ============================================================ -->
+        <div id="tela-registro-km" class="hidden animate-fade-in max-w-2xl mx-auto w-full">
+          <div class="card p-4 sm:p-6 max-w-lg mx-auto">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Registro de KM</h2>
+            <div id="km-conteudo">
+              <div class="p-8 text-center text-slate-500 text-sm">Carregando...</div>
+            </div>
+
+            <div class="border-t border-slate-200 mt-6 pt-4">
+              <h3 class="text-sm font-semibold text-slate-700 mb-3">Histórico</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Data</th>
+                      <th class="table-th">KM Rodado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-historico-km">
+                    <tr><td colspan="2" class="text-center text-slate-500 py-4">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Gerenciar Condutores (Gestor)
+             ============================================================ -->
+        <div id="tela-gerenciar-condutores" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">👥</span> Gerenciar Condutores</h2>
+            <div class="flex items-center gap-2">
+              <button onclick="exportarCondutoresXlsxUI()" class="btn-outline text-sm">Exportar Excel</button>
+              <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
+            </div>
+          </div>
+          <div id="aviso-cnh-condutores" class="mb-4"></div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="card p-4 sm:p-6 lg:col-span-1">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-condutor">Novo Condutor</h3>
+                <button id="btn-cancelar-edicao-condutor" onclick="limparFormCondutor()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+              </div>
+              <form id="form-condutor" class="space-y-3" onsubmit="event.preventDefault(); salvarCondutorGestor();">
+                <input type="hidden" id="cond-email-original">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
+                  <input type="text" id="cond-nome" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
+                  <input type="email" id="cond-email" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Senha <span class="text-xs text-slate-400">(deixe em branco para manter)</span></label>
+                  <input type="password" id="cond-senha" class="input-field" autocomplete="new-password">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                  <input type="tel" id="cond-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
+                  <select id="cond-categoria" class="input-field">
+                    <option value="Motorista">Motorista</option>
+                    <option value="Motoboy">Motoboy</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Cooperativa</label>
+                  <select id="cond-cooperativa" class="input-field">
+                    <option value="">Nenhuma / Selecione...</option>
+                  </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Placa</label>
+                    <input type="text" id="cond-placa" class="input-field" style="text-transform:uppercase;">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Capacidade</label>
+                    <input type="text" id="cond-capacidade" class="input-field" placeholder="ex: 15L">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Modelo do veículo</label>
+                  <input type="text" id="cond-modelo" class="input-field">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">CNH</label>
+                    <input type="text" id="cond-cnh" class="input-field">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Validade CNH</label>
+                    <input type="date" id="cond-validade-cnh" class="input-field">
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Salvar</button>
+              </form>
+            </div>
+
+            <div class="card p-4 sm:p-6 lg:col-span-2">
+              <h3 class="text-base font-semibold text-slate-900 mb-4">Condutores cadastrados</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Nome</th>
+                      <th class="table-th">E-mail</th>
+                      <th class="table-th">Telefone</th>
+                      <th class="table-th">Categoria</th>
+                      <th class="table-th">Cooperativa</th>
+                      <th class="table-th">Placa</th>
+                      <th class="table-th">Modelo</th>
+                      <th class="table-th">Capacidade</th>
+                      <th class="table-th">CNH</th>
+                      <th class="table-th">Validade</th>
+                      <th class="table-th">Status</th>
+                      <th class="table-th">Agenda Geral</th>
+                      <th class="table-th">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-condutores">
+                    <tr><td colspan="13" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Gerenciar KM (Gestor)
+             ============================================================ -->
+        <div id="tela-gerenciar-km" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📊</span> Gerenciar KM</h2>
+            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="card p-4 sm:p-6 lg:col-span-1">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-km-gestor">Lançar KM</h3>
+                <button id="btn-cancelar-edicao-km-gestor" onclick="limparFormKmGestor()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+              </div>
+              <form id="form-km-gestor" class="space-y-3" onsubmit="event.preventDefault(); salvarKmGestor();">
+                <input type="hidden" id="km-gestor-id-edicao">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Condutor *</label>
+                  <select id="km-gestor-condutor" class="input-field" required>
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Data *</label>
+                  <input type="date" id="km-gestor-data" class="input-field" required>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">KM Inicial *</label>
+                    <input type="number" id="km-gestor-inicial" class="input-field" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">KM Final</label>
+                    <input type="number" id="km-gestor-final" class="input-field">
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Salvar</button>
+              </form>
+            </div>
+
+            <div class="card p-4 sm:p-6 lg:col-span-2">
+              <h3 class="text-base font-semibold text-slate-900 mb-4">Registros de KM</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Data</th>
+                      <th class="table-th">Condutor</th>
+                      <th class="table-th">KM Inicial</th>
+                      <th class="table-th">KM Final</th>
+                      <th class="table-th">Rodado</th>
+                      <th class="table-th">Ajustado</th>
+                      <th class="table-th">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-registros-km-gestor">
+                    <tr><td colspan="7" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Gerenciar Usuários / Solicitantes (Gestor)
+             ============================================================ -->
+        <div id="tela-gerenciar-usuarios" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📁</span> Gerenciar Usuários (Solicitantes)</h2>
+            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="card p-4 sm:p-6 lg:col-span-1">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-usuario">Novo Solicitante</h3>
+                <button id="btn-cancelar-edicao-usuario" onclick="limparFormUsuario()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+              </div>
+              <form id="form-usuario" class="space-y-3" onsubmit="event.preventDefault(); salvarUsuarioGestor();">
+                <input type="hidden" id="usuario-email-original">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
+                  <input type="text" id="uform-nome" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
+                  <input type="email" id="uform-email" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Senha <span class="text-xs text-slate-400">(deixe em branco para manter)</span></label>
+                  <input type="password" id="usuario-senha" class="input-field" autocomplete="new-password">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                  <input type="tel" id="usuario-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Unidade</label>
+                  <input type="text" id="usuario-unidade" class="input-field" list="lista-unidades-existentes">
+                  <datalist id="lista-unidades-existentes"></datalist>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Setor</label>
+                  <input type="text" id="usuario-setor" class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Salvar</button>
+              </form>
+            </div>
+
+            <div class="card p-4 sm:p-6 lg:col-span-2">
+              <h3 class="text-base font-semibold text-slate-900 mb-4">Solicitantes cadastrados</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Nome</th>
+                      <th class="table-th">E-mail</th>
+                      <th class="table-th">Telefone</th>
+                      <th class="table-th">Unidade</th>
+                      <th class="table-th">Setor</th>
+                      <th class="table-th">Status</th>
+                      <th class="table-th">Ações</th>
+                      <th class="table-th">Acesso</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-usuarios">
+                    <tr><td colspan="8" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Gerenciar Unidades (Gestor)
+             ============================================================ -->
+        <div id="tela-gerenciar-unidades" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🏢</span> Gerenciar Unidades</h2>
+            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="card p-4 sm:p-6 lg:col-span-1">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-unidade">Nova Unidade</h3>
+                <button id="btn-cancelar-edicao-unidade" onclick="limparFormUnidade()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+              </div>
+              <form id="form-unidade" class="space-y-3" onsubmit="event.preventDefault(); salvarUnidade();">
+                <input type="hidden" id="unidade-id-edicao">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
+                  <input type="text" id="unidade-nome" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Endereço</label>
+                  <input type="text" id="unidade-endereco" class="input-field">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                  <input type="tel" id="unidade-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                  <input type="email" id="unidade-email" class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Salvar</button>
+              </form>
+            </div>
+
+            <div class="card p-4 sm:p-6 lg:col-span-2">
+              <h3 class="text-base font-semibold text-slate-900 mb-4">Unidades cadastradas</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Nome</th>
+                      <th class="table-th">Endereço</th>
+                      <th class="table-th">Telefone</th>
+                      <th class="table-th">E-mail</th>
+                      <th class="table-th">Status</th>
+                      <th class="table-th">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-unidades">
+                    <tr><td colspan="6" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Gerenciar Cooperativas (Gestor)
+             ============================================================ -->
+        <div id="tela-gerenciar-cooperativas" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🤝</span> Gerenciar Cooperativas</h2>
+            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="card p-4 sm:p-6 lg:col-span-1">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-cooperativa">Nova Cooperativa</h3>
+                <button id="btn-cancelar-edicao-cooperativa" onclick="limparFormCooperativa()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+              </div>
+              <form id="form-cooperativa" class="space-y-3" onsubmit="event.preventDefault(); salvarCooperativa();">
+                <input type="hidden" id="cooperativa-id-edicao">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
+                  <input type="text" id="cooperativa-nome" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                  <input type="email" id="cooperativa-email" class="input-field">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                  <input type="tel" id="cooperativa-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
+                </div>
+                <button type="submit" class="btn-primary w-full">Salvar</button>
+              </form>
+            </div>
+
+            <div class="card p-4 sm:p-6 lg:col-span-2">
+              <h3 class="text-base font-semibold text-slate-900 mb-4">Cooperativas cadastradas</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Nome</th>
+                      <th class="table-th">E-mail</th>
+                      <th class="table-th">Telefone</th>
+                      <th class="table-th">Status</th>
+                      <th class="table-th">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-cooperativas">
+                    <tr><td colspan="5" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Alterar Senha (todos os perfis)
+             ============================================================ -->
+        <div id="tela-alterar-senha" class="hidden animate-fade-in">
+          <div class="card p-6 max-w-md mx-auto">
+            <h2 class="flex items-center gap-2 text-lg font-semibold text-slate-900 mb-4">
+              <span aria-hidden="true">🔑</span> Alterar minha senha
+            </h2>
+            <form id="form-alterar-senha" class="space-y-4" onsubmit="event.preventDefault(); salvarNovaSenha();">
+              <div>
+                <label class="block text-sm font-medium text-mc-teal mb-1.5">Senha atual *</label>
+                <input type="password" id="senha-atual" class="input-field" autocomplete="current-password" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-mc-teal mb-1.5">Nova senha *</label>
+                <input type="password" id="senha-nova" class="input-field" autocomplete="new-password" minlength="6" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-mc-teal mb-1.5">Confirmar nova senha *</label>
+                <input type="password" id="senha-nova-confirm" class="input-field" autocomplete="new-password" minlength="6" required>
+              </div>
+              <div class="flex gap-3 pt-1">
+                <button type="button" onclick="voltarDaAlterarSenha()" class="btn-secondary flex-1">Voltar</button>
+                <button type="submit" class="btn-primary flex-1">Salvar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ============================================================
+           Barra de navegação inferior (mobile) - some automaticamente no
+           desktop via CSS (#bottom-nav { display:none } a partir de 768px).
+           Cada perfil vê só os itens que fazem sentido pra ele; a visibilidade
+           é ajustada em pages/login.js (carregarPainelPorPerfil), igual aos
+           botões do header.
+           ============================================================ -->
+      <nav id="bottom-nav">
+        <!-- Solicitante -->
+        <button id="bnav-nova-solicitacao" data-aba="nova-solicitacao" onclick="abrirNovaSolicitacao()" class="hidden text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Nova
+        </button>
+        <button id="bnav-minhas-solicitacoes" data-aba="minhas-solicitacoes" onclick="abrirMinhasSolicitacoes()" class="hidden text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Minhas
+        </button>
+        <!-- Condutor -->
+        <button id="bnav-painel-dia" data-aba="painel-dia" onclick="abrirPainelDoDia()" class="hidden text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Hoje
+        </button>
+        <button id="bnav-agenda-condutor" data-aba="agenda-condutor" onclick="abrirAgendaCondutor()" class="hidden text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Agenda
+        </button>
+        <button id="bnav-registrar-km" data-aba="registro-km" onclick="abrirRegistroKm()" class="hidden text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          KM
+        </button>
+        <!-- Comum a todos -->
+        <button data-aba="notificacoes" onclick="toggleNotificacoes()" class="text-slate-400 relative">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 5.165 2 9.272 2 14.158V17A2 2 0 004 19h16a2 2 0 002-2v-3"/></svg>
+          Avisos
+        </button>
+        <button data-aba="menu" onclick="toggleUsuarioMenu()" class="text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          Menu
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Inicialização defensiva:
+       - mantém o login disponível mesmo se algum JS externo falhar;
+       - esconde o loading para não bloquear a interface.
+       O app.js continua responsável pela sessão/autenticação. -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const loading = document.getElementById('loading-screen');
+      const login = document.getElementById('tela-login');
+      const principal = document.getElementById('app-principal');
+      const cadastro = document.getElementById('tela-cadastro');
+
+      if (loading) loading.classList.add('hidden');
+
+      // Só mostra o login se nenhuma tela principal/cadastro já tiver sido ativada.
+      const principalVisivel = principal && !principal.classList.contains('hidden');
+      const cadastroVisivel = cadastro && !cadastro.classList.contains('hidden');
+
+      if (login && !principalVisivel && !cadastroVisivel) {
+        login.classList.remove('hidden');
+      }
+    });
+  </script>
+
+  <!-- Scripts -->
+  <script src="config.js?v=20260908k"></script>
+  <script src="supabase-client.js?v=20260908k"></script>
+  <script src="api.js?v=20260908k"></script>
+  <script src="utils.js?v=20260908k"></script>
+  <script src="components.js?v=20260908k"></script>
+  <script src="pages/login.js?v=20260908k"></script>
+  <script src="pages/cadastro.js?v=20260908k"></script>
+  <script src="pages/nova-solicitacao.js?v=20260908k"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20260908k"></script>
+  <script src="pages/dashboard-solicitante.js?v=20260908k"></script>
+  <script src="pages/painel-dia.js?v=20260908k"></script>
+  <script src="pages/agenda.js?v=20260908k"></script>
+  <script src="pages/agenda-condutor.js?v=20260908k"></script>
+  <script src="pages/registro-km.js?v=20260908k"></script>
+  <script src="pages/gestor.js?v=20260908k"></script>
+  <script src="pages/gerenciar-condutores.js?v=20260908k"></script>
+  <script src="pages/gerenciar-km.js?v=20260908k"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20260908k"></script>
+  <script src="pages/gerenciar-unidades.js?v=20260908k"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20260908k"></script>
+  <script src="pages/alterar-senha.js?v=20260908k"></script>
+  <script src="app.js?v=20260908k"></script>
+
+  <!-- Proteção contra erro fatal de JavaScript:
+       se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
+  <script>
+    window.addEventListener('error', function (event) {
+      const loading = document.getElementById('loading-screen');
+      const login = document.getElementById('tela-login');
+      const principal = document.getElementById('app-principal');
+
+      if (loading) loading.classList.add('hidden');
+
+      if (login && principal && principal.classList.contains('hidden')) {
+        login.classList.remove('hidden');
+      }
+
+      console.error('[MarkCarro] Erro de inicialização:', event.error || event.message);
+    });
+  </script>
+
+</body>
+</html>
