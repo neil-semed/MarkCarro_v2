@@ -280,12 +280,17 @@ async function excluirSolicitacao(id) {
 
 async function listarLocais() {
   _checarClient();
+
   const { data, error } = await _sb
     .from('locais')
-    .select('*')
+    .select('nome')
     .order('nome');
+
   if (error) throw error;
-  return data;
+
+  return (data || [])
+    .map(item => item.nome)
+    .filter(Boolean);
 }
 
 async function adicionarLocal(nome) {
