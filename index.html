@@ -1403,7 +1403,13 @@
              ============================================================ -->
         <div id="tela-agenda-condutor" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
           <div class="card p-4 sm:p-6">
-            <h2 class="text-lg font-semibold text-slate-900 mb-4">Minha Agenda</h2>
+            <div class="flex items-center gap-2 mb-4 flex-wrap">
+              <h2 class="text-lg font-semibold text-slate-900">Minha Agenda</h2>
+              <!-- Só aparece quando o gestor libera "Ver Agenda Geral" pro condutor
+                   (Gerenciar Condutores) - deixa claro que ele está vendo TODAS as
+                   corridas, não só as dele. -->
+              <span id="agenda-condutor-badge-geral" class="hidden badge badge-em-analise">Agenda Geral - todas as corridas</span>
+            </div>
 
             <div class="grid grid-cols-2 gap-3 mb-4">
               <div>
@@ -1430,7 +1436,7 @@
                     <th class="table-th">Retorno</th>
                     <th class="table-th">Trajeto</th>
                     <th class="table-th">Solicitante</th>
-                    <th class="table-th">Papel</th>
+                    <th class="table-th" id="th-agenda-condutor-papel">Papel</th>
                     <th class="table-th">Justificativa</th>
                     <th class="table-th">Status</th>
                   </tr>
@@ -1721,17 +1727,31 @@
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🏢</span> Gerenciar Unidades</h2>
             <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div class="card p-4 sm:p-6 lg:col-span-1">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-unidade">Nova Unidade</h3>
-                <button id="btn-cancelar-edicao-unidade" onclick="limparFormUnidade()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
-              </div>
-              <form id="form-unidade" class="space-y-3" onsubmit="event.preventDefault(); salvarUnidade();">
-                <input type="hidden" id="unidade-id-edicao">
+
+          <!-- Nova Unidade (form - largura total) -->
+          <div class="card p-4 sm:p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold text-slate-900" id="titulo-form-unidade">Nova Unidade</h3>
+              <button id="btn-cancelar-edicao-unidade" onclick="limparFormUnidade()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+            </div>
+            <form id="form-unidade" class="space-y-3" onsubmit="event.preventDefault(); salvarUnidade();">
+              <input type="hidden" id="unidade-id-edicao">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
                   <input type="text" id="unidade-nome" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                  <select id="unidade-tipo" class="input-field">
+                    <option value="">Não definido</option>
+                    <option value="Escola">Escola (EM/ESC)</option>
+                    <option value="Creche/CEI">Creche / CEI</option>
+                    <option value="Administrativo">Administrativo (SEMED e afins)</option>
+                    <option value="Cooperativa">Cooperativa</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                  <p class="text-xs text-slate-500 mt-1">Usado pra criar um Setor em várias Unidades do mesmo tipo de uma vez, na seção "Setores" abaixo.</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">Endereço</label>
@@ -1741,33 +1761,109 @@
                   <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
                   <input type="tel" id="unidade-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
                 </div>
-                <div>
+                <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
                   <input type="email" id="unidade-email" class="input-field">
                 </div>
-                <button type="submit" class="btn-primary w-full">Salvar</button>
-              </form>
-            </div>
-
-            <div class="card p-4 sm:p-6 lg:col-span-2">
-              <h3 class="text-base font-semibold text-slate-900 mb-4">Unidades cadastradas</h3>
-              <div class="table-container" style="overflow-x:auto;">
-                <table class="w-full text-sm" style="border-collapse:collapse;">
-                  <thead>
-                    <tr>
-                      <th class="table-th">Nome</th>
-                      <th class="table-th">Endereço</th>
-                      <th class="table-th">Telefone</th>
-                      <th class="table-th">E-mail</th>
-                      <th class="table-th">Status</th>
-                      <th class="table-th">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tb-unidades">
-                    <tr><td colspan="6" class="text-center text-slate-500 py-8">Carregando...</td></tr>
-                  </tbody>
-                </table>
               </div>
+              <button type="submit" class="btn-primary w-full md:w-auto">Salvar</button>
+            </form>
+          </div>
+
+          <!-- Unidades cadastradas (tabela - largura total) -->
+          <div class="card p-4 sm:p-6 mb-6">
+            <h3 class="text-base font-semibold text-slate-900 mb-4">Unidades cadastradas</h3>
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Nome</th>
+                    <th class="table-th">Tipo</th>
+                    <th class="table-th">Endereço</th>
+                    <th class="table-th">Telefone</th>
+                    <th class="table-th">E-mail</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-unidades">
+                  <tr><td colspan="7" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               SETORES (tabelas_apoio: Unidade + Setor + E-mail) - usados
+               nos dropdowns de Unidade/Setor do Cadastro e da Nova
+               Solicitação. Antes só dava pra editar direto no Supabase -
+               pedido do usuário: "deve dar condição de cadastrar unidade e
+               setores... criar um setor para a unidade ou para todas ou
+               para o grupo".
+               ============================================================ -->
+
+          <!-- Novo Setor (form - largura total) -->
+          <div class="card p-4 sm:p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold text-slate-900" id="titulo-form-setor">Novo Setor</h3>
+              <button id="btn-cancelar-edicao-setor" onclick="limparFormSetor()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+            </div>
+            <form id="form-setor" class="space-y-3" onsubmit="event.preventDefault(); salvarSetor();">
+              <input type="hidden" id="setor-id-edicao">
+              <div id="bloco-setor-aplicar-em">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Aplicar em *</label>
+                <select id="setor-aplicar-em" class="input-field" onchange="alternarCampoAplicarEmSetor()">
+                  <option value="unidade">Uma Unidade específica</option>
+                  <option value="tipo">Todas de um Tipo (grupo)</option>
+                  <option value="todas">Todas as Unidades ativas</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div id="bloco-setor-unidade">
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Unidade *</label>
+                  <select id="setor-unidade" class="input-field">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div id="bloco-setor-tipo" class="hidden">
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Tipo *</label>
+                  <select id="setor-tipo" class="input-field">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Setor *</label>
+                  <input type="text" id="setor-nome" class="input-field" required placeholder="ex: ADM ESCOLAR">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                  <input type="email" id="setor-email" class="input-field">
+                </div>
+              </div>
+              <button type="submit" class="btn-primary w-full md:w-auto">Salvar</button>
+            </form>
+          </div>
+
+          <!-- Setores cadastrados (tabela - largura total) -->
+          <div class="card p-4 sm:p-6">
+            <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+              <h3 class="text-base font-semibold text-slate-900">Setores cadastrados</h3>
+              <input type="text" id="filtro-setores" class="input-field text-sm max-w-xs" placeholder="Filtrar por Unidade ou Setor..." oninput="aplicarFiltroSetores()">
+            </div>
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Unidade</th>
+                    <th class="table-th">Setor</th>
+                    <th class="table-th">E-mail</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-setores">
+                  <tr><td colspan="4" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1924,28 +2020,28 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20260908l"></script>
-  <script src="supabase-client.js?v=20260908l"></script>
-  <script src="api.js?v=20260908l"></script>
-  <script src="utils.js?v=20260908l"></script>
-  <script src="components.js?v=20260908l"></script>
-  <script src="pages/login.js?v=20260908l"></script>
-  <script src="pages/cadastro.js?v=20260908l"></script>
-  <script src="pages/nova-solicitacao.js?v=20260908l"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20260908l"></script>
-  <script src="pages/dashboard-solicitante.js?v=20260908l"></script>
-  <script src="pages/painel-dia.js?v=20260908l"></script>
-  <script src="pages/agenda.js?v=20260908l"></script>
-  <script src="pages/agenda-condutor.js?v=20260908l"></script>
-  <script src="pages/registro-km.js?v=20260908l"></script>
-  <script src="pages/gestor.js?v=20260908l"></script>
-  <script src="pages/gerenciar-condutores.js?v=20260908l"></script>
-  <script src="pages/gerenciar-km.js?v=20260908l"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20260908l"></script>
-  <script src="pages/gerenciar-unidades.js?v=20260908l"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20260908l"></script>
-  <script src="pages/alterar-senha.js?v=20260908l"></script>
-  <script src="app.js?v=20260908l"></script>
+  <script src="config.js?v=20260908m"></script>
+  <script src="supabase-client.js?v=20260908m"></script>
+  <script src="api.js?v=20260908m"></script>
+  <script src="utils.js?v=20260908m"></script>
+  <script src="components.js?v=20260908m"></script>
+  <script src="pages/login.js?v=20260908m"></script>
+  <script src="pages/cadastro.js?v=20260908m"></script>
+  <script src="pages/nova-solicitacao.js?v=20260908m"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20260908m"></script>
+  <script src="pages/dashboard-solicitante.js?v=20260908m"></script>
+  <script src="pages/painel-dia.js?v=20260908m"></script>
+  <script src="pages/agenda.js?v=20260908m"></script>
+  <script src="pages/agenda-condutor.js?v=20260908m"></script>
+  <script src="pages/registro-km.js?v=20260908m"></script>
+  <script src="pages/gestor.js?v=20260908m"></script>
+  <script src="pages/gerenciar-condutores.js?v=20260908m"></script>
+  <script src="pages/gerenciar-km.js?v=20260908m"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20260908m"></script>
+  <script src="pages/gerenciar-unidades.js?v=20260908m"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20260908m"></script>
+  <script src="pages/alterar-senha.js?v=20260908m"></script>
+  <script src="app.js?v=20260908m"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
