@@ -63,8 +63,19 @@ function preencherDropdownUnidades(selectElem, comOpcaoOutro) {
 
 function preencherDropdownLocais(selectElem) {
   if (!selectElem) return;
+
   selectElem.innerHTML = '<option value="">Selecione...</option>';
-  cacheLocais.forEach(loc => selectElem.innerHTML += `<option value="${loc}">${loc}</option>`);
+
+  cacheLocais.forEach(loc => {
+    const nome = typeof loc === 'string' ? loc : loc.nome;
+
+    if (!nome) return;
+
+    selectElem.innerHTML += `
+      <option value="${nome}">${nome}</option>
+    `;
+  });
+
   selectElem.innerHTML += '<option value="Outro">Outro local</option>';
 }
 
@@ -149,7 +160,7 @@ function abrirAgendaCondutor() {
   esconderTodasTelas();
   document.getElementById('tela-agenda-condutor').classList.remove('hidden');
   marcarAbaAtiva('agenda-condutor');
-  carregarPaginaAgendaCondutor();
+  carregarAgendaCondutor();
 }
 
 function abrirRegistroKm() {
@@ -161,9 +172,9 @@ function abrirRegistroKm() {
 
 function abrirGerenciarCondutores() {
   esconderTodasTelas();
-  document.getElementById('tela-agenda-condutor').classList.remove('hidden');
+  document.getElementById('tela-gerenciar-condutores').classList.remove('hidden');
   marcarAbaAtiva('gerenciar-condutores');
-  carregarPaginaAgendaCondutor();
+  carregarGerenciarCondutores();
 }
 
 function abrirGerenciarKm() {
