@@ -1320,15 +1320,11 @@
         </div>
 
         <!-- ============================================================
-             TELA: Agenda do Condutor + Gerenciar Condutores (Combinada)
+             TELA: Agenda do Condutor
              ============================================================ -->
-        <div id="tela-agenda-condutor" class="hidden animate-fade-in">
-          <!-- ===== SEÇÃO 1: AGENDA DO CONDUTOR ===== -->
-          <div class="card p-4 sm:p-6 mb-6">
-            <div class="flex items-center gap-2 mb-4 flex-wrap">
-              <h2 class="text-lg font-semibold text-slate-900">Minha Agenda</h2>
-              <span id="agenda-condutor-badge-geral" class="hidden badge badge-em-analise">Agenda Geral - todas as corridas</span>
-            </div>
+        <div id="tela-agenda-condutor" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
+          <div class="card p-4 sm:p-6">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Minha Agenda</h2>
 
             <div class="grid grid-cols-2 gap-3 mb-4">
               <div>
@@ -1350,213 +1346,21 @@
               <table class="w-full text-sm" style="border-collapse:collapse;">
                 <thead>
                   <tr>
-                    <th class="table-th whitespace-nowrap">Data/Hora Solicitação</th>
+                    <th class="table-th">Data</th>
+                    <th class="table-th">Saída</th>
+                    <th class="table-th">Retorno</th>
+                    <th class="table-th">Trajeto</th>
                     <th class="table-th">Solicitante</th>
-                    <th class="table-th">Setor / Unidade</th>
-                    <th class="table-th whitespace-nowrap text-center">Tipo</th>
-                    <th class="table-th whitespace-nowrap text-center">Nº Pass</th>
-                    <th class="table-th">Condutor Ida</th>
-                    <th class="table-th">Condutor Volta</th>
-                    <th class="table-th max-w-xs">Justificativa</th>
-                    <th class="table-th whitespace-nowrap">Status</th>
-                    <th class="table-th whitespace-nowrap text-center">Ação</th>
+                    <th class="table-th">Papel</th>
+                    <th class="table-th">Justificativa</th>
+                    <th class="table-th">Status</th>
                   </tr>
                 </thead>
                 <tbody id="tb-agenda-condutor">
-                  <tr><td colspan="10" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                  <tr><td colspan="8" class="text-center text-slate-500 py-8">Carregando...</td></tr>
                 </tbody>
               </table>
             </div>
-          </div>
-
-          <!-- ===== SEÇÃO 2: GERENCIAR CONDUTORES ===== -->
-          <div class="card p-4 sm:p-6">
-            <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
-              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">👥</span> Gerenciar Condutores</h2>
-              <div class="flex items-center gap-2">
-                <button onclick="exportarCondutoresXlsxUI()" class="btn-outline text-sm">Exportar Excel</button>
-                <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
-              </div>
-            </div>
-            <div id="aviso-cnh-condutores" class="mb-4"></div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div class="card p-4 sm:p-6 lg:col-span-1">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-base font-semibold text-slate-900" id="titulo-form-condutor">Novo Condutor</h3>
-                  <button id="btn-cancelar-edicao-condutor" onclick="limparFormCondutor()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
-                </div>
-                <form id="form-condutor" class="space-y-3" onsubmit="event.preventDefault(); salvarCondutorGestor();">
-                  <input type="hidden" id="cond-email-original">
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
-                    <input type="text" id="cond-nome" class="input-field" required>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
-                    <input type="email" id="cond-email" class="input-field" required>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha <span class="text-xs text-slate-400">(deixe em branco para manter)</span></label>
-                    <input type="password" id="cond-senha" class="input-field" autocomplete="new-password">
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
-                    <input type="tel" id="cond-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
-                    <select id="cond-categoria" class="input-field">
-                      <option value="Motorista">Motorista</option>
-                      <option value="Motoboy">Motoboy</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Cooperativa</label>
-                    <select id="cond-cooperativa" class="input-field">
-                      <option value="">Nenhuma / Selecione...</option>
-                    </select>
-                  </div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-sm font-medium text-slate-700 mb-1">Placa</label>
-                      <input type="text" id="cond-placa" class="input-field" style="text-transform:uppercase;">
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-slate-700 mb-1">Capacidade</label>
-                      <input type="text" id="cond-capacidade" class="input-field" placeholder="ex: 15L">
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Modelo do veículo</label>
-                    <input type="text" id="cond-modelo" class="input-field">
-                  </div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-sm font-medium text-slate-700 mb-1">CNH</label>
-                      <input type="text" id="cond-cnh" class="input-field">
-                    </div>
-                    <div>
-                      <label class="block text-sm font-medium text-slate-700 mb-1">Validade CNH</label>
-                      <input type="date" id="cond-validade-cnh" class="input-field">
-                    </div>
-                  </div>
-                  <button type="submit" class="btn-primary w-full">Salvar</button>
-                </form>
-              </div>
-
-              <div class="card p-4 sm:p-6 lg:col-span-2">
-                <h3 class="text-base font-semibold text-slate-900 mb-4">Condutores cadastrados</h3>
-                <div class="table-container" style="overflow-x:auto;">
-                  <table class="w-full text-sm" style="border-collapse:collapse;">
-                    <thead>
-                      <tr>
-                        <th class="table-th">Nome</th>
-                        <th class="table-th">E-mail</th>
-                        <th class="table-th">Telefone</th>
-                        <th class="table-th">Categoria</th>
-                        <th class="table-th">Cooperativa</th>
-                        <th class="table-th">Placa</th>
-                        <th class="table-th">Modelo</th>
-                        <th class="table-th">Capacidade</th>
-                        <th class="table-th">CNH</th>
-                        <th class="table-th">Validade</th>
-                        <th class="table-th">Status</th>
-                        <th class="table-th">Agenda Geral</th>
-                        <th class="table-th">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tb-condutores">
-                      <tr><td colspan="13" class="text-center text-slate-500 py-8">Carregando...</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ===== MODAL EDIÇÃO AGENDA ===== -->
-        <div id="modal-editar-agenda-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onclick="fecharModalEditarAgenda()"></div>
-        <div id="modal-editar-agenda" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div class="modal-content w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="p-4 sm:p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
-              <h3 class="text-lg font-semibold text-slate-900">Editar Corrida</h3>
-              <button onclick="fecharModalEditarAgenda()" class="text-slate-400 hover:text-slate-600 p-1" aria-label="Fechar">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <form id="form-editar-agenda" class="p-4 sm:p-6 space-y-4" onsubmit="event.preventDefault(); salvarEdicaoAgenda();">
-              <input type="hidden" id="edit-agenda-id">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Data da viagem *</label>
-                  <input type="date" id="edit-agenda-data-viagem" class="input-field" required>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Hora saída *</label>
-                  <input type="time" id="edit-agenda-hora-saida" class="input-field" required>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Hora retorno</label>
-                  <input type="time" id="edit-agenda-hora-retorno" class="input-field">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-                  <select id="edit-agenda-tipo" class="input-field">
-                    <option value="Comum">Comum</option>
-                    <option value="Urgente">Urgente</option>
-                    <option value="Emergência">Emergência</option>
-                    <option value="Agendada">Agendada</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Nº Passageiros</label>
-                  <input type="number" id="edit-agenda-qtd-pessoas" class="input-field" min="1" max="50" value="1">
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Origem *</label>
-                  <select id="edit-agenda-origem" class="input-field" required onchange="alternarCampoOutro('edit-agenda-origem', 'edit-agenda-origem-outro')">
-                    <option value="">Selecione...</option>
-                  </select>
-                  <input type="text" id="edit-agenda-origem-outro" class="input-field hidden mt-2" placeholder="Digite a origem">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Destino *</label>
-                  <select id="edit-agenda-destino" class="input-field" required onchange="alternarCampoOutro('edit-agenda-destino', 'edit-agenda-destino-outro')">
-                    <option value="">Selecione...</option>
-                  </select>
-                  <input type="text" id="edit-agenda-destino-outro" class="input-field hidden mt-2" placeholder="Digite o destino">
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Justificativa</label>
-                <textarea id="edit-agenda-justificativa" class="input-field" rows="3" placeholder="Motivo da solicitação..."></textarea>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Condutor Ida</label>
-                  <select id="edit-agenda-condutor-ida" class="input-field">
-                    <option value="">Nenhum</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Condutor Volta</label>
-                  <select id="edit-agenda-condutor-volta" class="input-field">
-                    <option value="">Nenhum</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="flex gap-3 pt-4 border-t border-slate-200">
-                <button type="button" onclick="fecharModalEditarAgenda()" class="btn-secondary flex-1">Cancelar</button>
-                <button type="submit" class="btn-primary flex-1">Salvar alterações</button>
-              </div>
-            </form>
           </div>
         </div>
 
@@ -1582,6 +1386,106 @@
                   </thead>
                   <tbody id="tb-historico-km">
                     <tr><td colspan="2" class="text-center text-slate-500 py-4">Carregando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TELA: Gerenciar Condutores (Gestor)
+             ============================================================ -->
+        <div id="tela-gerenciar-condutores" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">👥</span> Gerenciar Condutores</h2>
+            <div class="flex items-center gap-2">
+              <button onclick="exportarCondutoresXlsxUI()" class="btn-outline text-sm">Exportar Excel</button>
+              <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
+            </div>
+          </div>
+          <div id="aviso-cnh-condutores" class="mb-4"></div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="card p-4 sm:p-6 lg:col-span-1">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-slate-900" id="titulo-form-condutor">Novo Condutor</h3>
+                <button id="btn-cancelar-edicao-condutor" onclick="limparFormCondutor()" class="d-none text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+              </div>
+              <form id="form-condutor" class="space-y-3" onsubmit="event.preventDefault(); salvarCondutorGestor();">
+                <input type="hidden" id="cond-email-original">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
+                  <input type="text" id="cond-nome" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
+                  <input type="email" id="cond-email" class="input-field" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Senha <span class="text-xs text-slate-400">(deixe em branco para manter)</span></label>
+                  <input type="password" id="cond-senha" class="input-field" autocomplete="new-password">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                  <input type="tel" id="cond-telefone" class="input-field" oninput="aplicarMascaraTelefone(this)">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
+                  <select id="cond-categoria" class="input-field">
+                    <option value="Motorista">Motorista</option>
+                    <option value="Motoboy">Motoboy</option>
+                  </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Placa</label>
+                    <input type="text" id="cond-placa" class="input-field" style="text-transform:uppercase;">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Capacidade</label>
+                    <input type="text" id="cond-capacidade" class="input-field" placeholder="ex: 15L">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Modelo do veículo</label>
+                  <input type="text" id="cond-modelo" class="input-field">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">CNH</label>
+                    <input type="text" id="cond-cnh" class="input-field">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Validade CNH</label>
+                    <input type="date" id="cond-validade-cnh" class="input-field">
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Salvar</button>
+              </form>
+            </div>
+
+            <div class="card p-4 sm:p-6 lg:col-span-2">
+              <h3 class="text-base font-semibold text-slate-900 mb-4">Condutores cadastrados</h3>
+              <div class="table-container" style="overflow-x:auto;">
+                <table class="w-full text-sm" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th class="table-th">Nome</th>
+                      <th class="table-th">E-mail</th>
+                      <th class="table-th">Telefone</th>
+                      <th class="table-th">Categoria</th>
+                      <th class="table-th">Placa</th>
+                      <th class="table-th">Modelo</th>
+                      <th class="table-th">Capacidade</th>
+                      <th class="table-th">CNH</th>
+                      <th class="table-th">Validade</th>
+                      <th class="table-th">Status</th>
+                      <th class="table-th">Agenda Geral</th>
+                      <th class="table-th">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tb-condutores">
+                    <tr><td colspan="12" class="text-center text-slate-500 py-8">Carregando...</td></tr>
                   </tbody>
                 </table>
               </div>
