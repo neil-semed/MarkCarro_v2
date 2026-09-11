@@ -254,6 +254,17 @@ async function buscarSolicitacoesPorCondutor(emailCondutor) {
   return data;
 }
 
+async function buscarSolicitacaoPorId(id) {
+  _checarClient();
+  const { data, error } = await _sb
+    .from('solicitacoes')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 async function atualizarSolicitacao(id, dados) {
   _checarClient();
   const { data, error } = await _sb
