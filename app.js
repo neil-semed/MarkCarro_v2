@@ -161,9 +161,9 @@ function abrirRegistroKm() {
 
 function abrirGerenciarCondutores() {
   esconderTodasTelas();
-  document.getElementById('tela-gerenciar-condutores').classList.remove('hidden');
+  document.getElementById('tela-agenda-condutor').classList.remove('hidden');
   marcarAbaAtiva('gerenciar-condutores');
-  carregarGerenciarCondutores();
+  carregarPaginaAgendaCondutor();
 }
 
 function abrirGerenciarKm() {
