@@ -17,13 +17,13 @@
 // stale-while-revalidate nunca convergia, porque o navegador nem
 // verificava se havia um Service Worker novo). Mantenha em sincronia com
 // o "?v=" usado nos <script> do index.html.
-const CACHE_VERSION = 'markcarro-v20260912f';
+const CACHE_VERSION = 'markcarro-v20260912g';
 
 const ARQUIVOS_APP_SHELL = [
   './',
   './index.html',
   './config.js',
-  './supabase-client.js',
+  './Supabase/supabase-client.js',
   './api.js',
   './utils.js',
   './components.js',
