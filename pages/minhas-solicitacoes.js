@@ -32,6 +32,17 @@ async function carregarMinhasSolicitacoes() {
 
 // Mostra nome/código/telefone do condutor em vez do e-mail cru (equivalente
 // ao "condutorIdaCodigo" do sistema antigo em Apps Script).
+// CORREÇÃO (regra de negócio pedida pelo usuário): mesmo que um condutor
+// já esteja atribuído no banco (condutor_ida preenchido), o solicitante só
+// deve ver o nome/telefone dele quando o gestor CONFIRMAR de fato a
+// solicitação (status "Confirmada") - enquanto está só "Em Análise" (ou
+// qualquer outro status), mostrar um texto neutro em vez de vazar a
+// atribuição ainda não confirmada.
+function infoCondutorParaSolicitante(s) {
+  if (s.status !== 'Confirmada') return 'Aguardando confirmação do gestor';
+  return descreverCondutor(s.condutor_ida);
+}
+
 function descreverCondutor(email) {
   if (!email) return 'Condutor ainda não atribuído';
   const c = cacheCondutoresParaExibicao.find(x => x.email === email);
@@ -49,7 +60,6 @@ function descreverCondutor(email) {
 function aplicarFiltroMinhasSolicitacoes() {
   const dataSolic = document.getElementById('filtro-minhas-solic-data-solic')?.value;
   const dataViagem = document.getElementById('filtro-minhas-solic-data-viagem')?.value;
-  const horario = document.getElementById('filtro-minhas-solic-horario')?.value;
   const trajeto = (document.getElementById('filtro-minhas-solic-trajeto')?.value || '').trim().toLowerCase();
   const status = document.getElementById('filtro-minhas-solic-status')?.value || 'TODOS';
   const condutorBusca = (document.getElementById('filtro-minhas-solic-condutor')?.value || '').trim().toLowerCase();
@@ -57,7 +67,6 @@ function aplicarFiltroMinhasSolicitacoes() {
   let filtradas = cacheMinhasSolicitacoes;
   if (dataSolic) filtradas = filtradas.filter(s => (s.data_solicitacao || '').slice(0, 10) === dataSolic);
   if (dataViagem) filtradas = filtradas.filter(s => s.data_viagem === dataViagem);
-  if (horario) filtradas = filtradas.filter(s => (s.hora_saida || '').slice(0, 5) === horario);
   if (trajeto) filtradas = filtradas.filter(s => `${s.origem || ''} ${s.destino || ''}`.toLowerCase().includes(trajeto));
   if (status !== 'TODOS') filtradas = filtradas.filter(s => s.status === status);
   if (condutorBusca) filtradas = filtradas.filter(s => descreverCondutor(s.condutor_ida).toLowerCase().includes(condutorBusca));
@@ -68,7 +77,6 @@ function aplicarFiltroMinhasSolicitacoes() {
 function limparFiltrosMinhasSolicitacoes() {
   document.getElementById('filtro-minhas-solic-data-solic').value = '';
   document.getElementById('filtro-minhas-solic-data-viagem').value = '';
-  document.getElementById('filtro-minhas-solic-horario').value = '';
   document.getElementById('filtro-minhas-solic-trajeto').value = '';
   document.getElementById('filtro-minhas-solic-status').value = 'TODOS';
   document.getElementById('filtro-minhas-solic-condutor').value = '';
@@ -80,22 +88,24 @@ function renderizarMinhasSolicitacoes(dados) {
   const cards = document.getElementById('cards-minhas-solicitacoes');
 
   if (!dados.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-8">Nenhuma solicitação</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-slate-500 py-8">Nenhuma solicitação</td></tr>';
     if (cards) cards.innerHTML = '<div class="text-center text-slate-500 py-8 text-sm">Nenhuma solicitação encontrada.</div>';
     return;
   }
 
   tbody.innerHTML = dados.map(s => `
     <tr>
-      <td><small>${s.id}</small></td>
       <td>${formatarDataHoraBR(s.data_solicitacao)}</td>
       <td>${formatarDataBR(s.data_viagem)}</td>
       <td>${formatarHoraBR(s.hora_saida)} - ${formatarHoraBR(s.hora_retorno)}</td>
       <td>${s.origem} → ${s.destino}</td>
       <td>${s.justificativa || ''}</td>
       <td><span class="badge ${classeStatus(s.status)}">${s.status}</span></td>
-      <td>${descreverCondutor(s.condutor_ida)}</td>
-      <td>${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}</td>
+      <td>${infoCondutorParaSolicitante(s)}</td>
+      <td class="whitespace-nowrap">
+        ${podeEditarSolicitacao(s) ? `<button class="btn-outline text-xs py-1.5 px-2.5 mr-1" onclick="abrirEdicaoSolicitacao('${s.id}')">Editar</button>` : ''}
+        ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}
+      </td>
     </tr>
   `).join('');
 
@@ -105,7 +115,7 @@ function renderizarMinhasSolicitacoes(dados) {
         <div class="flex items-start justify-between gap-2">
           <div>
             <p class="trip-time">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ` <span class="text-slate-300">–</span> ${formatarHoraBR(s.hora_retorno)}` : ''}</p>
-            <p class="text-xs text-slate-500 mt-0.5">${formatarDataBR(s.data_viagem)}</p>
+            <p class="text-sm font-medium text-slate-600 mt-0.5">${formatarDataBR(s.data_viagem)}</p>
           </div>
           <span class="badge ${classeStatus(s.status)} shrink-0">${s.status}</span>
         </div>
@@ -118,8 +128,14 @@ function renderizarMinhasSolicitacoes(dados) {
           </div>
         </div>
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
-        <div class="trip-meta-row">${IconesViagem.carro}<span>${descreverCondutor(s.condutor_ida)}</span></div>
-        ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-2 w-full mt-3" onclick="cancelarSolicitacao('${s.id}')">Cancelar solicitação</button>` : ''}
+        <div class="trip-meta-row">${IconesViagem.carro}<span>${infoCondutorParaSolicitante(s)}</span></div>
+        <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
+        ${s.status === 'Cancelada' ? `<div class="trip-meta-row text-slate-500"><span>Cancelada pela gestão</span></div>` : ''}
+        ${(podeEditarSolicitacao(s) || podeCancelarSolicitacao(s)) ? `
+        <div class="flex gap-2 mt-3">
+          ${podeEditarSolicitacao(s) ? `<button class="btn-outline text-xs py-2 flex-1" onclick="abrirEdicaoSolicitacao('${s.id}')">Editar</button>` : ''}
+          ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-2 flex-1" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}
+        </div>` : ''}
       </div>
     `).join('');
   }
@@ -139,6 +155,118 @@ function podeCancelarSolicitacao(s) {
 
   const TRINTA_MINUTOS_MS = 30 * 60 * 1000;
   return (dataHoraSaida.getTime() - Date.now()) > TRINTA_MINUTOS_MS;
+}
+
+// NOVO (pedido do usuário): o solicitante pode editar hora, origem, destino,
+// nº de passageiros e justificativa da própria solicitação - mas só enquanto
+// ela ainda não foi decidida (Pendente/Em Análise, mesma regra do
+// cancelamento) E enquanto faltar mais de 24h pro horário de saída (prazo
+// maior que o cancelamento de propósito - dá tempo do gestor reorganizar se
+// precisar). O admin não usa isso: ele já pode alterar qualquer solicitação,
+// a qualquer momento, por Gerenciar Solicitações.
+function podeEditarSolicitacao(s) {
+  if (s.status !== 'Pendente' && s.status !== 'Em Análise') return false;
+  if (!s.data_viagem || !s.hora_saida) return true;
+
+  const dataHoraSaida = new Date(`${s.data_viagem}T${s.hora_saida.substring(0, 5)}:00`);
+  if (isNaN(dataHoraSaida.getTime())) return true;
+
+  const VINTE_QUATRO_HORAS_MS = 24 * 60 * 60 * 1000;
+  return (dataHoraSaida.getTime() - Date.now()) > VINTE_QUATRO_HORAS_MS;
+}
+
+function abrirEdicaoSolicitacao(id) {
+  const s = cacheMinhasSolicitacoes.find(x => String(x.id) === String(id));
+  if (!s) return;
+  if (!podeEditarSolicitacao(s)) {
+    Components.Toast.error('Não é mais possível editar: faltam menos de 24h para a saída, ou a solicitação já foi decidida.');
+    carregarMinhasSolicitacoes();
+    return;
+  }
+
+  const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const conteudo = `
+    <form id="form-editar-solicitacao" class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Hora de Saída</label>
+          <input type="time" id="edit-hora-saida" class="input-field" value="${esc((s.hora_saida || '').substring(0, 5))}">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Hora de Retorno</label>
+          <input type="time" id="edit-hora-retorno" class="input-field" value="${esc((s.hora_retorno || '').substring(0, 5))}">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-700 mb-1">Origem</label>
+        <input type="text" id="edit-origem" class="input-field" value="${esc(s.origem)}">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-700 mb-1">Destino</label>
+        <input type="text" id="edit-destino" class="input-field" value="${esc(s.destino)}">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-700 mb-1">Nº Passageiros</label>
+        <input type="number" min="1" id="edit-qtd" class="input-field" value="${esc(s.qtd_pessoas || 1)}">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-700 mb-1">Justificativa</label>
+        <textarea id="edit-justificativa" rows="3" class="input-field">${esc(s.justificativa)}</textarea>
+      </div>
+      <p class="text-xs text-slate-500">Edição disponível só até 24h antes do horário de saída.</p>
+    </form>
+  `;
+
+  const overlay = Components.Modal.show(conteudo, {
+    title: 'Editar Solicitação',
+    footer: `
+      <button type="button" id="btn-cancelar-edicao-solic" class="btn-outline text-sm py-2 px-4">Cancelar</button>
+      <button type="button" id="btn-salvar-edicao-solic" class="btn-primary text-sm py-2 px-4">Salvar</button>
+    `
+  });
+
+  overlay.querySelector('#btn-cancelar-edicao-solic')?.addEventListener('click', () => overlay.remove());
+
+  overlay.querySelector('#btn-salvar-edicao-solic')?.addEventListener('click', async () => {
+    // Reconfere o prazo na hora de salvar (o modal pode ter ficado aberto
+    // um tempo) - mesma cautela do cancelamento.
+    if (!podeEditarSolicitacao(s)) {
+      Components.Toast.error('Não é mais possível editar: faltam menos de 24h para a saída.');
+      overlay.remove();
+      carregarMinhasSolicitacoes();
+      return;
+    }
+
+    const horaSaida = overlay.querySelector('#edit-hora-saida').value;
+    const horaRetorno = overlay.querySelector('#edit-hora-retorno').value;
+    const origem = overlay.querySelector('#edit-origem').value.trim();
+    const destino = overlay.querySelector('#edit-destino').value.trim();
+    const qtd = parseInt(overlay.querySelector('#edit-qtd').value, 10) || 1;
+    const justificativa = overlay.querySelector('#edit-justificativa').value.trim();
+
+    if (!horaSaida || !origem || !destino || !justificativa) {
+      Components.Toast.error('Preencha hora de saída, origem, destino e justificativa.');
+      return;
+    }
+
+    try {
+      await atualizarSolicitacao(id, {
+        hora_saida: horaSaida,
+        hora_retorno: horaRetorno || null,
+        origem,
+        destino,
+        qtd_pessoas: qtd,
+        justificativa
+      });
+      Components.Toast.success('Solicitação atualizada.');
+      overlay.remove();
+      carregarMinhasSolicitacoes();
+    } catch (e) {
+      console.error('Erro ao editar solicitação:', e);
+      Components.Toast.error('Não foi possível salvar as alterações.');
+    }
+  });
 }
 
 // Cancelamento pelo próprio solicitante usa o status "Desprezado" - distinto
@@ -205,4 +333,5 @@ window.carregarMinhasSolicitacoes = carregarMinhasSolicitacoes;
 window.aplicarFiltroMinhasSolicitacoes = aplicarFiltroMinhasSolicitacoes;
 window.limparFiltrosMinhasSolicitacoes = limparFiltrosMinhasSolicitacoes;
 window.cancelarSolicitacao = cancelarSolicitacao;
+window.abrirEdicaoSolicitacao = abrirEdicaoSolicitacao;
 window.exportarMinhasSolicitacoesXlsxUI = exportarMinhasSolicitacoesXlsxUI;
