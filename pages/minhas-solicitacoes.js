@@ -72,19 +72,21 @@ function descreverCondutor(email) {
 // Data da Viagem, Horário de Saída, Origem/Destino (busca livre), Status e
 // Condutor (busca livre pelo nome já traduzido por descreverCondutor, não
 // pelo e-mail cru). Antes só existia o filtro de Status.
+// PEDIDO DO USUÁRIO: "não pedi filtro para status nem para condutor nesse
+// perfil [Solicitante] - era para o perfil motorista - retirar do perfil
+// solicitante". Os filtros de Status/Condutor saíram (o motorista já tem
+// filtro de motorista/origem/destino próprio na Agenda Geral - ver
+// pages/agenda-condutor.js) - aqui ficaram só Data Solic./Data Viagem/
+// Origem-Destino.
 function aplicarFiltroMinhasSolicitacoes() {
   const dataSolic = document.getElementById('filtro-minhas-solic-data-solic')?.value;
   const dataViagem = document.getElementById('filtro-minhas-solic-data-viagem')?.value;
   const trajeto = (document.getElementById('filtro-minhas-solic-trajeto')?.value || '').trim().toLowerCase();
-  const status = document.getElementById('filtro-minhas-solic-status')?.value || 'TODOS';
-  const condutorBusca = (document.getElementById('filtro-minhas-solic-condutor')?.value || '').trim().toLowerCase();
 
   let filtradas = cacheMinhasSolicitacoes;
   if (dataSolic) filtradas = filtradas.filter(s => (s.data_solicitacao || '').slice(0, 10) === dataSolic);
   if (dataViagem) filtradas = filtradas.filter(s => s.data_viagem === dataViagem);
   if (trajeto) filtradas = filtradas.filter(s => `${s.origem || ''} ${s.destino || ''}`.toLowerCase().includes(trajeto));
-  if (status !== 'TODOS') filtradas = filtradas.filter(s => s.status === status);
-  if (condutorBusca) filtradas = filtradas.filter(s => descreverCondutor(s.condutor_ida).toLowerCase().includes(condutorBusca));
 
   renderizarMinhasSolicitacoes(filtradas);
 }
@@ -93,8 +95,6 @@ function limparFiltrosMinhasSolicitacoes() {
   document.getElementById('filtro-minhas-solic-data-solic').value = '';
   document.getElementById('filtro-minhas-solic-data-viagem').value = '';
   document.getElementById('filtro-minhas-solic-trajeto').value = '';
-  document.getElementById('filtro-minhas-solic-status').value = 'TODOS';
-  document.getElementById('filtro-minhas-solic-condutor').value = '';
   aplicarFiltroMinhasSolicitacoes();
 }
 
