@@ -88,6 +88,26 @@ function papelOuEscalacao(s, verTudo) {
   return partes.join(' · ') || '—';
 }
 
+// CORREÇÃO (pedido do usuário: "motorista de ida em uma linha, de volta em
+// outra linha - se ida e volta for o mesmo motorista mencionar o nome 1
+// vez"): usada na Agenda Geral (verTudo) no lugar de papelOuEscalacao() -
+// devolve uma LINHA por motorista escalado, em vez de "Ida: X · Volta: Y"
+// tudo espremido na mesma linha; quando o mesmo motorista está escalado
+// pra Ida e Volta, devolve uma linha só ("Ida e Volta: Nome") em vez de
+// repetir o mesmo nome 2 vezes.
+function linhasEscalacaoCondutores(s) {
+  const emailIda = s.condutor_ida || '';
+  const emailVolta = s.condutor_volta || '';
+  if (!emailIda && !emailVolta) return ['—'];
+  if (emailIda && emailVolta && emailIda === emailVolta) {
+    return [`Ida e Volta: ${_nomeCondutor(emailIda)}`];
+  }
+  const linhas = [];
+  if (emailIda) linhas.push(`Ida: ${_nomeCondutor(emailIda)}`);
+  if (emailVolta) linhas.push(`Volta: ${_nomeCondutor(emailVolta)}`);
+  return linhas;
+}
+
 function renderizarAgendaCondutor(dados, verTudo) {
   const tbody = document.getElementById('tb-agenda-condutor');
   const cards = document.getElementById('cards-agenda-condutor');
@@ -105,7 +125,7 @@ function renderizarAgendaCondutor(dados, verTudo) {
       <td>${formatarHoraBR(s.hora_retorno)}</td>
       <td>${s.origem} → ${s.destino}</td>
       <td>${s.nome_ext || s.email_solicitante}</td>
-      <td>${papelOuEscalacao(s, verTudo)}</td>
+      <td>${verTudo ? linhasEscalacaoCondutores(s).join('<br>') : papelOuEscalacao(s, verTudo)}</td>
       <td>${s.justificativa || ''}</td>
       <td><span class="badge ${classeStatus(s.status)}">${s.status}</span></td>
     </tr>
@@ -130,7 +150,7 @@ function renderizarAgendaCondutor(dados, verTudo) {
             <span class="trip-route-label">Destino</span>${s.destino || '—'}
           </div>
         </div>
-        ${verTudo ? `<div class="trip-meta-row">${IconesViagem.carro}<span>${papelOuEscalacao(s, verTudo)}</span></div>` : ''}
+        ${verTudo ? linhasEscalacaoCondutores(s).map(linha => `<div class="trip-meta-row">${IconesViagem.carro}<span>${linha}</span></div>`).join('') : ''}
         <div class="trip-meta-row">${IconesViagem.usuario}<span>${s.nome_ext || s.email_solicitante}${s.telefone_ext ? ` · ${s.telefone_ext}` : ''}</span></div>
         <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
