@@ -19,9 +19,18 @@ async function carregarGerenciarUsuarios() {
   } catch (e) {
     // Sem isso, um erro aqui deixava a tabela travada no spinner de
     // "Carregando..." pra sempre (nada reescrevia o tbody depois do catch).
+    //
+    // CORREÇÃO ("app não carrega unidade nem setor, sem isso não cria
+    // usuário semed" / "tenta criar usuário, nem carrega do supabase"):
+    // esta mensagem de erro era genérica demais pra diagnosticar - nunca
+    // mostrava o erro REAL do Supabase (RLS, coluna, permissão etc.), só
+    // "Erro ao carregar usuários" sempre igual, e sem acesso ao console do
+    // usuário não dava pra saber a causa. Agora mostra o erro de verdade
+    // (e.message), direto na tela.
     console.error('Erro ao carregar usuários:', e);
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-8">Erro ao carregar usuários. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciarUsuarios()">Tentar de novo</button></td></tr>`;
-    Components.Toast.error('Erro ao carregar usuários');
+    const detalhe = (e && e.message) ? e.message : 'motivo desconhecido';
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-8">Erro ao carregar usuários: ${detalhe} <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciarUsuarios()">Tentar de novo</button></td></tr>`;
+    Components.Toast.error('Erro ao carregar usuários: ' + detalhe);
   }
 }
 
