@@ -4,13 +4,15 @@
 -- MarkCarro (agora funciona nos 2 sentidos: não importa qual app o
 -- motorista usa pra logar, ele vê a agenda dos 2 sistemas).
 --
--- Só devolve o que é preciso pra evitar bater 2 vans no mesmo horário e
--- identificar quem está escalado: placa, NOME do motorista (mesmo padrão
--- que a Edge Function do Bora Lá já expõe), data, horário, "origem →
--- destino" e status - nada de solicitante, unidade/setor, justificativa,
--- telefone etc. Não expõe nenhuma tabela nem policy nova - é uma função só
--- de leitura (SECURITY DEFINER, mas só devolve os 7 campos abaixo, nunca a
--- linha inteira).
+-- PEDIDO DO USUÁRIO ("use a mesma configuração do card do bora lá, com as
+-- informações do solicitante e setor"): além de placa/motorista/horário,
+-- agora também devolve origem, destino (campos separados - "detalhe"
+-- continua existindo, junto, só por compatibilidade com quem já lê ele),
+-- quantidade de passageiros e nome/telefone do solicitante - mesmo
+-- espírito do que a Edge Function do Bora Lá já expõe sobre as excursões
+-- dela. Não expõe nenhuma tabela nem policy nova - é uma função só de
+-- leitura (SECURITY DEFINER, mas só devolve os campos abaixo, nunca a
+-- linha inteira - sem justificativa, sem endereço/documento de ninguém).
 --
 -- Considera "ocupando a van": solicitacoes.status = 'Confirmada' e
 -- condutor_ida/condutor_volta preenchido (mesmo critério já usado na
@@ -27,7 +29,12 @@ RETURNS TABLE (
   hora_saida time,
   hora_retorno time,
   detalhe text,
-  status text
+  status text,
+  origem text,
+  destino text,
+  qtd_pessoas int,
+  nome_solicitante text,
+  telefone_solicitante text
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -44,6 +51,9 @@ AS $$
       s.origem,
       s.destino,
       s.status,
+      s.qtd_pessoas,
+      COALESCE(s.nome_ext, s.email_solicitante) AS nome_solicitante,
+      s.telefone_ext AS telefone_solicitante,
       p_ida.placa AS placa_ida,
       p_ida.nome AS nome_ida,
       p_volta.placa AS placa_volta,
@@ -67,7 +77,12 @@ AS $$
     hora_saida,
     hora_retorno,
     (COALESCE(origem, '') || ' → ' || COALESCE(destino, '')) AS detalhe,
-    status
+    status,
+    origem,
+    destino,
+    qtd_pessoas,
+    nome_solicitante,
+    telefone_solicitante
   FROM base
   CROSS JOIN LATERAL (VALUES (placa_ida, nome_ida), (placa_volta, nome_volta)) AS pares(placa, motorista)
   WHERE placa IS NOT NULL
