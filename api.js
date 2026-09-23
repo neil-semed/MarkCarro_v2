@@ -896,6 +896,29 @@ async function excluirKM(id) {
   await _chamarKmBridge('excluir', { id });
 }
 
+// Editar/excluir de registro _legado (tabela local registros_km, de antes
+// do km-bridge) - PEDIDO DO USUÁRIO: esses registros continuam sendo usados
+// no dia a dia (não são só histórico morto) e não podiam ficar travados só
+// porque o dado mora na tabela antiga - o id deles não existe no Bora Lá,
+// então vai direto na tabela local em vez de passar pelo km-bridge.
+async function atualizarKMLegado(id, dados) {
+  _checarClient();
+  const patch = {};
+  if (dados.data !== undefined) patch.data = dados.data;
+  if (dados.km_inicial !== undefined) patch.km_inicial = dados.km_inicial;
+  if (dados.km_final !== undefined) patch.km_final = dados.km_final;
+  if (dados.ajustado !== undefined) patch.ajustado = dados.ajustado;
+  const { data, error } = await _sb.from('registros_km').update(patch).eq('id', id).select('*').single();
+  if (error) throw error;
+  return { ...data, _legado: true };
+}
+
+async function excluirKMLegado(id) {
+  _checarClient();
+  const { error } = await _sb.from('registros_km').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // PEDIDO DO USUÁRIO ("não busca nem o que está na base do markcarro"): a
 // tela Gerenciar KM some por completo quando o km-bridge (Bora Lá) dá erro
 // - e os registros ANTIGOS (antes da migration pro km-bridge) continuam
