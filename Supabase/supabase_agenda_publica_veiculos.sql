@@ -4,11 +4,13 @@
 -- MarkCarro (agora funciona nos 2 sentidos: não importa qual app o
 -- motorista usa pra logar, ele vê a agenda dos 2 sistemas).
 --
--- Só devolve o que é preciso pra evitar bater 2 vans no mesmo horário:
--- placa, data, horário, "origem → destino" e status - nada de nome de
--- solicitante, unidade/setor, justificativa, telefone etc. Não expõe
--- nenhuma tabela nem policy nova - é uma função só de leitura (SECURITY
--- DEFINER, mas só devolve os 6 campos abaixo, nunca a linha inteira).
+-- Só devolve o que é preciso pra evitar bater 2 vans no mesmo horário e
+-- identificar quem está escalado: placa, NOME do motorista (mesmo padrão
+-- que a Edge Function do Bora Lá já expõe), data, horário, "origem →
+-- destino" e status - nada de solicitante, unidade/setor, justificativa,
+-- telefone etc. Não expõe nenhuma tabela nem policy nova - é uma função só
+-- de leitura (SECURITY DEFINER, mas só devolve os 7 campos abaixo, nunca a
+-- linha inteira).
 --
 -- Considera "ocupando a van": solicitacoes.status = 'Confirmada' e
 -- condutor_ida/condutor_volta preenchido (mesmo critério já usado na
@@ -18,6 +20,7 @@ CREATE OR REPLACE FUNCTION public.agenda_publica_veiculos(p_desde date, p_ate da
 RETURNS TABLE (
   sistema text,
   placa text,
+  motorista text,
   data_viagem date,
   hora_saida time,
   hora_retorno time,
@@ -40,7 +43,9 @@ AS $$
       s.destino,
       s.status,
       p_ida.placa AS placa_ida,
-      p_volta.placa AS placa_volta
+      p_ida.nome AS nome_ida,
+      p_volta.placa AS placa_volta,
+      p_volta.nome AS nome_volta
     FROM public.solicitacoes s
     LEFT JOIN public.profiles p_ida ON p_ida.email = s.condutor_ida
     LEFT JOIN public.profiles p_volta ON p_volta.email = s.condutor_volta
@@ -55,13 +60,14 @@ AS $$
   SELECT DISTINCT
     'markcarro'::text AS sistema,
     placa,
+    motorista,
     data_viagem,
     hora_saida,
     hora_retorno,
     (COALESCE(origem, '') || ' → ' || COALESCE(destino, '')) AS detalhe,
     status
   FROM base
-  CROSS JOIN LATERAL (VALUES (placa_ida), (placa_volta)) AS placas(placa)
+  CROSS JOIN LATERAL (VALUES (placa_ida, nome_ida), (placa_volta, nome_volta)) AS pares(placa, motorista)
   WHERE placa IS NOT NULL
   ORDER BY data_viagem, hora_saida;
 $$;
