@@ -16,6 +16,8 @@
 -- condutor_ida/condutor_volta preenchido (mesmo critério já usado na
 -- tela Agenda de Corridas e na Agenda Combinada do MarkCarro).
 
+DROP FUNCTION IF EXISTS public.agenda_publica_veiculos(date, date);
+
 CREATE OR REPLACE FUNCTION public.agenda_publica_veiculos(p_desde date, p_ate date)
 RETURNS TABLE (
   sistema text,
