@@ -93,9 +93,10 @@ function renderizarRegistrosKmGestor(dados) {
 
   tbody.innerHTML = dados.map(r => {
     const condutor = cacheCondutores.find(c => c.email === r.email_condutor);
-    // Registro _legado (tabela antiga registros_km, de antes do km-bridge):
-    // o id dele não existe no Bora Lá, então Editar/Excluir (que chamam o
-    // km-bridge) quebrariam - mostra só como consulta, com uma tag "antigo".
+    // Registro _legado (tabela antiga registros_km, de antes do km-bridge)
+    // continua editável/excluível normalmente - só que direto na tabela
+    // local (ver atualizarKMLegado/excluirKMLegado em api.js), já que o id
+    // dele não existe no Bora Lá. A tag "antigo" é só informativa.
     return `
     <tr>
       <td>${formatarDataBR(r.data)}</td>
@@ -105,21 +106,25 @@ function renderizarRegistrosKmGestor(dados) {
       <td>${r.km_final ? r.km_final - r.km_inicial : ''}</td>
       <td>${r.ajustado ? 'Sim' : 'Não'}</td>
       <td>
-        ${r._legado
-          ? '<span class="text-xs text-slate-400" title="Registro de antes da integração com o Bora Lá - só consulta">antigo</span>'
-          : `<div class="flex gap-2">
+        <div class="flex gap-2 items-center">
+          ${r._legado ? '<span class="text-xs text-slate-400" title="Registro de antes da integração com o Bora Lá">antigo</span>' : ''}
           <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarKmGestor('${r.id}')">Editar</button>
           <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirKmGestor('${r.id}')">Excluir</button>
-        </div>`}
+        </div>
       </td>
     </tr>
     `;
   }).join('');
 }
 
+// Guarda se o registro em edição é _legado (tabela local) ou do km-bridge
+// (Bora Lá) - salvarKmGestor() usa isso pra saber pra onde mandar o PATCH.
+let idEdicaoLegado = false;
+
 function limparFormKmGestor() {
   document.getElementById('form-km-gestor').reset();
   document.getElementById('km-gestor-id-edicao').value = '';
+  idEdicaoLegado = false;
   document.getElementById('titulo-form-km-gestor').textContent = 'Lançar KM';
   document.getElementById('btn-cancelar-edicao-km-gestor').classList.add('hidden');
 }
@@ -127,7 +132,7 @@ function limparFormKmGestor() {
 function editarKmGestor(id) {
   const r = cacheRegistrosKmGestor.find(x => String(x.id) === String(id));
   if (!r) return;
-  if (r._legado) return Components.Toast.error('Registro antigo (anterior à integração com o Bora Lá) - só consulta.');
+  idEdicaoLegado = !!r._legado;
 
   document.getElementById('km-gestor-id-edicao').value = r.id;
   document.getElementById('km-gestor-condutor').value = r.email_condutor;
@@ -142,10 +147,10 @@ function editarKmGestor(id) {
 
 async function excluirKmGestor(id) {
   const r = cacheRegistrosKmGestor.find(x => String(x.id) === String(id));
-  if (r?._legado) return Components.Toast.error('Registro antigo (anterior à integração com o Bora Lá) - só consulta.');
   if (!confirm('Tem certeza que deseja excluir este registro de KM?')) return;
   try {
-    await excluirKM(id);
+    if (r?._legado) await excluirKMLegado(id);
+    else await excluirKM(id);
     Components.Toast.success('Registro excluído!');
     if (document.getElementById('km-gestor-id-edicao').value === String(id)) {
       limparFormKmGestor();
@@ -176,7 +181,8 @@ async function salvarKmGestor() {
     };
 
     if (idEdicao) {
-      await atualizarKM(idEdicao, dados);
+      if (idEdicaoLegado) await atualizarKMLegado(idEdicao, dados);
+      else await atualizarKM(idEdicao, dados);
       Components.Toast.success('Registro atualizado!');
     } else {
       await registrarKM(dados);
