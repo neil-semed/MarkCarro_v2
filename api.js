@@ -896,7 +896,34 @@ async function excluirKM(id) {
   await _chamarKmBridge('excluir', { id });
 }
 
+// PEDIDO DO USUÁRIO ("não busca nem o que está na base do markcarro"): a
+// tela Gerenciar KM some por completo quando o km-bridge (Bora Lá) dá erro
+// - e os registros ANTIGOS (antes da migration pro km-bridge) continuam
+// existindo na tabela local registros_km (congelada, nunca foi apagada nem
+// migrada, ver comentário grande acima). Agora busca as duas fontes em
+// paralelo: se uma falhar, mostra a outra em vez de travar tudo (Promise.
+// allSettled) - só lança erro de verdade se as DUAS falharem. Registros
+// antigos vêm marcados com _legado:true - a UI usa isso pra desabilitar
+// Editar/Excluir neles (esses ids não existem no km-bridge/Bora Lá).
 async function listarTodosKM() {
-  const corpo = await _chamarKmBridge('listar_todos', {});
-  return corpo.data;
+  const [doLegado, doBridge] = await Promise.allSettled([
+    (async () => {
+      _checarClient();
+      const { data, error } = await _sb.from('registros_km').select('*').order('data', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(r => ({ ...r, _legado: true }));
+    })(),
+    _chamarKmBridge('listar_todos', {}).then(corpo => corpo.data || []),
+  ]);
+
+  if (doLegado.status === 'rejected') console.error('Erro ao carregar KM (tabela local registros_km):', doLegado.reason);
+  if (doBridge.status === 'rejected') console.error('Erro ao carregar KM (km-bridge/Bora Lá):', doBridge.reason);
+
+  if (doLegado.status === 'rejected' && doBridge.status === 'rejected') {
+    throw doBridge.reason || doLegado.reason;
+  }
+
+  const legado = doLegado.status === 'fulfilled' ? doLegado.value : [];
+  const bridge = doBridge.status === 'fulfilled' ? doBridge.value : [];
+  return [...bridge, ...legado];
 }
