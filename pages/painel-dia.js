@@ -105,11 +105,19 @@ function renderizarPainelDoDia(lista) {
     const solicitante = doBoraLa ? (s.nome_solicitante || '') : (s.nome_ext || s.email_solicitante || '');
     const telefone = doBoraLa ? s.telefone_solicitante : s.telefone_ext;
 
+    // PEDIDO DO USUÁRIO ("troque a cor do destaque do bora lá pra azul -
+    // mantenha o carrinho"): corrida do Bora Lá usa a faixa/badge azul já
+    // existentes no app (trip-card-em-analise / badge-em-analise), em vez da
+    // cor de "Confirmada" (verde) - só uma escolha visual, não muda status
+    // real de nada. O 🚐 continua no badge.
+    const classeBorda = doBoraLa ? 'trip-card-em-analise' : classeCorBordaViagem(statusExibido);
+    const classeBadge = doBoraLa ? 'badge-em-analise' : classeStatus(statusExibido);
+
     return `
-      <div class="trip-card ${classeCorBordaViagem(statusExibido)} animate-fade-in">
+      <div class="trip-card ${classeBorda} animate-fade-in">
         <div class="flex items-start justify-between gap-2">
           <p class="trip-time">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ` <span class="text-slate-300">–</span> ${formatarHoraBR(s.hora_retorno)}` : ''}</p>
-          <span class="badge ${classeStatus(statusExibido)} shrink-0">${doBoraLa ? '🚐 Bora Lá' : statusExibido}</span>
+          <span class="badge ${classeBadge} shrink-0">${doBoraLa ? '🚐 Bora Lá' : statusExibido}</span>
         </div>
         <span class="trip-tag mt-2 inline-block">${papel}</span>
         <div class="trip-route">
@@ -123,16 +131,6 @@ function renderizarPainelDoDia(lista) {
         <div class="trip-meta-row">${IconesViagem.usuario}<span>${solicitante}${telefone ? ` · ${telefone}` : ''}</span></div>
         <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
-        <!-- PEDIDO DO USUÁRIO: "Registro de km - retirar dos cards - será
-             apenas na aba KM" e "Reportar pane mecânica - tirar do card -
-             colocar no topo" - os dois botões de ação por corrida saíram
-             daqui; KM só pela aba própria (Registro de KM) e Pane Mecânica
-             virou um botão único no topo do app (ver
-             #btn-pane-topo-condutor no cabeçalho + reportarPaneMecanicaGeral
-             logo abaixo). -->
-        <div class="flex gap-2 mt-3">
-          <a href="tel:${(telefone || '').replace(/\D/g,'')}" class="${telefone ? '' : 'hidden'} btn-outline text-xs py-2 px-3 flex-1 text-center">📞 Ligar</a>
-        </div>
       </div>
     `;
   }).join('');
