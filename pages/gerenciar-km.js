@@ -93,6 +93,9 @@ function renderizarRegistrosKmGestor(dados) {
 
   tbody.innerHTML = dados.map(r => {
     const condutor = cacheCondutores.find(c => c.email === r.email_condutor);
+    // Registro _legado (tabela antiga registros_km, de antes do km-bridge):
+    // o id dele não existe no Bora Lá, então Editar/Excluir (que chamam o
+    // km-bridge) quebrariam - mostra só como consulta, com uma tag "antigo".
     return `
     <tr>
       <td>${formatarDataBR(r.data)}</td>
@@ -102,10 +105,12 @@ function renderizarRegistrosKmGestor(dados) {
       <td>${r.km_final ? r.km_final - r.km_inicial : ''}</td>
       <td>${r.ajustado ? 'Sim' : 'Não'}</td>
       <td>
-        <div class="flex gap-2">
+        ${r._legado
+          ? '<span class="text-xs text-slate-400" title="Registro de antes da integração com o Bora Lá - só consulta">antigo</span>'
+          : `<div class="flex gap-2">
           <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarKmGestor('${r.id}')">Editar</button>
           <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirKmGestor('${r.id}')">Excluir</button>
-        </div>
+        </div>`}
       </td>
     </tr>
     `;
@@ -122,6 +127,7 @@ function limparFormKmGestor() {
 function editarKmGestor(id) {
   const r = cacheRegistrosKmGestor.find(x => String(x.id) === String(id));
   if (!r) return;
+  if (r._legado) return Components.Toast.error('Registro antigo (anterior à integração com o Bora Lá) - só consulta.');
 
   document.getElementById('km-gestor-id-edicao').value = r.id;
   document.getElementById('km-gestor-condutor').value = r.email_condutor;
@@ -135,6 +141,8 @@ function editarKmGestor(id) {
 }
 
 async function excluirKmGestor(id) {
+  const r = cacheRegistrosKmGestor.find(x => String(x.id) === String(id));
+  if (r?._legado) return Components.Toast.error('Registro antigo (anterior à integração com o Bora Lá) - só consulta.');
   if (!confirm('Tem certeza que deseja excluir este registro de KM?')) return;
   try {
     await excluirKM(id);
