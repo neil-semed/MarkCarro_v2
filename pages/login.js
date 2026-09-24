@@ -148,21 +148,23 @@ function carregarSaudacao() {
   const elSaudacao = document.getElementById('saudacao-usuario');
   const elNomePerfil = document.getElementById('saudacao-nome-perfil');
 
-  // CORREÇÃO (pedido do usuário, perfil Solicitante): "Boa noite Karla!"
-  // numa linha só, sem o "(perfil)" embaixo - diferente do formato padrão
-  // (duas linhas, nome completo) usado por Admin/Condutor, que continua
-  // como estava.
+  // CORREÇÃO (pedido do usuário, Solicitante e Condutor: "quebre o texto da
+  // saudação - Bom dia numa linha e CRISTIANO! em outra"): antes ficava tudo
+  // numa linha só ("Bom dia Cristiano!"), que empurrava o botão Sair pra
+  // fora da tela no celular (linha do header sem quebra, "overflow-x-auto"
+  // pro Condutor). Agora usa as 2 linhas que o bloco já tinha
+  // (saudacao-usuario / saudacao-nome-perfil), reduzindo a largura ocupada.
   if (usuarioAtual.tipo?.toLowerCase() === 'solicitante') {
     const primeiroNome = (usuarioAtual.nome || '').trim().split(/\s+/)[0] || '';
-    if (elSaudacao) elSaudacao.textContent = `${saudacao}${primeiroNome ? ' ' + primeiroNome : ''}!`;
-    if (elNomePerfil) { elNomePerfil.textContent = ''; elNomePerfil.classList.add('hidden'); }
+    if (elSaudacao) elSaudacao.textContent = saudacao;
+    if (elNomePerfil) { elNomePerfil.textContent = primeiroNome ? `${primeiroNome}!` : ''; elNomePerfil.classList.remove('hidden'); }
   } else if (usuarioAtual.tipo?.toLowerCase() === 'condutor') {
     // Condutor (pedido do usuário, exemplo do print: "Bom dia SÉRGIO!") -
-    // mesmo formato de uma linha só do Solicitante, mas com o primeiro nome
-    // em maiúsculas.
+    // mesma quebra em 2 linhas do Solicitante, com o primeiro nome em
+    // maiúsculas.
     const primeiroNome = (usuarioAtual.nome || '').trim().split(/\s+/)[0] || '';
-    if (elSaudacao) elSaudacao.textContent = `${saudacao}${primeiroNome ? ' ' + primeiroNome.toUpperCase() : ''}!`;
-    if (elNomePerfil) { elNomePerfil.textContent = ''; elNomePerfil.classList.add('hidden'); }
+    if (elSaudacao) elSaudacao.textContent = saudacao;
+    if (elNomePerfil) { elNomePerfil.textContent = primeiroNome ? `${primeiroNome.toUpperCase()}!` : ''; elNomePerfil.classList.remove('hidden'); }
   } else {
     if (elSaudacao) elSaudacao.textContent = `${saudacao}!`;
     if (elNomePerfil) { elNomePerfil.classList.remove('hidden'); elNomePerfil.textContent = `${usuarioAtual.nome} (${usuarioAtual.tipo?.toLowerCase() || ''})`; }
