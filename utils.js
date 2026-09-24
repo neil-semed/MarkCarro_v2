@@ -102,6 +102,19 @@ function mesmoEmail(a, b) {
   return !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
+// Mesma ideia do mesmoEmail() acima, só que pra placa: MarkCarro e Bora Lá
+// são 2 cadastros de texto livre, digitados por pessoas diferentes em
+// sistemas diferentes ("ABC-1234" vs "ABC1234" vs "abc 1234" etc.) -
+// comparar só com toUpperCase pode nunca bater mesmo sendo a mesma van, e
+// a viagem do Bora Lá simplesmente não aparece pro condutor - sem erro
+// nenhum. Usado em toda comparação de placa entre os 2 sistemas (Painel
+// do Dia, Próximas Agendas).
+function mesmaPlaca(a, b) {
+  const norm = (p) => (p || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const na = norm(a), nb = norm(b);
+  return !!na && !!nb && na === nb;
+}
+
 function obterIniciais(nome) {
   if (!nome) return '?';
   const partes = nome.trim().split(/\s+/);
@@ -237,6 +250,7 @@ window.classeStatus = classeStatus;
 window.classeCorBordaViagem = classeCorBordaViagem;
 window.IconesViagem = IconesViagem;
 window.mesmoEmail = mesmoEmail;
+window.mesmaPlaca = mesmaPlaca;
 window.obterIniciais = obterIniciais;
 window.debounce = debounce;
 window.mostrarToast = mostrarToast;
