@@ -214,22 +214,52 @@ function renderizarAgendaCondutor(dados, verTudo) {
     return;
   }
 
-  tbody.innerHTML = dados.map(s => `
-    <tr>
+  // PEDIDO DO USUÁRIO ("agenda geral - ordenar cronologicamente pelo
+  // horário da saída"): antes a lista vinha na ordem crua do banco - agora
+  // ordena por data da viagem e, dentro do mesmo dia, por hora de saída.
+  dados = [...dados].sort((a, b) => {
+    const dataA = a.data_viagem || '';
+    const dataB = b.data_viagem || '';
+    if (dataA !== dataB) return dataA < dataB ? -1 : 1;
+    const horaA = a.hora_saida || '';
+    const horaB = b.hora_saida || '';
+    return horaA < horaB ? -1 : horaA > horaB ? 1 : 0;
+  });
+
+  // PEDIDO DO USUÁRIO ("agenda geral - apresentar os agendamentos de hoje
+  // para hoje, no mesmo formato descritos acima" - mesmo destaque já usado
+  // em Dashboard/Painel do Dia pra agendamento feito HOJE pra viagem de
+  // HOJE): mesma lógica de ehUltimaHora usada em dashboard-condutor.js e
+  // painel-dia.js.
+  function ehUltimaHoraCondutor(s) {
+    return (s.data_solicitacao || '').slice(0, 10) === s.data_viagem;
+  }
+
+  tbody.innerHTML = dados.map(s => {
+    const ultimaHora = ehUltimaHoraCondutor(s);
+    return `
+    <tr${ultimaHora ? ' style="border-left:3px solid #FF914D; background:#fff7ed;"' : ''}>
       <td>${formatarDataBR(s.data_viagem)}</td>
       <td>${formatarHoraBR(s.hora_saida)}</td>
       <td>${formatarHoraBR(s.hora_retorno)}</td>
-      <td>${s.origem} → ${s.destino}</td>
+      <td>${s.origem} → ${s.destino}${ultimaHora ? '<div class="text-xs font-semibold" style="color:#c2410c;">⚠️ Última hora - agendada hoje para hoje</div>' : ''}</td>
       <td>${s.nome_ext || s.email_solicitante}</td>
       <td>${verTudo ? linhasEscalacaoCondutores(s).join('<br>') : papelOuEscalacao(s, verTudo)}</td>
       <td>${s.justificativa || ''}</td>
       <td><span class="badge ${classeStatus(s.status)}">${s.status}</span></td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   if (cards) {
-    cards.innerHTML = dados.map(s => `
-      <div class="trip-card ${classeCorBordaViagem(s.status)}">
+    cards.innerHTML = dados.map(s => {
+      const ultimaHora = ehUltimaHoraCondutor(s);
+      const classeCardFinal = ultimaHora ? '' : classeCorBordaViagem(s.status);
+      const estiloUltimaHora = ultimaHora ? ' style="border-left-color:#FF914D; background:#fff7ed;"' : '';
+      const avisoUltimaHoraHTML = ultimaHora
+        ? `<div class="trip-meta-row" style="color:#c2410c;"><span aria-hidden="true">⚠️</span><span class="font-semibold">Atribuição de última hora - agendada hoje para hoje</span></div>` : '';
+      return `
+      <div class="trip-card ${classeCardFinal}"${estiloUltimaHora}>
         <div class="flex items-start justify-between gap-2">
           <div>
             <p class="trip-time">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ` <span class="text-slate-300">–</span> ${formatarHoraBR(s.hora_retorno)}` : ''}</p>
@@ -237,6 +267,7 @@ function renderizarAgendaCondutor(dados, verTudo) {
           </div>
           <span class="badge ${classeStatus(s.status)} shrink-0">${s.status}</span>
         </div>
+        ${avisoUltimaHoraHTML}
         <span class="trip-tag mt-2 inline-block">${verTudo ? 'Agenda Geral' : papelOuEscalacao(s, verTudo)}</span>
         <div class="trip-route">
           <div class="trip-route-point origem">
@@ -251,7 +282,8 @@ function renderizarAgendaCondutor(dados, verTudo) {
         <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 }
 
