@@ -117,17 +117,50 @@ function limparFiltrosMinhasSolicitacoes() {
   aplicarFiltroMinhasSolicitacoes();
 }
 
-function renderizarMinhasSolicitacoes(dados) {
-  const tbody = document.getElementById('tb-minhas-solicitacoes');
-  const cards = document.getElementById('cards-minhas-solicitacoes');
+// PEDIDO DO USUÁRIO ("colocar um botão HOJE para filtro de data"): atalho
+// que preenche o filtro de Data Viagem com a data de hoje, sem precisar
+// abrir o calendário.
+function filtrarMinhasSolicitacoesHoje() {
+  const hojeISO = new Date().toISOString().split('T')[0];
+  const campo = document.getElementById('filtro-minhas-solic-data-viagem');
+  if (campo) campo.value = hojeISO;
+  aplicarFiltroMinhasSolicitacoes();
+}
 
-  if (!dados.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-slate-500 py-8">Nenhuma solicitação</td></tr>';
-    if (cards) cards.innerHTML = '<div class="text-center text-slate-500 py-8 text-sm">Nenhuma solicitação encontrada.</div>';
-    return;
-  }
+// PEDIDO DO USUÁRIO ("cards ordenados cronologicamente por data e depois
+// por horário de saída"): usado tanto no agrupamento hoje/futuras/passadas
+// abaixo quanto como critério de ordenação dentro de cada grupo.
+function _ordenarCronologicamenteMinhasSolic(dados) {
+  return [...dados].sort((a, b) => {
+    const dataA = a.data_viagem || '';
+    const dataB = b.data_viagem || '';
+    if (dataA !== dataB) return dataA < dataB ? -1 : 1;
+    const horaA = a.hora_saida || '';
+    const horaB = b.hora_saida || '';
+    return horaA < horaB ? -1 : horaA > horaB ? 1 : 0;
+  });
+}
 
-  tbody.innerHTML = dados.map(s => `
+// PEDIDO DO USUÁRIO ("apresentar as agendas do dia, seguido pelas futuras e
+// por último as já passadas, com um separador antes do passado"): divide a
+// lista (já ordenada cronologicamente) em 3 grupos, na ordem hoje > futuras
+// > passadas.
+function _agruparMinhasSolicPorPeriodo(dadosOrdenados) {
+  const hojeISO = new Date().toISOString().split('T')[0];
+  const hoje = [];
+  const futuras = [];
+  const passadas = [];
+  dadosOrdenados.forEach(s => {
+    const data = s.data_viagem || '';
+    if (data === hojeISO) hoje.push(s);
+    else if (data > hojeISO) futuras.push(s);
+    else passadas.push(s);
+  });
+  return { hoje, futuras, passadas };
+}
+
+function _linhaTabelaMinhasSolic(s) {
+  return `
     <tr>
       <td>${formatarDataHoraBR(s.data_solicitacao)}</td>
       <td>${formatarDataBR(s.data_viagem)}</td>
@@ -141,10 +174,11 @@ function renderizarMinhasSolicitacoes(dados) {
         ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}
       </td>
     </tr>
-  `).join('');
+  `;
+}
 
-  if (cards) {
-    cards.innerHTML = dados.map(s => `
+function _cardMinhasSolic(s) {
+  return `
       <div class="trip-card ${classeCorBordaViagem(s.status)}">
         <div class="flex items-start justify-between gap-2">
           <div>
@@ -172,7 +206,39 @@ function renderizarMinhasSolicitacoes(dados) {
           ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-2 flex-1" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}
         </div>` : ''}
       </div>
-    `).join('');
+  `;
+}
+
+function renderizarMinhasSolicitacoes(dados) {
+  const tbody = document.getElementById('tb-minhas-solicitacoes');
+  const cards = document.getElementById('cards-minhas-solicitacoes');
+
+  if (!dados.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-slate-500 py-8">Nenhuma solicitação</td></tr>';
+    if (cards) cards.innerHTML = '<div class="text-center text-slate-500 py-8 text-sm">Nenhuma solicitação encontrada.</div>';
+    return;
+  }
+
+  // PEDIDO DO USUÁRIO: ordena cronologicamente (data da viagem, depois hora
+  // de saída) e agrupa hoje > futuras > passadas, com separador antes do
+  // grupo de passadas.
+  const ordenados = _ordenarCronologicamenteMinhasSolic(dados);
+  const { hoje, futuras, passadas } = _agruparMinhasSolicPorPeriodo(ordenados);
+  const emOrdem = [...hoje, ...futuras, ...passadas];
+
+  const separadorTabela = `<tr><td colspan="8" class="py-2"><hr class="border-slate-200"><p class="text-[11px] text-slate-400 mt-1">Agendas passadas</p></td></tr>`;
+  const separadorCard = `<div class="col-span-full my-2"><hr class="border-slate-200"><p class="text-[11px] text-slate-400 mt-1">Agendas passadas</p></div>`;
+
+  tbody.innerHTML =
+    hoje.map(_linhaTabelaMinhasSolic).join('') +
+    futuras.map(_linhaTabelaMinhasSolic).join('') +
+    (passadas.length ? separadorTabela + passadas.map(_linhaTabelaMinhasSolic).join('') : '');
+
+  if (cards) {
+    cards.innerHTML =
+      hoje.map(_cardMinhasSolic).join('') +
+      futuras.map(_cardMinhasSolic).join('') +
+      (passadas.length ? separadorCard + passadas.map(_cardMinhasSolic).join('') : '');
   }
 }
 
@@ -418,6 +484,7 @@ function exportarMinhasSolicitacoesXlsxUI() {
 window.carregarMinhasSolicitacoes = carregarMinhasSolicitacoes;
 window.aplicarFiltroMinhasSolicitacoes = aplicarFiltroMinhasSolicitacoes;
 window.limparFiltrosMinhasSolicitacoes = limparFiltrosMinhasSolicitacoes;
+window.filtrarMinhasSolicitacoesHoje = filtrarMinhasSolicitacoesHoje;
 window.cancelarSolicitacao = cancelarSolicitacao;
 window.abrirEdicaoSolicitacao = abrirEdicaoSolicitacao;
 window.exportarMinhasSolicitacoesXlsxUI = exportarMinhasSolicitacoesXlsxUI;
