@@ -16,11 +16,36 @@
 // solicitante (o Postgres devolve só as próprias linhas, mesmo pedindo
 // tudo - RLS filtra antes do JS aqui rodar).
 
+// Guarda a lista já filtrada por data (hoje) + status, ANTES do filtro de
+// destino - usado tanto pra popular o dropdown de destinos quanto pra
+// reaplicar o filtro sem buscar tudo de novo no Supabase (mesmo princípio
+// de cacheAgendaCondutorDia em pages/agenda-condutor.js).
+let cacheViagensDoDia = [];
+
 async function abrirViagensDoDia() {
   esconderTodasTelas();
   document.getElementById('tela-viagens-do-dia').classList.remove('hidden');
   marcarAbaAtiva('viagens-do-dia');
   await carregarViagensDoDia();
+}
+
+// PEDIDO DO USUÁRIO: filtro por destino das viagens do dia - preenche o
+// <select> só com os destinos que realmente aparecem nas viagens de hoje,
+// preservando a seleção atual quando ela ainda existir na nova lista.
+function _popularFiltroDestinoViagensDoDia(dados) {
+  const sel = document.getElementById('filtro-viagens-do-dia-destino');
+  if (!sel) return;
+  const valorAtual = sel.value;
+  const destinos = Array.from(new Set(dados.map(s => s.destino).filter(Boolean))).sort();
+  sel.innerHTML = '<option value="">Todos os destinos</option>' +
+    destinos.map(d => `<option value="${d}">${d}</option>`).join('');
+  if (destinos.includes(valorAtual)) sel.value = valorAtual;
+}
+
+function aplicarFiltroViagensDoDia() {
+  const destino = document.getElementById('filtro-viagens-do-dia-destino')?.value || '';
+  const filtradas = destino ? cacheViagensDoDia.filter(s => s.destino === destino) : cacheViagensDoDia;
+  renderizarViagensDoDia(filtradas);
 }
 
 async function carregarViagensDoDia() {
@@ -47,7 +72,9 @@ async function carregarViagensDoDia() {
     // canceladas do dia"): antes mostrava TODOS os status (Pendente/Em
     // Análise inclusive, que ainda nem têm motorista de verdade atribuído).
     const filtradas = (dados || []).filter(s => s.status === 'Confirmada' || s.status === 'Cancelada');
-    renderizarViagensDoDia(filtradas);
+    cacheViagensDoDia = filtradas;
+    _popularFiltroDestinoViagensDoDia(filtradas);
+    aplicarFiltroViagensDoDia();
   } catch (e) {
     console.error('Erro ao carregar Viagens do Dia:', e);
     if (lista) {
@@ -118,3 +145,4 @@ function renderizarViagensDoDia(dados) {
 // Expor globalmente
 window.abrirViagensDoDia = abrirViagensDoDia;
 window.carregarViagensDoDia = carregarViagensDoDia;
+window.aplicarFiltroViagensDoDia = aplicarFiltroViagensDoDia;
