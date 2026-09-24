@@ -60,7 +60,7 @@ async function carregarProximasAgendas() {
     let doBoraLa = [];
     if (boraLaResultado.status === 'fulfilled') {
       doBoraLa = (boraLaResultado.value || [])
-        .filter(l => (l.placa || '').toUpperCase() === (usuarioAtual.placa || '').toUpperCase());
+        .filter(l => mesmaPlaca(l.placa, usuarioAtual.placa));
     } else if (usuarioAtual.placa) {
       console.error('Erro ao carregar agenda do Bora Lá (próximas agendas):', boraLaResultado.reason);
     }
