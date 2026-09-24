@@ -96,7 +96,12 @@ function renderizarPainelDoDia(lista) {
     // solicitante/telefone/passageiros já vindos prontos da Edge Function
     // (agenda-veiculos) - status sempre "Confirmada" porque ela só devolve
     // corridas já ocupando a van (approved/in_transit/completed lá).
-    const papel = doBoraLa ? 'Bora Lá' : (mesmoEmail(s.condutor_ida, usuarioAtual.email) && mesmoEmail(s.condutor_volta, usuarioAtual.email)
+    // PEDIDO DO USUÁRIO ("o texto 'Bora lá' aparece abaixo do horário e com
+    // o carrinho - manter com o carrinho"): o badge 🚐 Bora Lá (acima) já
+    // identifica a origem da corrida - não repete mais "Bora Lá" de novo,
+    // sem ícone, na etiqueta de baixo (só Ida/Ida e Volta/Volta continuam
+    // usando essa etiqueta, pra corrida do próprio MarkCarro).
+    const papel = doBoraLa ? null : (mesmoEmail(s.condutor_ida, usuarioAtual.email) && mesmoEmail(s.condutor_volta, usuarioAtual.email)
       ? 'Ida e Volta'
       : mesmoEmail(s.condutor_ida, usuarioAtual.email) ? 'Ida' : 'Volta');
     const statusExibido = doBoraLa ? 'Confirmada' : s.status;
@@ -113,23 +118,46 @@ function renderizarPainelDoDia(lista) {
     const classeBorda = doBoraLa ? 'trip-card-em-analise' : classeCorBordaViagem(statusExibido);
     const classeBadge = doBoraLa ? 'badge-em-analise' : classeStatus(statusExibido);
 
+    // PEDIDO DO USUÁRIO ("mostrar o status da viagem - trazer o texto e
+    // demais informações: endereço da origem e destino, número de viagens,
+    // atf e status, vide print"): quando a Edge Function do Bora Lá já
+    // manda esses campos (situacao_label, atf_label, numero_viagens,
+    // endereco_origem, endereco_destino - versão nova do agenda-veiculos),
+    // mostra tudo igual ao card nativo do motorista lá. Em versão antiga da
+    // function (campos ainda não existem), some sozinho sem quebrar nada.
+    const situacaoBoraLaHTML = doBoraLa && s.situacao_label
+      ? `<div class="mt-1 text-xs font-bold text-emerald-700">${s.situacao_label}</div>` : '';
+    const enderecoOrigemHTML = doBoraLa && s.endereco_origem
+      ? `<div class="text-xs text-slate-500">${s.endereco_origem}</div>` : '';
+    const enderecoDestinoHTML = doBoraLa && s.endereco_destino
+      ? `<div class="text-xs text-slate-500">${s.endereco_destino}</div>` : '';
+    const numeroViagensHTML = doBoraLa && s.numero_viagens
+      ? `<div class="rounded-lg bg-emerald-50 px-3 py-2 text-left text-sm font-bold text-emerald-800">Número de viagens: ${String(s.numero_viagens).padStart(2, '0')}</div>` : '';
+    const atfHTML = doBoraLa && s.atf_label
+      ? `<div class="trip-meta-row"><span class="text-slate-400">ATF:</span> ${s.atf_label}</div>` : '';
+
     return `
       <div class="trip-card ${classeBorda} animate-fade-in">
         <div class="flex items-start justify-between gap-2">
           <p class="trip-time">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ` <span class="text-slate-300">–</span> ${formatarHoraBR(s.hora_retorno)}` : ''}</p>
           <span class="badge ${classeBadge} shrink-0">${doBoraLa ? '🚐 Bora Lá' : statusExibido}</span>
         </div>
-        <span class="trip-tag mt-2 inline-block">${papel}</span>
+        ${papel ? `<span class="trip-tag mt-2 inline-block">${papel}</span>` : ''}
+        ${situacaoBoraLaHTML}
         <div class="trip-route">
           <div class="trip-route-point origem">
             <span class="trip-route-label">Origem</span>${s.origem || '—'}
+            ${enderecoOrigemHTML}
           </div>
           <div class="trip-route-point destino">
             <span class="trip-route-label">Destino</span>${s.destino || '—'}
+            ${enderecoDestinoHTML}
           </div>
         </div>
         <div class="trip-meta-row">${IconesViagem.usuario}<span>${solicitante}${telefone ? ` · ${telefone}` : ''}</span></div>
         <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
+        ${numeroViagensHTML}
+        ${atfHTML}
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
       </div>
     `;
