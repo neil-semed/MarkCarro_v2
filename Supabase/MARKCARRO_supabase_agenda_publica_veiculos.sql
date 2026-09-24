@@ -23,6 +23,13 @@
 -- Considera "ocupando a van": solicitacoes.status = 'Confirmada' e
 -- condutor_ida/condutor_volta preenchido (mesmo critério já usado na
 -- tela Agenda de Corridas e na Agenda Combinada do MarkCarro).
+--
+-- ATUALIZAÇÃO (pedido do usuário: "agendamento do markcarro apresentado
+-- nos cards do app do bora lá (todas as telas) deve apresentar a
+-- justificativa registrada no markcarro"): passa a devolver também
+-- "justificativa" - o comentário antigo acima dizia que essa função nunca
+-- devolveria justificativa; isso foi decisão de projeto de antes, revista
+-- agora a pedido explícito do usuário.
 
 DROP FUNCTION IF EXISTS public.agenda_publica_veiculos(date, date);
 
@@ -41,7 +48,8 @@ RETURNS TABLE (
   destino text,
   qtd_pessoas int,
   nome_solicitante text,
-  telefone_solicitante text
+  telefone_solicitante text,
+  justificativa text
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -61,6 +69,7 @@ AS $$
       s.qtd_pessoas,
       COALESCE(s.nome_ext, s.email_solicitante) AS nome_solicitante,
       s.telefone_ext AS telefone_solicitante,
+      s.justificativa AS justificativa,
       p_ida.placa AS placa_ida,
       p_ida.nome AS nome_ida,
       p_volta.placa AS placa_volta,
@@ -82,7 +91,7 @@ AS $$
   pares AS (
     SELECT
       data_viagem, hora_saida, hora_retorno, origem, destino, status, qtd_pessoas,
-      nome_solicitante, telefone_solicitante,
+      nome_solicitante, telefone_solicitante, justificativa,
       placa_ida AS placa,
       nome_ida AS motorista,
       CASE WHEN placa_ida IS NOT DISTINCT FROM placa_volta THEN 'ambos' ELSE 'ida' END AS sentido
@@ -93,7 +102,7 @@ AS $$
 
     SELECT
       data_viagem, hora_saida, hora_retorno, origem, destino, status, qtd_pessoas,
-      nome_solicitante, telefone_solicitante,
+      nome_solicitante, telefone_solicitante, justificativa,
       placa_volta AS placa,
       nome_volta AS motorista,
       'volta' AS sentido
@@ -115,7 +124,8 @@ AS $$
     destino,
     qtd_pessoas,
     nome_solicitante,
-    telefone_solicitante
+    telefone_solicitante,
+    justificativa
   FROM pares
   WHERE placa IS NOT NULL
   ORDER BY data_viagem, hora_saida;
