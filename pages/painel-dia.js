@@ -136,12 +136,25 @@ function renderizarPainelDoDia(lista) {
     const atfHTML = doBoraLa && s.atf_label
       ? `<div class="trip-meta-row"><span class="text-slate-400">ATF:</span> ${s.atf_label}</div>` : '';
 
+    // PEDIDO DO USUÁRIO ("a viagem criada hoje para hoje mesmo apresenta
+    // destaque em dashboards - manter - dar o mesmo formato nesse tipo de
+    // agendamento na aba HOJE"): mesmo destaque (borda/fundo laranja + aviso)
+    // já usado no Dashboard do Condutor (pages/dashboard-condutor.js:
+    // renderizarViagensHojeDashCond) - só se aplica a corrida do próprio
+    // MarkCarro (Bora Lá não manda "data_solicitacao").
+    const ehUltimaHora = !doBoraLa && (s.data_solicitacao || '').slice(0, 10) === s.data_viagem;
+    const classeCardFinal = ehUltimaHora ? '' : classeBorda;
+    const estiloUltimaHora = ehUltimaHora ? ' style="border-left-color:#FF914D; background:#fff7ed;"' : '';
+    const avisoUltimaHoraHTML = ehUltimaHora
+      ? `<div class="trip-meta-row" style="color:#c2410c;"><span aria-hidden="true">⚠️</span><span class="font-semibold">Atribuição de última hora - agendada hoje para hoje</span></div>` : '';
+
     return `
-      <div class="trip-card ${classeBorda} animate-fade-in">
+      <div class="trip-card ${classeCardFinal} animate-fade-in"${estiloUltimaHora}>
         <div class="flex items-start justify-between gap-2">
           <p class="trip-time">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ` <span class="text-slate-300">–</span> ${formatarHoraBR(s.hora_retorno)}` : ''}</p>
           <span class="badge ${classeBadge} shrink-0">${doBoraLa ? '🚐 Bora Lá' : statusExibido}</span>
         </div>
+        ${avisoUltimaHoraHTML}
         ${papel ? `<span class="trip-tag mt-2 inline-block">${papel}</span>` : ''}
         ${situacaoBoraLaHTML}
         <div class="trip-route">
