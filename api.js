@@ -827,8 +827,20 @@ async function _chamarKmBridge(action, params) {
     },
     body: JSON.stringify({ action, ...params })
   });
-  const corpo = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(corpo?.error || 'Erro ao falar com o registro de KM.');
+  // Antes, um erro sem corpo JSON (ex.: resposta da própria infraestrutura
+  // do Supabase, tipo "Invalid JWT" na porta de entrada, ANTES de chegar no
+  // nosso código) virava sempre a mesma mensagem genérica, sem dar pra
+  // diferenciar "nossa função recusou" de "nem chegou na nossa função" - por
+  // isso ficou impossível saber, só pela tela, qual dos 2 estava acontecendo.
+  // Agora mostra o texto/motivo bruto que vier (corpo.error, corpo.message,
+  // texto puro, ou o código HTTP como último recurso).
+  const textoBruto = await resp.text();
+  let corpo = {};
+  try { corpo = JSON.parse(textoBruto); } catch (_e) { /* não era JSON */ }
+  if (!resp.ok) {
+    const motivo = corpo?.error || corpo?.message || textoBruto || `HTTP ${resp.status}`;
+    throw new Error(`[HTTP ${resp.status}] ${motivo}`);
+  }
   return corpo;
 }
 
