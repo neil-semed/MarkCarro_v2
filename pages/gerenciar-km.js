@@ -133,6 +133,7 @@ function renderizarRegistrosKmGestor(dados) {
               ${cacheCondutores.map(c => `<option value="${c.email}">${c.nome}</option>`).join('')}
             </select>
             <button class="btn-outline text-xs py-1.5 px-2.5" onclick="vincularMotoristaKmGestor('${r._driver_id}')">Vincular</button>
+            <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirKmGestor('${r.id}')">Excluir</button>
           </div>
         </td>
       </tr>
