@@ -956,5 +956,15 @@ async function listarTodosKM() {
 
   const legado = doLegado.status === 'fulfilled' ? doLegado.value : [];
   const bridge = doBridge.status === 'fulfilled' ? doBridge.value : [];
-  return [...bridge, ...legado];
+  const resultado = [...bridge, ...legado];
+  // Expõe o erro da ponte (Bora Lá) no próprio array retornado, sem lançar
+  // exceção (senão a tela travava toda) - pages/gerenciar-km.js usa isso pra
+  // mostrar um aviso visível com o motivo real, em vez de só "Nenhum
+  // registro" sem explicação nenhuma (foi exatamente isso que impediu de
+  // saber, nas 2 tentativas anteriores, se o problema era a função não
+  // publicada, erro de permissão, etc.).
+  if (doBridge.status === 'rejected') {
+    resultado._erroBridge = doBridge.reason?.message || String(doBridge.reason);
+  }
+  return resultado;
 }
