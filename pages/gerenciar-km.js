@@ -74,10 +74,22 @@ function limparFiltrosKmGestor() {
 
 async function carregarRegistrosKmGestor() {
   const tbody = document.getElementById('tb-registros-km-gestor');
+  const aviso = document.getElementById('aviso-km-bridge');
   Components.Loading.show(tbody);
   try {
     const dados = await listarTodosKM();
     cacheRegistrosKmGestor = dados || [];
+    // Mostra o motivo REAL quando a ponte com o Bora Lá falha, em vez de só
+    // sumir os registros de lá sem explicação (é o que impedia de saber se o
+    // problema era função não publicada, erro de permissão, etc.).
+    if (aviso) {
+      if (dados?._erroBridge) {
+        aviso.textContent = `Não foi possível carregar os registros do Bora Lá: ${dados._erroBridge}`;
+        aviso.classList.remove('hidden');
+      } else {
+        aviso.classList.add('hidden');
+      }
+    }
     aplicarFiltrosKmGestor();
   } catch (e) {
     // Sem isso, um erro aqui deixava a tabela travada no spinner de
