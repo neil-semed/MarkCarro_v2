@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20260930a">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20260930a">
-  <link rel="icon" href="favicon.png?v=20260930a">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20260930b">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20260930b">
+  <link rel="icon" href="favicon.png?v=20260930b">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -615,8 +615,9 @@
       .desktop-table { display: block; }
     }
 
-    /* Banner de instalação do PWA */
-    #pwa-install-banner {
+    /* Banner de instalação do PWA (Android = .apk real / iOS = instruções
+       "Adicionar à Tela de Início", ver comentário no HTML abaixo) */
+    #pwa-install-banner, #ios-install-banner {
       position: fixed;
       left: 12px; right: 12px;
       bottom: calc(12px + env(safe-area-inset-bottom));
@@ -625,7 +626,7 @@
       margin: 0 auto;
     }
     @media (min-width: 768px) {
-      #pwa-install-banner { left: auto; right: 24px; bottom: 24px; }
+      #pwa-install-banner, #ios-install-banner { left: auto; right: 24px; bottom: 24px; }
     }
 
     /* Menu lateral (Condutor/Solicitante) - é uma GAVETA que desliza da
@@ -700,6 +701,38 @@
       <button id="btn-pwa-dismiss" class="text-slate-400 hover:text-slate-600 shrink-0 p-1" aria-label="Fechar">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
+    </div>
+
+    <!-- PEDIDO DO USUÁRIO ("refaça a possibilidade de download do apk pra
+         android e ios - não é pra baixar atalho e sim o apk", depois
+         "somente recursos sem custo financeiro"): não existe ".apk" pra
+         iPhone - esse formato é exclusivo do Android. Um app de verdade
+         fora da App Store no iPhone (TestFlight, Ad-Hoc, Enterprise) exige
+         assinatura paga da Apple (Apple Developer Program). Como o pedido
+         foi por algo SEM custo, o equivalente gratuito e 100% oficial da
+         própria Apple é "Adicionar à Tela de Início" pelo Safari - cria um
+         ícone que abre o app em tela cheia (sem barra do navegador), com
+         a mesma tela de loading/PWA que o site já tem. Não existe API pra
+         um site "clicar e instalar" isso sozinho no iPhone - só dá pra
+         mostrar o passo a passo (Safari não permite acionar aquele menu
+         por script). -->
+    <div id="ios-install-banner" class="hidden card p-3 shadow-xl animate-slide-up">
+      <div class="flex items-center gap-3">
+        <img src="logo.png" alt="" class="w-9 h-9 rounded-lg shrink-0" onerror="this.style.display='none'">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-slate-900 truncate">Instalar o app MarkCarro</p>
+          <p class="text-xs text-slate-500 truncate">Adicione à Tela de Início do seu iPhone</p>
+        </div>
+        <button id="btn-ios-como-instalar" class="btn-primary text-xs py-2 px-3 shrink-0">Como instalar</button>
+        <button id="btn-ios-dismiss" class="text-slate-400 hover:text-slate-600 shrink-0 p-1" aria-label="Fechar">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <ol id="ios-instrucoes" class="hidden mt-3 pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1.5 list-decimal list-inside">
+        <li>Toque no ícone de <strong>Compartilhar</strong> <span aria-hidden="true">⬆️</span> na barra do Safari (embaixo, ou em cima no iPad).</li>
+        <li>Role a lista de opções e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+        <li>Toque em <strong>"Adicionar"</strong> no canto superior direito.</li>
+      </ol>
     </div>
 
 <!-- Tela de Login (Bootstrap 5 - igual ao exemplo) -->
@@ -3444,38 +3477,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20260930a"></script>
-  <script src="Supabase/supabase-client.js?v=20260930a"></script>
-  <script src="api.js?v=20260930a"></script>
-  <script src="utils.js?v=20260930a"></script>
-  <script src="components.js?v=20260930a"></script>
-  <script src="pages/login.js?v=20260930a"></script>
-  <script src="pages/avisos-tempo-real.js?v=20260930a"></script>
-  <script src="pages/cadastro.js?v=20260930a"></script>
-  <script src="pages/nova-solicitacao.js?v=20260930a"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20260930a"></script>
-  <script src="pages/dashboard-solicitante.js?v=20260930a"></script>
-  <script src="pages/viagens-do-dia.js?v=20260930a"></script>
-  <script src="pages/notificacoes.js?v=20260930a"></script>
-  <script src="pages/dashboard-condutor.js?v=20260930a"></script>
-  <script src="pages/painel-dia.js?v=20260930a"></script>
-  <script src="pages/proximas-agendas.js?v=20260930a"></script>
-  <script src="pages/agenda.js?v=20260930a"></script>
-  <script src="pages/agenda-combinada.js?v=20260930a"></script>
-  <script src="pages/agenda-condutor.js?v=20260930a"></script>
-  <script src="pages/registro-km.js?v=20260930a"></script>
-  <script src="pages/gestor.js?v=20260930a"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20260930a"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20260930a"></script>
-  <script src="pages/gerenciar-condutores.js?v=20260930a"></script>
-  <script src="pages/gerenciar-km.js?v=20260930a"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20260930a"></script>
-  <script src="pages/gerenciar-unidades.js?v=20260930a"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20260930a"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20260930a"></script>
-  <script src="pages/relatorios.js?v=20260930a"></script>
-  <script src="pages/alterar-senha.js?v=20260930a"></script>
-  <script src="app.js?v=20260930a"></script>
+  <script src="config.js?v=20260930b"></script>
+  <script src="Supabase/supabase-client.js?v=20260930b"></script>
+  <script src="api.js?v=20260930b"></script>
+  <script src="utils.js?v=20260930b"></script>
+  <script src="components.js?v=20260930b"></script>
+  <script src="pages/login.js?v=20260930b"></script>
+  <script src="pages/avisos-tempo-real.js?v=20260930b"></script>
+  <script src="pages/cadastro.js?v=20260930b"></script>
+  <script src="pages/nova-solicitacao.js?v=20260930b"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20260930b"></script>
+  <script src="pages/dashboard-solicitante.js?v=20260930b"></script>
+  <script src="pages/viagens-do-dia.js?v=20260930b"></script>
+  <script src="pages/notificacoes.js?v=20260930b"></script>
+  <script src="pages/dashboard-condutor.js?v=20260930b"></script>
+  <script src="pages/painel-dia.js?v=20260930b"></script>
+  <script src="pages/proximas-agendas.js?v=20260930b"></script>
+  <script src="pages/agenda.js?v=20260930b"></script>
+  <script src="pages/agenda-combinada.js?v=20260930b"></script>
+  <script src="pages/agenda-condutor.js?v=20260930b"></script>
+  <script src="pages/registro-km.js?v=20260930b"></script>
+  <script src="pages/gestor.js?v=20260930b"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20260930b"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20260930b"></script>
+  <script src="pages/gerenciar-condutores.js?v=20260930b"></script>
+  <script src="pages/gerenciar-km.js?v=20260930b"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20260930b"></script>
+  <script src="pages/gerenciar-unidades.js?v=20260930b"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20260930b"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20260930b"></script>
+  <script src="pages/relatorios.js?v=20260930b"></script>
+  <script src="pages/alterar-senha.js?v=20260930b"></script>
+  <script src="app.js?v=20260930b"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
@@ -3496,10 +3529,18 @@
   </script>
 
   <!-- PEDIDO DO USUÁRIO ("ao acessar o link do app pela primeira vez, dá
-       opção de download de atalho do link, deve ser download de apk"):
+       opção de download de atalho do link, deve ser download de apk";
+       depois "refaça pra android e ios, não é pra baixar atalho e sim o
+       apk"; depois "somente recursos sem custo financeiro"):
        intercepta o prompt nativo de instalação de PWA do Chrome/Android
        (que oferece só um atalho/WebAPK) e mostra em seu lugar o banner
-       #pwa-install-banner (acima), apontando pro .apk de verdade. -->
+       #pwa-install-banner (acima), apontando pro .apk de verdade. No
+       iPhone não existe ".apk" (formato exclusivo do Android) nem jeito
+       gratuito de instalar um app de fora da App Store sem pagar a Apple
+       (Apple Developer Program) - por isso o #ios-install-banner mostra,
+       em vez disso, o passo a passo oficial e gratuito da própria Apple
+       ("Adicionar à Tela de Início" no Safari), que é o mais perto que
+       existe de um "app instalado" sem custo no iPhone. -->
   <script>
     (function () {
       // Link fixo publicado pelo workflow do GitHub Actions (mobile/ +
@@ -3507,10 +3548,28 @@
       // LEIA-ME_APK_AUTOMATICO.md) - sempre serve a versão mais recente do
       // APK compilada a partir do próprio código deste repositório.
       var APK_URL = 'https://github.com/neil-semed/MarkCarro_v2/releases/download/apk-latest/markcarro-debug.apk';
-      var CHAVE_DISPENSADO = 'markcarro_apk_banner_dispensado';
+      var CHAVE_DISPENSADO_ANDROID = 'markcarro_apk_banner_dispensado';
+      var CHAVE_DISPENSADO_IOS = 'markcarro_ios_banner_dispensado';
 
       function ehAndroid() {
         return /Android/i.test(navigator.userAgent || '');
+      }
+
+      // iPhone/iPad. iPadOS 13+ finge ser um Mac (navigator.platform vira
+      // "MacIntel") - só dá pra distinguir de um Mac de verdade pelo
+      // suporte a toque (maxTouchPoints), que um Mac com mouse não tem.
+      function ehIOS() {
+        var ua = navigator.userAgent || '';
+        if (/iPad|iPhone|iPod/i.test(ua) && !window.MSStream) return true;
+        return navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1;
+      }
+
+      // "Adicionar à Tela de Início" só existe no Safari - no Chrome/
+      // Firefox do iPhone (que por baixo também usam o motor do Safari,
+      // regra da própria Apple) esse menu não instala nada em tela cheia.
+      function ehSafariIOS() {
+        var ua = navigator.userAgent || '';
+        return ehIOS() && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
       }
 
       // Se já está rodando dentro do próprio app instalado (PWA em modo
@@ -3524,13 +3583,18 @@
         }
       }
 
-      function foiDispensado() {
-        try { return !!localStorage.getItem(CHAVE_DISPENSADO); } catch (e) { return false; }
+      function foiDispensado(chave) {
+        try { return !!localStorage.getItem(chave); } catch (e) { return false; }
       }
 
       function mostrarBannerApk() {
-        if (!ehAndroid() || jaInstalado() || foiDispensado()) return;
+        if (!ehAndroid() || jaInstalado() || foiDispensado(CHAVE_DISPENSADO_ANDROID)) return;
         document.getElementById('pwa-install-banner')?.classList.remove('hidden');
+      }
+
+      function mostrarBannerIOS() {
+        if (!ehSafariIOS() || jaInstalado() || foiDispensado(CHAVE_DISPENSADO_IOS)) return;
+        document.getElementById('ios-install-banner')?.classList.remove('hidden');
       }
 
       // Impede o Chrome de mostrar o PRÓPRIO banner/mini-infobar de
@@ -3547,13 +3611,24 @@
         // assim mostra o convite de baixar o APK pra quem acessa pelo
         // Android e ainda não dispensou, sem depender só desse evento.
         mostrarBannerApk();
+        // iOS/Safari nunca dispara "beforeinstallprompt" (a Apple não tem
+        // esse evento) - mostra direto, sem depender de nenhum evento.
+        mostrarBannerIOS();
 
         document.getElementById('btn-pwa-install')?.addEventListener('click', function () {
           window.location.href = APK_URL;
         });
         document.getElementById('btn-pwa-dismiss')?.addEventListener('click', function () {
           document.getElementById('pwa-install-banner')?.classList.add('hidden');
-          try { localStorage.setItem(CHAVE_DISPENSADO, '1'); } catch (e) {}
+          try { localStorage.setItem(CHAVE_DISPENSADO_ANDROID, '1'); } catch (e) {}
+        });
+
+        document.getElementById('btn-ios-como-instalar')?.addEventListener('click', function () {
+          document.getElementById('ios-instrucoes')?.classList.toggle('hidden');
+        });
+        document.getElementById('btn-ios-dismiss')?.addEventListener('click', function () {
+          document.getElementById('ios-install-banner')?.classList.add('hidden');
+          try { localStorage.setItem(CHAVE_DISPENSADO_IOS, '1'); } catch (e) {}
         });
       });
     })();
