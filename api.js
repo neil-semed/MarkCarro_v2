@@ -610,6 +610,83 @@ async function excluirUnidade(id) {
 }
 
 // ============================================================
+// DESTINATÁRIOS DO RELATÓRIO DE AGENDA (e-mails que recebem o envio
+// automático da Agenda de Corridas - tela Gerenciar Usuários) e o envio
+// em si (Edge Function enviar-agenda-email, ver arquivo em
+// supabase/functions/). Requer a tabela destinatarios_relatorio, ver
+// Supabase/supabase_criar_destinatarios_relatorio.sql.
+// ============================================================
+
+async function listarDestinatariosRelatorio() {
+  _checarClient();
+  const { data, error } = await _sb
+    .from('destinatarios_relatorio')
+    .select('*')
+    .order('nome');
+  if (error) throw error;
+  return data;
+}
+
+async function criarDestinatarioRelatorio(dados) {
+  _checarClient();
+  const { data, error } = await _sb
+    .from('destinatarios_relatorio')
+    .insert(dados)
+    .select();
+  if (error) throw error;
+  return data[0];
+}
+
+async function atualizarDestinatarioRelatorio(id, dados) {
+  _checarClient();
+  const { data, error } = await _sb
+    .from('destinatarios_relatorio')
+    .update(dados)
+    .eq('id', id)
+    .select();
+  if (error) throw error;
+  return data;
+}
+
+async function excluirDestinatarioRelatorio(id) {
+  _checarClient();
+  const { error } = await _sb
+    .from('destinatarios_relatorio')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// Dispara o envio automático da Agenda de Corridas (período inteiro
+// selecionado na tela, mesmo padrão de _chamarKmBridge: manda o token de
+// sessão de quem está logado, a Edge Function confere se é admin e
+// devolve o motivo real do erro quando falhar).
+async function enviarAgendaPorEmail(dataInicio, dataFim) {
+  _checarClient();
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) throw new Error('Sessão expirada. Faça login novamente.');
+
+  const resp = await fetch(CONFIG.ENVIAR_AGENDA_EMAIL_URL, {
+    method: 'POST',
+    headers: {
+      'apikey': CONFIG.SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ data_inicio: dataInicio, data_fim: dataFim })
+  });
+
+  const textoBruto = await resp.text();
+  let corpo = {};
+  try { corpo = JSON.parse(textoBruto); } catch (_e) { /* não era JSON */ }
+  if (!resp.ok) {
+    const motivo = corpo?.error || corpo?.message || textoBruto || `HTTP ${resp.status}`;
+    throw new Error(motivo);
+  }
+  return corpo;
+}
+
+// ============================================================
 // COOPERATIVAS (vínculo do Condutor - nome/e-mail/telefone, Editar/
 // Bloquear igual a Unidades)
 // ============================================================

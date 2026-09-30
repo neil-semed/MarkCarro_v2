@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20260929f">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20260929f">
-  <link rel="icon" href="favicon.png?v=20260929f">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20260930a">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20260930a">
+  <link rel="icon" href="favicon.png?v=20260930a">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -2031,6 +2031,15 @@
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
                   Exportar Excel
                 </button>
+                <!-- PEDIDO DO USUÁRIO: enviar a Agenda de Corridas do
+                     período selecionado por e-mail, automaticamente, pra
+                     lista de Destinatários cadastrada em Gerenciar
+                     Usuários (ver enviarAgendaEmailUI() em
+                     pages/agenda.js e a Edge Function enviar-agenda-email). -->
+                <button id="btn-enviar-agenda-email" onclick="enviarAgendaEmailUI()" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                  Enviar por E-mail
+                </button>
                 <!-- Era "d-print-none" (Bootstrap, não existe aqui) - o botão
                      aparecia também na versão impressa da Agenda. Trocado
                      pelo utilitário real do Tailwind. -->
@@ -2799,6 +2808,57 @@
               </div>
             </div>
           </div>
+
+          <!-- ============================================================
+               Destinatários do Relatório de Agenda (novo bloco, mesma
+               tela/pílula) - pedido do usuário: e-mails que recebem o
+               envio automático da Agenda de Corridas (botão "Enviar por
+               E-mail" na tela Agenda). Ver pages/gerenciar-usuarios.js e
+               supabase/functions/enviar-agenda-email/.
+               ============================================================ -->
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2 mb-1"><span aria-hidden="true">✉️</span> Destinatários do Relatório de Agenda</h2>
+            <p class="text-xs text-slate-500 mb-4">E-mails que recebem o envio automático da Agenda de Corridas quando o Gestor clica em "Enviar por E-mail" na Agenda.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div class="card p-4 sm:p-6 lg:col-span-1">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-base font-semibold text-slate-900" id="titulo-form-destinatario-relatorio">Novo Destinatário</h3>
+                  <button id="btn-cancelar-edicao-destinatario-relatorio" onclick="limparFormDestinatarioRelatorio()" class="hidden text-xs text-mc-vermelho hover:underline">Cancelar edição</button>
+                </div>
+                <form id="form-destinatario-relatorio" class="space-y-3" onsubmit="event.preventDefault(); salvarDestinatarioRelatorio();">
+                  <input type="hidden" id="destinatario-relatorio-id">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nome/Referência</label>
+                    <input type="text" id="destinatario-relatorio-nome" class="input-field" placeholder="ex: Secretaria de Transporte">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail *</label>
+                    <input type="email" id="destinatario-relatorio-email" class="input-field" required>
+                  </div>
+                  <button type="submit" class="btn-primary w-full">Salvar</button>
+                </form>
+              </div>
+
+              <div class="card p-4 sm:p-6 lg:col-span-2">
+                <h3 class="text-base font-semibold text-slate-900 mb-4">Destinatários cadastrados</h3>
+                <div class="table-container" style="overflow-x:auto;">
+                  <table class="w-full text-sm" style="border-collapse:collapse;">
+                    <thead>
+                      <tr>
+                        <th class="table-th">Nome/Referência</th>
+                        <th class="table-th">E-mail</th>
+                        <th class="table-th">Status</th>
+                        <th class="table-th">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tb-destinatarios-relatorio">
+                      <tr><td colspan="4" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- ============================================================
@@ -3384,38 +3444,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20260929f"></script>
-  <script src="Supabase/supabase-client.js?v=20260929f"></script>
-  <script src="api.js?v=20260929f"></script>
-  <script src="utils.js?v=20260929f"></script>
-  <script src="components.js?v=20260929f"></script>
-  <script src="pages/login.js?v=20260929f"></script>
-  <script src="pages/avisos-tempo-real.js?v=20260929f"></script>
-  <script src="pages/cadastro.js?v=20260929f"></script>
-  <script src="pages/nova-solicitacao.js?v=20260929f"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20260929f"></script>
-  <script src="pages/dashboard-solicitante.js?v=20260929f"></script>
-  <script src="pages/viagens-do-dia.js?v=20260929f"></script>
-  <script src="pages/notificacoes.js?v=20260929f"></script>
-  <script src="pages/dashboard-condutor.js?v=20260929f"></script>
-  <script src="pages/painel-dia.js?v=20260929f"></script>
-  <script src="pages/proximas-agendas.js?v=20260929f"></script>
-  <script src="pages/agenda.js?v=20260929f"></script>
-  <script src="pages/agenda-combinada.js?v=20260929f"></script>
-  <script src="pages/agenda-condutor.js?v=20260929f"></script>
-  <script src="pages/registro-km.js?v=20260929f"></script>
-  <script src="pages/gestor.js?v=20260929f"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20260929f"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20260929f"></script>
-  <script src="pages/gerenciar-condutores.js?v=20260929f"></script>
-  <script src="pages/gerenciar-km.js?v=20260929f"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20260929f"></script>
-  <script src="pages/gerenciar-unidades.js?v=20260929f"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20260929f"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20260929f"></script>
-  <script src="pages/relatorios.js?v=20260929f"></script>
-  <script src="pages/alterar-senha.js?v=20260929f"></script>
-  <script src="app.js?v=20260929f"></script>
+  <script src="config.js?v=20260930a"></script>
+  <script src="Supabase/supabase-client.js?v=20260930a"></script>
+  <script src="api.js?v=20260930a"></script>
+  <script src="utils.js?v=20260930a"></script>
+  <script src="components.js?v=20260930a"></script>
+  <script src="pages/login.js?v=20260930a"></script>
+  <script src="pages/avisos-tempo-real.js?v=20260930a"></script>
+  <script src="pages/cadastro.js?v=20260930a"></script>
+  <script src="pages/nova-solicitacao.js?v=20260930a"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20260930a"></script>
+  <script src="pages/dashboard-solicitante.js?v=20260930a"></script>
+  <script src="pages/viagens-do-dia.js?v=20260930a"></script>
+  <script src="pages/notificacoes.js?v=20260930a"></script>
+  <script src="pages/dashboard-condutor.js?v=20260930a"></script>
+  <script src="pages/painel-dia.js?v=20260930a"></script>
+  <script src="pages/proximas-agendas.js?v=20260930a"></script>
+  <script src="pages/agenda.js?v=20260930a"></script>
+  <script src="pages/agenda-combinada.js?v=20260930a"></script>
+  <script src="pages/agenda-condutor.js?v=20260930a"></script>
+  <script src="pages/registro-km.js?v=20260930a"></script>
+  <script src="pages/gestor.js?v=20260930a"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20260930a"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20260930a"></script>
+  <script src="pages/gerenciar-condutores.js?v=20260930a"></script>
+  <script src="pages/gerenciar-km.js?v=20260930a"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20260930a"></script>
+  <script src="pages/gerenciar-unidades.js?v=20260930a"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20260930a"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20260930a"></script>
+  <script src="pages/relatorios.js?v=20260930a"></script>
+  <script src="pages/alterar-senha.js?v=20260930a"></script>
+  <script src="app.js?v=20260930a"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->

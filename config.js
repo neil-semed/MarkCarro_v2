@@ -22,7 +22,12 @@ const CONFIG = {
   // sistemas, então o registro do dia precisa ser UM só, não duas tabelas
   // separadas. As 6 funções de KM em api.js chamam essa Edge Function em
   // vez de ler/gravar direto numa tabela local.
-  BORA_LA_KM_BRIDGE_URL: 'https://rjuzhscynuleypaewgak.supabase.co/functions/v1/km-bridge'
+  BORA_LA_KM_BRIDGE_URL: 'https://rjuzhscynuleypaewgak.supabase.co/functions/v1/km-bridge',
+  // Envio automático (Brevo) da Agenda de Corridas por e-mail - Edge
+  // Function no PRÓPRIO projeto do MarkCarro (não é o Bora Lá). Ver
+  // supabase/functions/enviar-agenda-email/index.ts e enviarAgendaPorEmail()
+  // em api.js.
+  ENVIAR_AGENDA_EMAIL_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-agenda-email'
 };
 
 window.CONFIG = CONFIG;
