@@ -173,11 +173,52 @@ async function abrirNoDashboard(idSolicitacao, dataViagem) {
   });
 }
 
+// PEDIDO DO USUÁRIO: "crie a opção de mandar e-mail da agenda de corridas
+// do dia selecionado, para uma lista de e-mails editáveis... o envio de
+// e-mail deve ser automático". Diferente da exportação em Excel/PDF (só
+// baixa um arquivo no navegador de quem clicou), este botão chama a Edge
+// Function enviar-agenda-email (ver enviarAgendaPorEmail() em api.js), que
+// dispara de verdade um e-mail (via Brevo) pra lista de Destinatários
+// cadastrada em Gerenciar Usuários.
+//
+// Usa o mesmo período (Data Inicial/Data Final) já filtrado na tela - se o
+// admin deixar um período de vários dias, envia o período inteiro num
+// e-mail só (decisão do usuário, não um e-mail por dia).
+async function enviarAgendaEmailUI() {
+  const inicio = document.getElementById('agenda-data-inicio').value;
+  const fim = document.getElementById('agenda-data-fim').value || inicio;
+
+  if (!inicio) {
+    return Components.Toast.warning('Selecione ao menos a Data Inicial pra enviar o relatório por e-mail.');
+  }
+
+  const periodoTexto = inicio === fim
+    ? formatarDataBR(inicio)
+    : `${formatarDataBR(inicio)} a ${formatarDataBR(fim)}`;
+  if (!confirm(`Enviar por e-mail a Agenda de Corridas de ${periodoTexto} pra todos os destinatários ativos cadastrados em Gerenciar Usuários?`)) return;
+
+  const btn = document.getElementById('btn-enviar-agenda-email');
+  const textoOriginal = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Enviando...'; }
+
+  try {
+    const resultado = await enviarAgendaPorEmail(inicio, fim);
+    Components.Toast.success(`E-mail enviado! ${resultado.corridas} corrida(s) para ${resultado.enviados} destinatário(s).`);
+  } catch (e) {
+    console.error('Erro ao enviar Agenda por e-mail:', e);
+    Components.Toast.error('Erro ao enviar: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal; }
+  }
+}
+
 // O sistema antigo enviava a agenda do dia por e-mail para uma lista de
-// distribuição (enviarAgendaPorEmail). Como este app não tem um backend
-// próprio pra disparar e-mail (decisão: notificações só pelo sino, sem
-// e-mail por enquanto), o botão foi trocado por uma exportação em Excel do
-// período/filtro atual - útil pra imprimir ou compartilhar manualmente.
+// distribuição (enviarAgendaPorEmail) - HISTÓRICO: até esta versão, o app
+// não tinha backend próprio pra disparar e-mail e o botão ficava só na
+// exportação em Excel abaixo. Agora o envio automático de verdade existe
+// (ver enviarAgendaEmailUI() acima) - a exportação em Excel continua útil
+// pra baixar/compartilhar manualmente, então foi mantida do lado do botão
+// novo, não substituída.
 function exportarAgendaXlsxUI() {
   if (typeof XLSX === 'undefined') return Components.Toast.error('Biblioteca de exportação não carregada');
   const status = document.getElementById('agenda-filtro-status')?.value || 'TODOS';
@@ -309,3 +350,4 @@ window.limparFiltrosAgenda = limparFiltrosAgenda;
 window.filtrarAgendaHoje = filtrarAgendaHoje;
 window.abrirNoDashboard = abrirNoDashboard;
 window.exportarAgendaXlsxUI = exportarAgendaXlsxUI;
+window.enviarAgendaEmailUI = enviarAgendaEmailUI;

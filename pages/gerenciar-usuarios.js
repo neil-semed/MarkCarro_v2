@@ -18,11 +18,20 @@ let cacheUsuarios = [];
 let cacheUsuariosAdmin = [];
 let cachePerfisAcessoParaUsuarios = [];
 
+// PEDIDO DO USUÁRIO ("criar a opção de mandar e-mail da agenda de corridas
+// do dia selecionado, para uma lista de e-mails editáveis - criar tela de
+// registro desses e-mails, pode ser dentro da aba usuários"): lista de
+// e-mails que recebem o envio automático da Agenda de Corridas (botão
+// "Enviar por E-mail" na Agenda). Terceiro bloco desta mesma tela, mesmo
+// padrão dos dois de cima - só que sem conta de login nenhuma (é só um
+// e-mail de destino, não um usuário do sistema).
+let cacheDestinatariosRelatorio = [];
+
 async function carregarGerenciarUsuarios() {
   const tbody = document.getElementById('tb-usuarios');
   Components.Loading.show(tbody);
   preencherDropdownUnidadeUsuario();
-  aplicarModoConsultaTela('gerenciar-usuarios', ['form-usuario', 'form-usuario-admin']);
+  aplicarModoConsultaTela('gerenciar-usuarios', ['form-usuario', 'form-usuario-admin', 'form-destinatario-relatorio']);
   try {
     const usuarios = await listarUsuarios();
     cacheUsuarios = (usuarios || []).filter(u => u.tipo === 'solicitante');
@@ -31,6 +40,8 @@ async function carregarGerenciarUsuarios() {
     cacheUsuariosAdmin = (usuarios || []).filter(u => u.tipo === 'admin');
     await _preencherDropdownPerfisAcessoUsuarios();
     renderizarTabelaUsuariosAdmin(cacheUsuariosAdmin);
+
+    await carregarDestinatariosRelatorio();
   } catch (e) {
     // Sem isso, um erro aqui deixava a tabela travada no spinner de
     // "Carregando..." pra sempre (nada reescrevia o tbody depois do catch).
@@ -360,6 +371,105 @@ async function alternarAtivoUsuarioAdmin(email, ativar) {
   }
 }
 
+// ============================================================
+// Destinatários do Relatório de Agenda (novo bloco, mesma tela) - lista de
+// e-mails que recebem o envio automático da Agenda de Corridas.
+// ============================================================
+
+async function carregarDestinatariosRelatorio() {
+  const tbody = document.getElementById('tb-destinatarios-relatorio');
+  if (!tbody) return;
+  try {
+    cacheDestinatariosRelatorio = await listarDestinatariosRelatorio() || [];
+    renderizarTabelaDestinatariosRelatorio(cacheDestinatariosRelatorio);
+  } catch (e) {
+    console.error('Erro ao carregar destinatários do relatório de agenda:', e);
+    const detalhe = (e && e.message) ? e.message : 'motivo desconhecido';
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-red-500 py-8">Erro ao carregar destinatários: ${detalhe}</td></tr>`;
+  }
+}
+
+function renderizarTabelaDestinatariosRelatorio(destinatarios) {
+  const tbody = document.getElementById('tb-destinatarios-relatorio');
+  if (!tbody) return;
+  if (!destinatarios.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-slate-500 py-8">Nenhum destinatário cadastrado</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = destinatarios.map(d => `
+    <tr>
+      <td class="table-td">${d.nome || '—'}</td>
+      <td class="table-td">${d.email}</td>
+      <td class="table-td"><span class="badge ${d.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${d.ativo ? 'Ativo' : 'Inativo'}</span></td>
+      <td class="table-td">
+        <div class="flex gap-2">
+          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarDestinatarioRelatorio(${d.id})">Editar</button>
+          <button class="${d.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoDestinatarioRelatorio(${d.id}, ${!d.ativo})">${d.ativo ? 'Bloquear' : 'Ativar'}</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function limparFormDestinatarioRelatorio() {
+  document.getElementById('form-destinatario-relatorio').reset();
+  document.getElementById('destinatario-relatorio-id').value = '';
+  document.getElementById('titulo-form-destinatario-relatorio').textContent = 'Novo Destinatário';
+  document.getElementById('btn-cancelar-edicao-destinatario-relatorio').classList.add('hidden');
+}
+
+async function salvarDestinatarioRelatorio() {
+  if (!usuarioPodeEditarTela('gerenciar-usuarios')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
+
+  const id = document.getElementById('destinatario-relatorio-id').value;
+  const dados = {
+    nome: document.getElementById('destinatario-relatorio-nome').value.trim() || null,
+    email: document.getElementById('destinatario-relatorio-email').value.trim().toLowerCase()
+  };
+
+  if (!dados.email) return Components.Toast.error('O e-mail é obrigatório');
+
+  try {
+    if (id) {
+      await atualizarDestinatarioRelatorio(id, dados);
+    } else {
+      await criarDestinatarioRelatorio(dados);
+    }
+    Components.Toast.success(id ? 'Destinatário atualizado!' : 'Destinatário cadastrado!');
+    limparFormDestinatarioRelatorio();
+    carregarDestinatariosRelatorio();
+  } catch (e) {
+    console.error('Erro ao salvar destinatário do relatório de agenda:', e);
+    Components.Toast.error('Erro: ' + e.message);
+  }
+}
+
+function editarDestinatarioRelatorio(id) {
+  if (!usuarioPodeEditarTela('gerenciar-usuarios')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
+  const d = cacheDestinatariosRelatorio.find(x => String(x.id) === String(id));
+  if (!d) return;
+
+  document.getElementById('destinatario-relatorio-id').value = d.id;
+  document.getElementById('destinatario-relatorio-nome').value = d.nome || '';
+  document.getElementById('destinatario-relatorio-email').value = d.email;
+
+  document.getElementById('titulo-form-destinatario-relatorio').textContent = 'Editar Destinatário';
+  document.getElementById('btn-cancelar-edicao-destinatario-relatorio').classList.remove('hidden');
+  document.getElementById('form-destinatario-relatorio').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function alternarAtivoDestinatarioRelatorio(id, ativar) {
+  if (!usuarioPodeEditarTela('gerenciar-usuarios')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
+  try {
+    await atualizarDestinatarioRelatorio(id, { ativo: ativar });
+    Components.Toast.success(ativar ? 'Destinatário ativado!' : 'Destinatário bloqueado!');
+    carregarDestinatariosRelatorio();
+  } catch (e) {
+    Components.Toast.error('Erro ao alterar');
+  }
+}
+
 // Expor globalmente
 window.carregarGerenciarUsuarios = carregarGerenciarUsuarios;
 window.preencherDropdownUnidadeUsuario = preencherDropdownUnidadeUsuario;
@@ -372,3 +482,8 @@ window.limparFormUsuarioAdmin = limparFormUsuarioAdmin;
 window.salvarUsuarioAdmin = salvarUsuarioAdmin;
 window.editarUsuarioAdmin = editarUsuarioAdmin;
 window.alternarAtivoUsuarioAdmin = alternarAtivoUsuarioAdmin;
+window.carregarDestinatariosRelatorio = carregarDestinatariosRelatorio;
+window.limparFormDestinatarioRelatorio = limparFormDestinatarioRelatorio;
+window.salvarDestinatarioRelatorio = salvarDestinatarioRelatorio;
+window.editarDestinatarioRelatorio = editarDestinatarioRelatorio;
+window.alternarAtivoDestinatarioRelatorio = alternarAtivoDestinatarioRelatorio;
