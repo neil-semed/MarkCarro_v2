@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico - Aba Motoboy</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px 16px 60px; background:#f4f6f8; color:#1a2233; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  p.sub { color:#5a6472; margin-top:0; }
+  .item { background:#fff; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; border-left: 6px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .item.ok { border-left-color: #16a34a; }
+  .item.fail { border-left-color: #dc2626; }
+  .item.pending { border-left-color: #94a3b8; }
+  .item h3 { margin: 0 0 6px; font-size: 15px; display:flex; align-items:center; gap:8px; }
+  .tag { font-weight:700; padding: 2px 10px; border-radius: 999px; font-size: 12px; }
+  .tag.ok { background:#dcfce7; color:#166534; }
+  .tag.fail { background:#fee2e2; color:#991b1b; }
+  .tag.pending { background:#e2e8f0; color:#475569; }
+  .item p { margin: 4px 0 0; font-size: 13.5px; color:#374151; }
+  .item code { background:#f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  #veredito { margin-top: 20px; padding: 20px; border-radius: 14px; font-size: 16px; font-weight: 700; text-align:center; }
+  #veredito.ok { background:#16a34a; color:#fff; }
+  #veredito.fail { background:#dc2626; color:#fff; }
+  #veredito.pending { background:#94a3b8; color:#fff; }
+  button { display:block; width:100%; margin-top: 14px; padding: 14px; font-size: 15px; font-weight: 700; border:none; border-radius: 10px; background:#044AAA; color:#fff; cursor:pointer; }
+  button:active { opacity:.85; }
+  .lista-cache { font-size: 12.5px; background:#f8fafc; border-radius: 8px; padding: 8px 10px; margin-top:6px; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+  <h1>🔍 Diagnóstico - Aba "Motoboy - Documentos"</h1>
+  <p class="sub">Esta página checa, direto no seu servidor, cada peça necessária pra aba do Motoboy aparecer. Não precisa entender nada técnico - só olhar os resultados abaixo.</p>
+
+  <div class="item pending" id="check-html">
+    <h3>1. index.html tem o botão "Motoboy - Documentos"? <span class="tag pending" id="tag-html">checando...</span></h3>
+    <p id="detalhe-html"></p>
+  </div>
+
+  <div class="item pending" id="check-login">
+    <h3>2. pages/login.js sabe exibir o botão pro admin? <span class="tag pending" id="tag-login">checando...</span></h3>
+    <p id="detalhe-login"></p>
+  </div>
+
+  <div class="item pending" id="check-arquivo-motoboy">
+    <h3>3. pages/gerenciar-motoboy-documentos.js existe no servidor? <span class="tag pending" id="tag-arquivo-motoboy">checando...</span></h3>
+    <p id="detalhe-arquivo-motoboy"></p>
+  </div>
+
+  <div class="item pending" id="check-sw">
+    <h3>4. Versão guardada em cache neste navegador <span class="tag pending" id="tag-sw">checando...</span></h3>
+    <p id="detalhe-sw"></p>
+    <div class="lista-cache" id="lista-cache"></div>
+  </div>
+
+  <div id="veredito" class="pending">Analisando...</div>
+
+  <button id="btn-corrigir" style="display:none" onclick="forcarAtualizacao()">🧹 Limpar cache e forçar atualização deste navegador</button>
+  <button id="btn-recarregar" style="display:none" onclick="location.reload()">🔄 Verificar de novo</button>
+
+<script>
+function marcar(idItem, idTag, ok) {
+  const item = document.getElementById(idItem);
+  const tag = document.getElementById(idTag);
+  item.classList.remove('pending', 'ok', 'fail');
+  item.classList.add(ok ? 'ok' : 'fail');
+  tag.classList.remove('pending', 'ok', 'fail');
+  tag.classList.add(ok ? 'ok' : 'fail');
+  tag.textContent = ok ? 'SIM ✅' : 'NÃO ❌';
+}
+
+async function forcarAtualizacao() {
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) await r.unregister();
+  } catch (e) {}
+  try {
+    const nomes = await caches.keys();
+    for (const n of nomes) await caches.delete(n);
+  } catch (e) {}
+  alert('Cache limpo! A página vai recarregar agora.');
+  location.href = location.pathname + '?forcar=' + Date.now();
+}
+
+async function rodarDiagnostico() {
+  const versaoEsperadaRegex = /\?v=(\w+)/;
+  let versaoHtml = null;
+
+  // 1) index.html
+  try {
+    const resp = await fetch('./index.html', { cache: 'no-store' });
+    const texto = await resp.text();
+    const temBotao = texto.includes('btn-gerenciar-motoboy-documentos') && texto.includes('Motoboy - Documentos');
+    const m = texto.match(/pages\/login\.js\?v=(\w+)/);
+    versaoHtml = m ? m[1] : null;
+    marcar('check-html', 'tag-html', temBotao);
+    document.getElementById('detalhe-html').innerHTML = temBotao
+      ? `Encontrado. Versão publicada agora: <code>${versaoHtml || '(não identificada)'}</code>`
+      : 'O botão NÃO está no index.html publicado agora. Esse arquivo específico ainda não foi atualizado no servidor - suba o index.html do zip novamente.';
+  } catch (e) {
+    marcar('check-html', 'tag-html', false);
+    document.getElementById('detalhe-html').textContent = 'Não consegui abrir o index.html deste mesmo servidor: ' + e.message;
+  }
+
+  // 2) pages/login.js
+  try {
+    const resp = await fetch('./pages/login.js', { cache: 'no-store' });
+    const texto = await resp.text();
+    const temCodigo = texto.includes('gerenciar-motoboy-documentos');
+    marcar('check-login', 'tag-login', temCodigo);
+    document.getElementById('detalhe-login').textContent = temCodigo
+      ? 'Encontrado. Este arquivo já sabe exibir o botão pro admin.'
+      : 'NÃO encontrado neste arquivo. O pages/login.js no servidor ainda é uma versão ANTIGA - suba de novo o pages/login.js do zip que foi entregue.';
+  } catch (e) {
+    marcar('check-login', 'tag-login', false);
+    document.getElementById('detalhe-login').textContent = 'Não consegui abrir pages/login.js: ' + e.message;
+  }
+
+  // 3) pages/gerenciar-motoboy-documentos.js
+  try {
+    const resp = await fetch('./pages/gerenciar-motoboy-documentos.js', { cache: 'no-store' });
+    const ok = resp.ok;
+    const texto = ok ? await resp.text() : '';
+    const valido = ok && texto.includes('carregarGerenciarMotoboyDocumentos');
+    marcar('check-arquivo-motoboy', 'tag-arquivo-motoboy', valido);
+    document.getElementById('detalhe-arquivo-motoboy').textContent = valido
+      ? 'Arquivo presente e com o conteúdo certo.'
+      : (ok ? 'O arquivo existe mas o conteúdo não parece ser o esperado.' : `O servidor respondeu ${resp.status} - esse arquivo não está lá. Suba pages/gerenciar-motoboy-documentos.js.`);
+  } catch (e) {
+    marcar('check-arquivo-motoboy', 'tag-arquivo-motoboy', false);
+    document.getElementById('detalhe-arquivo-motoboy').textContent = 'Não consegui abrir pages/gerenciar-motoboy-documentos.js: ' + e.message;
+  }
+
+  // 4) Service worker / cache do navegador
+  let cacheAntigo = false;
+  try {
+    const nomes = (await caches.keys()) || [];
+    document.getElementById('lista-cache').textContent = nomes.length
+      ? 'Caches guardados neste navegador: ' + nomes.join(', ')
+      : 'Nenhum cache guardado neste navegador (bom sinal).';
+    cacheAntigo = versaoHtml ? nomes.some(n => n.includes('markcarro') && !n.includes(versaoHtml)) : false;
+    marcar('check-sw', 'tag-sw', !cacheAntigo);
+    document.getElementById('detalhe-sw').textContent = cacheAntigo
+      ? 'Este navegador ainda guarda uma versão de cache DIFERENTE da publicada agora no servidor - é isso que está te mostrando a tela antiga.'
+      : 'Sem cache antigo detectado neste navegador.';
+  } catch (e) {
+    marcar('check-sw', 'tag-sw', true);
+    document.getElementById('detalhe-sw').textContent = 'Este navegador não usa Service Worker/Cache Storage (ou já foi limpo).';
+  }
+
+  // Veredito final
+  const htmlOk = document.getElementById('tag-html').textContent.includes('SIM');
+  const loginOk = document.getElementById('tag-login').textContent.includes('SIM');
+  const arquivoOk = document.getElementById('tag-arquivo-motoboy').textContent.includes('SIM');
+  const veredito = document.getElementById('veredito');
+  const btnCorrigir = document.getElementById('btn-corrigir');
+  document.getElementById('btn-recarregar').style.display = 'block';
+
+  if (htmlOk && loginOk && arquivoOk && !cacheAntigo) {
+    veredito.className = 'ok';
+    veredito.textContent = '✅ Tudo certo no servidor! Se mesmo assim não aparece, veja se este admin tem um "Perfil de Acesso" restrito em Gerenciar Perfis de Acesso - a tela "Motoboy - Documentos" precisa estar marcada lá.';
+  } else if (htmlOk && loginOk && arquivoOk && cacheAntigo) {
+    veredito.className = 'fail';
+    veredito.textContent = '⚠️ O servidor está certo, mas ESTE NAVEGADOR guardou uma versão antiga em cache. Clique no botão abaixo pra limpar.';
+    btnCorrigir.style.display = 'block';
+  } else {
+    veredito.className = 'fail';
+    veredito.textContent = '❌ Faltou subir pelo menos um arquivo no servidor (veja qual item acima está com NÃO) - envie de novo esse(s) arquivo(s) do zip.';
+  }
+}
+
+rodarDiagnostico();
+</script>
+</body>
+</html>
