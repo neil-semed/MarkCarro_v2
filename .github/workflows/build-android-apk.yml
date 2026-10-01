@@ -1,0 +1,113 @@
+name: Build Android APK
+
+# Compila o .apk do MarkCarro automaticamente, toda vez que este workflow ou
+# a pasta mobile/ for atualizada no branch principal (ou manualmente, pelo
+# botao "Run workflow" na aba Actions do GitHub).
+#
+# Por que isso roda aqui e nao no ambiente do Claude: o Android exige baixar
+# o "Android Gradle Plugin" e o SDK direto dos servidores do Google/Maven -
+# o ambiente onde o Claude roda bloqueia esse acesso (erro 403), entao a
+# compilacao real do .apk so e possivel em um lugar com internet livre pra
+# esses servidores. Os servidores do proprio GitHub (rodando este arquivo)
+# tem acesso livre, entao a compilacao acontece aqui, de graca, sempre que
+# o codigo for atualizado.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'mobile/**'
+      - 'index.html'
+      - 'app.js'
+      - 'api.js'
+      - 'components.js'
+      - 'config.js'
+      - 'utils.js'
+      - 'service-worker.js'
+      - 'manifest.json'
+      - 'favicon.png'
+      - 'logo.png'
+      - 'icons/**'
+      - 'pages/**'
+      - 'Supabase/**'
+      - '.github/workflows/build-android-apk.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o codigo do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache do Gradle (deixa builds seguintes mais rapidos)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('mobile/android/gradle/wrapper/gradle-wrapper.properties', 'mobile/android/**/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Instalar dependencias do Capacitor
+        working-directory: mobile
+        run: npm install
+
+      # Sempre usa a versao MAIS RECENTE do app web (raiz do repositorio),
+      # assim o app Android nunca fica desatualizado em relacao ao site.
+      - name: Copiar o app web atual pra dentro do projeto mobile
+        run: |
+          rm -rf mobile/www
+          mkdir -p mobile/www
+          cp -r index.html app.js api.js components.js config.js utils.js \
+                service-worker.js manifest.json favicon.png logo.png \
+                icons pages Supabase \
+                mobile/www/
+
+      - name: Sincronizar o app web com o projeto Android
+        working-directory: mobile
+        run: npx cap sync android
+
+      - name: Compilar o APK de debug
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Renomear o APK gerado
+        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk markcarro-debug.apk
+
+      # Publica (ou substitui) uma unica "release" fixa chamada apk-latest,
+      # assim o link de download NUNCA muda - toda vez que este workflow
+      # rodar de novo, o arquivo nesse mesmo link e atualizado.
+      - name: Publicar o APK em um link fixo de download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "MarkCarro - APK (gerado automaticamente)"
+          body: |
+            APK gerado automaticamente a cada atualizacao enviada ao repositorio.
+            Baixe e instale direto no celular Android (e preciso permitir
+            "instalar de fontes desconhecidas" no aparelho, ja que este app
+            nao passa pela Play Store).
+
+            Ultima atualizacao: ${{ github.event.head_commit.timestamp || github.run_id }}
+          files: markcarro-debug.apk
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
