@@ -104,9 +104,23 @@ async function salvarCadastro() {
         validade_cnh: metaDados.validade_cnh || null
       };
 
-      await completarCadastroProprio(resultado.user.id, dadosPerfil);
+      // CORREÇÃO ("página de cadastro permanece aberta"): a conta de login
+      // (signUp) já foi criada com sucesso neste ponto - é o que importa pro
+      // usuário. Completar telefone/Unidade/Setor é um passo A MAIS; se essa
+      // chamada falhar (ex.: RPC indisponível, instabilidade), antes isso
+      // disparava o catch logo abaixo e cancelava o aviso de sucesso E o
+      // fechamento da tela, deixando tudo preso ali sem explicação nenhuma
+      // (a conta existia, mas parecia que "não tinha feito nada"). Agora
+      // esse passo é isolado no seu próprio try/catch: se der erro, só fica
+      // registrado no console - o aviso de "conta criada" e o fechamento da
+      // tela sempre acontecem, porque a conta, de fato, foi criada.
+      try {
+        await completarCadastroProprio(resultado.user.id, dadosPerfil);
+      } catch (erroPerfil) {
+        console.error('Conta criada, mas falhou ao completar telefone/Unidade/Setor:', erroPerfil);
+      }
 
-      Components.Toast.success('Cadastro realizado! Verifique seu e-mail para confirmar.');
+      Components.Toast.success('Conta criada! Verifique seu e-mail para confirmar.');
       document.getElementById('form-cadastro').reset();
       alternarCamposPerfil();
       voltarLogin();
