@@ -140,8 +140,12 @@ async function salvarCondutorGestor() {
     };
     
     if (emailOriginal) {
-      // Atualizar existente - por e-mail (não temos o UUID em mãos aqui)
-      await atualizarPerfilPorEmail(emailOriginal, perfil);
+      // Atualizar existente - por e-mail (não temos o UUID em mãos aqui).
+      // atualizarPerfilPorEmailComVerificacao (não atualizarPerfilPorEmail
+      // puro): mesma correção urgente feita em gerenciar-usuarios.js - o
+      // UPDATE puro podia ser silenciosamente bloqueado (RLS/timing) e
+      // mesmo assim mostrar sucesso sem ter salvo telefone/placa/CNH etc.
+      await atualizarPerfilPorEmailComVerificacao(emailOriginal, perfil);
       if (dados.email !== emailOriginal) {
         // Email mudou - precisa recriar auth user (complexo)
         Components.Toast.warning('Mudança de e-mail não suportada diretamente');

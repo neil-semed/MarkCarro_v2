@@ -116,11 +116,17 @@ async function salvarCadastro() {
       // tela sempre acontecem, porque a conta, de fato, foi criada.
       try {
         await completarCadastroProprio(resultado.user.id, dadosPerfil);
+        Components.Toast.success('Conta criada! Verifique seu e-mail para confirmar.');
       } catch (erroPerfil) {
+        // CORREÇÃO URGENTE ("não está salvando telefone/setor"): antes esse
+        // erro só ia pro console - o usuário via "Conta criada!" normal e
+        // não tinha como saber que telefone/Unidade/Setor não foram
+        // salvos. Agora avisa claramente (sem bloquear a conta, que já foi
+        // criada de verdade).
         console.error('Conta criada, mas falhou ao completar telefone/Unidade/Setor:', erroPerfil);
+        Components.Toast.warning('Conta criada, mas telefone/Unidade/Setor não foram salvos. Avise o administrador para completar seu cadastro.');
       }
 
-      Components.Toast.success('Conta criada! Verifique seu e-mail para confirmar.');
       document.getElementById('form-cadastro').reset();
       alternarCamposPerfil();
       voltarLogin();

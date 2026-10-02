@@ -195,7 +195,11 @@ async function enviarAgendaEmailUI() {
   const periodoTexto = inicio === fim
     ? formatarDataBR(inicio)
     : `${formatarDataBR(inicio)} a ${formatarDataBR(fim)}`;
-  if (!confirm(`Enviar por e-mail a Agenda de Corridas de ${periodoTexto} pra todos os destinatários ativos cadastrados em Gerenciar Usuários?`)) return;
+  // CORREÇÃO URGENTE ("não está mandando para todos os emails
+  // cadastrados"): o texto dizia "ativos" porque o envio excluía quem
+  // estava Bloqueado - agora manda pra todos os cadastrados, então o
+  // texto não fala mais só em "ativos".
+  if (!confirm(`Enviar por e-mail a Agenda de Corridas de ${periodoTexto} pra todos os destinatários cadastrados em Gerenciar Usuários?`)) return;
 
   const btn = document.getElementById('btn-enviar-agenda-email');
   const textoOriginal = btn ? btn.innerHTML : '';

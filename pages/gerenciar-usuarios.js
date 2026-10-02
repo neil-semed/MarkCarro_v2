@@ -239,9 +239,14 @@ async function salvarUsuarioGestor() {
     };
 
     if (emailOriginal) {
-      // atualizarPerfilPorEmail: aqui só temos o e-mail, não o UUID de
-      // profiles.id (atualizarPerfil filtra por id e nunca bateria).
-      await atualizarPerfilPorEmail(emailOriginal, perfil);
+      // atualizarPerfilPorEmailComVerificacao (não atualizarPerfilPorEmail
+      // puro - aqui só temos o e-mail, não o UUID de profiles.id):
+      // CORREÇÃO URGENTE ("não está salvando telefone/setor/unidade") - a
+      // função com verificação já existia em api.js (retry + erro claro em
+      // 0 linhas afetadas) mas nunca tinha sido ligada aqui; o UPDATE puro
+      // podia ser silenciosamente bloqueado (RLS/timing) e mesmo assim
+      // mostrar "Usuário atualizado!" sem ter salvo nada.
+      await atualizarPerfilPorEmailComVerificacao(emailOriginal, perfil);
     } else {
       // Novo - cria a conta de autenticação com criarUsuarioComoAdmin
       // (mantém a sessão do gestor - signUp() normal trocaria a sessão
