@@ -14,9 +14,17 @@
 // chamou é admin (perfil.tipo === 'admin'), pra dar um erro claro em vez
 // de simplesmente devolver uma lista vazia por causa do RLS.
 //
+// HISTÓRICO: chegou a usar Resend (secrets RESEND_API_KEY/RESEND_FROM) -
+// voltou pro Brevo porque a conta do Resend estava em modo de teste (só
+// manda pro próprio e-mail do dono da conta, sem domínio verificado) e o
+// Brevo permite validar só um remetente avulso, sem precisar verificar um
+// domínio inteiro.
+//
 // Variáveis de ambiente necessárias (configurar com "supabase secrets
 // set", ver INSTRUCOES_EMAIL_AGENDA.txt):
-//   BREVO_API_KEY               - chave de API da conta Brevo
+//   BREVO_API_KEY               - chave de API da conta Brevo (aba
+//                                 "API Keys" dentro de SMTP & API - NÃO é
+//                                 a chave/senha da aba "SMTP")
 //   AGENDA_EMAIL_REMETENTE      - e-mail remetente (precisa estar
 //                                 validado/autenticado na conta Brevo)
 //   AGENDA_EMAIL_REMETENTE_NOME - nome exibido do remetente (opcional,
@@ -81,13 +89,20 @@ Deno.serve(async (req: Request) => {
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY') || '';
-    const REMETENTE_EMAIL = Deno.env.get('AGENDA_EMAIL_REMETENTE') || '';
-    const REMETENTE_NOME = Deno.env.get('AGENDA_EMAIL_REMETENTE_NOME') || 'MarkCarro';
+    // .trim() - defesa contra espaço/quebra de linha invisível grudado na
+    // hora de colar a chave no campo de Secret (causa comum do Brevo
+    // devolver "Key not found" mesmo com uma chave aparentemente certa).
+    const BREVO_API_KEY = (Deno.env.get('BREVO_API_KEY') || '').trim();
+    const REMETENTE_EMAIL = (Deno.env.get('AGENDA_EMAIL_REMETENTE') || '').trim();
+    const REMETENTE_NOME = (Deno.env.get('AGENDA_EMAIL_REMETENTE_NOME') || 'MarkCarro').trim();
 
     if (!BREVO_API_KEY || !REMETENTE_EMAIL) {
       return resposta({ error: 'E-mail não configurado no servidor (faltam BREVO_API_KEY / AGENDA_EMAIL_REMETENTE). Veja INSTRUCOES_EMAIL_AGENDA.txt.' }, 500);
     }
+    // Diagnóstico SEGURO (não revela a chave inteira) - só pra confirmar,
+    // num eventual erro do Brevo, se o secret chegou com o tamanho e o
+    // prefixo certos ("xkeysib-..."), sem expor o valor de verdade.
+    const _diagChave = `tamanho=${BREVO_API_KEY.length}, começa_com="${BREVO_API_KEY.slice(0, 9)}", termina_com="${BREVO_API_KEY.slice(-4)}"`;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
@@ -127,15 +142,20 @@ Deno.serve(async (req: Request) => {
       return resposta({ error: 'Não há corridas no período selecionado.' }, 400);
     }
 
+    // CORREÇÃO URGENTE ("não está mandando para todos os emails
+    // cadastrados"): antes só ia pra quem estava "Ativo" (o botão
+    // "Bloquear" em Gerenciar Usuários excluía silenciosamente do envio) -
+    // agora manda pra TODOS os destinatários cadastrados, bloqueados ou
+    // não (o botão Bloquear/Ativar continua existindo na tela, só não
+    // afeta mais quem recebe o e-mail).
     const { data: destinatarios, error: erroDestin } = await supabase
       .from('destinatarios_relatorio')
-      .select('email, nome')
-      .eq('ativo', true);
+      .select('email, nome');
     if (erroDestin) return resposta({ error: 'Erro ao buscar destinatários: ' + erroDestin.message }, 500);
 
     const listaDestinatarios = (destinatarios || []) as Destinatario[];
     if (!listaDestinatarios.length) {
-      return resposta({ error: 'Nenhum destinatário ativo cadastrado. Cadastre em Gerenciar Usuários.' }, 400);
+      return resposta({ error: 'Nenhum destinatário cadastrado. Cadastre em Gerenciar Usuários.' }, 400);
     }
 
     // Resolve os e-mails de condutor_ida/condutor_volta pro NOME - a Edge
@@ -150,12 +170,13 @@ Deno.serve(async (req: Request) => {
         .from('profiles')
         .select('email, nome')
         .in('email', emailsCondutores);
-      (condutores || []).forEach((c: { email: string; nome: string }) => { mapaCondutores[c.email] = c.nome; });
+      (condutores || []).forEach((c: { email: string; nome: string }) => { mapaCondutores[c.email.trim().toLowerCase()] = c.nome; });
     }
 
     function nomeCondutor(email: string | null): string {
       if (!email) return '';
-      return mapaCondutores[email] || email;
+      const chave = email.trim().toLowerCase();
+      return mapaCondutores[chave] || email;
     }
 
     // PEDIDO DO USUÁRIO: quando o condutor de IDA é diferente do de VOLTA,
@@ -171,42 +192,76 @@ Deno.serve(async (req: Request) => {
       ? formatarDataBR(dataInicio)
       : `${formatarDataBR(dataInicio)} a ${formatarDataBR(dataFim)}`;
 
+    // PEDIDO DO USUÁRIO: sem hiperlink nenhum em endereço/telefone - vários
+    // clientes de e-mail (Gmail no celular, Apple Mail) "detectam" texto que
+    // parece endereço/telefone e sozinhos transformam em link azul sublinhado,
+    // por conta própria, DEPOIS que o e-mail já chegou - isso não depende de
+    // CSS nem do <meta name="format-detection">, que o Gmail simplesmente
+    // ignora (só o Apple Mail respeita). A única forma que realmente engana
+    // esse "detector automático" é quebrar o texto contínuo do telefone/
+    // endereço com um caractere invisível (zero-width space) entre cada
+    // letra/dígito - pro olho humano continua exatamente igual, mas o
+    // detector do Gmail não reconhece mais o padrão de telefone/endereço.
+    const ZWSP = '​';
+    const semAutoDeteccao = (texto: string) => texto.split('').join(ZWSP);
+    const semLink = (texto: string) => `<span style="color:inherit;text-decoration:none;">${texto}</span>`;
+
     const linhasHtml = lista.map((s) => `
       <tr>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ' / ' + formatarHoraBR(s.hora_retorno) : ''}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;">${s.origem || '-'} &rarr; ${s.destino || '-'}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;">${s.nome_ext || s.email_solicitante}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;">${s.telefone_ext || '-'}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:center;">${s.qtd_pessoas ?? '-'}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;">${celulaCondutor(s)}</td>
-        <td style="padding:6px 10px;border:1px solid #e2e8f0;">${s.status || 'Pendente'}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ' &rarr; ' + formatarHoraBR(s.hora_retorno) : ''}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.origem || '-'))} &rarr; ${semLink(semAutoDeteccao(s.destino || '-'))}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${s.nome_ext || s.email_solicitante}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.telefone_ext || '-'))}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;text-align:center;">${s.qtd_pessoas ?? '-'}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${celulaCondutor(s)}</td>
+        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${s.status || 'Pendente'}</td>
       </tr>`).join('');
 
+    // Ícone do app (favicon.png, publicado no GitHub Pages junto do resto
+    // do site) ao lado do título, no lugar do preenchimento azul de antes.
+    const FAVICON_URL = 'https://neil-semed.github.io/MarkCarro_v2/favicon.png';
+
     const htmlEmail = `
-      <div style="font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:0 auto;">
-        <div style="background:#1e40af;color:#ffffff;padding:14px 18px;">
-          <h2 style="margin:0;font-size:18px;">MarkCarro | Agenda de Corridas</h2>
-          <p style="margin:2px 0 0;font-size:12px;">SEMED Nova Lima</p>
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:0 auto;color:#1e293b;">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:2px solid #facc15;">
+          <img src="${FAVICON_URL}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:6px;display:block;">
+          <div>
+            <h2 style="margin:0;font-size:15px;color:#1e293b;">MarkCarro | Agenda de Corridas</h2>
+            <p style="margin:1px 0 0;font-size:10px;color:#64748b;">SEMED Nova Lima</p>
+          </div>
         </div>
-        <div style="padding:14px 18px;">
-          <p style="font-size:14px;margin:0 0 12px;"><strong>Período:</strong> ${periodoTitulo} &nbsp;&middot;&nbsp; <strong>Corridas:</strong> ${lista.length}</p>
-          <table style="border-collapse:collapse;width:100%;font-size:12.5px;">
+        <div style="padding:12px 4px;">
+          <p style="font-size:12px;margin:0 0 10px;"><strong>Período:</strong> ${periodoTitulo} &nbsp;&middot;&nbsp; <strong>Corridas:</strong> ${lista.length}</p>
+          <table style="border-collapse:collapse;width:100%;font-size:11px;">
             <thead>
               <tr style="background:#facc15;">
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Horário</th>
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Origem &rarr; Destino</th>
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Solicitante</th>
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Celular</th>
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Pass</th>
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Condutor</th>
-                <th style="padding:6px 10px;border:1px solid #e2e8f0;text-align:left;">Status</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Horário</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Origem &rarr; Destino</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Solicitante</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Celular</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Pass</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Condutor</th>
+                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Status</th>
               </tr>
             </thead>
             <tbody>${linhasHtml}</tbody>
           </table>
-          <p style="font-size:11px;color:#64748b;margin-top:16px;">Transporte - SEMED.<br>(Essa mensagem foi gerada automaticamente)</p>
+          <p style="font-size:10px;color:#64748b;margin-top:14px;">Transporte - SEMED.<br>(Essa mensagem foi gerada automaticamente - modelo v20260930c)</p>
         </div>
       </div>`;
+
+    // Meta de format-detection vai no <head> do e-mail - impede Apple
+    // Mail/Gmail mobile de auto-linkar telefone/endereço/data/e-mail.
+    const htmlEmailCompleto = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+</head>
+<body style="margin:0;padding:0;">
+${htmlEmail}
+</body>
+</html>`;
 
     const tituloEmail = `[MarkCarro] Agenda de Corridas - ${periodoTitulo}`;
 
@@ -221,7 +276,7 @@ Deno.serve(async (req: Request) => {
         sender: { name: REMETENTE_NOME, email: REMETENTE_EMAIL },
         to: listaDestinatarios.map((d) => ({ email: d.email, name: d.nome || d.email })),
         subject: tituloEmail,
-        htmlContent: htmlEmail,
+        htmlContent: htmlEmailCompleto,
       }),
     });
 
@@ -231,7 +286,7 @@ Deno.serve(async (req: Request) => {
 
     if (!respostaBrevo.ok) {
       const motivo = (corpoResp?.message as string) || textoBruto || `HTTP ${respostaBrevo.status}`;
-      return resposta({ error: `Erro ao enviar e-mail (Brevo): ${motivo}` }, 502);
+      return resposta({ error: `Erro ao enviar e-mail (Brevo): ${motivo} [diagnóstico: ${_diagChave}]` }, 502);
     }
 
     return resposta({ success: true, enviados: listaDestinatarios.length, corridas: lista.length });
