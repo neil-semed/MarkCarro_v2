@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002f">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002f">
-  <link rel="icon" href="favicon.png?v=20261002f">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002g">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002g">
+  <link rel="icon" href="favicon.png?v=20261002g">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -2017,12 +2017,17 @@
                          gerenciamento-solicitacoes.js) pra ele de fato
                          ocupar o espaço extra, não só a célula. -->
                     <th class="table-th" style="min-width:160px">Condutor Ida</th>
+                    <!-- PEDIDO DO USUÁRIO ("colocar os botões abaixo de
+                         condutor ida e condutor volta"): a coluna "Ações"
+                         separada foi removida - os botões agora ficam
+                         dentro desta mesma coluna, abaixo do select de
+                         Condutor Volta (ver renderizarTabelaGestorCompleta,
+                         pages/gerenciamento-solicitacoes.js). -->
                     <th class="table-th" style="min-width:160px">Condutor Volta</th>
-                    <th class="table-th">Ações</th>
                   </tr>
                 </thead>
                 <tbody id="tb-gestor-geral">
-                  <tr><td colspan="16" class="text-center text-slate-500 p-4">Carregando...</td></tr>
+                  <tr><td colspan="15" class="text-center text-slate-500 p-4">Carregando...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -3562,38 +3567,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261002f"></script>
-  <script src="Supabase/supabase-client.js?v=20261002f"></script>
-  <script src="api.js?v=20261002f"></script>
-  <script src="utils.js?v=20261002f"></script>
-  <script src="components.js?v=20261002f"></script>
-  <script src="pages/login.js?v=20261002f"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261002f"></script>
-  <script src="pages/cadastro.js?v=20261002f"></script>
-  <script src="pages/nova-solicitacao.js?v=20261002f"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261002f"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261002f"></script>
-  <script src="pages/viagens-do-dia.js?v=20261002f"></script>
-  <script src="pages/notificacoes.js?v=20261002f"></script>
-  <script src="pages/dashboard-condutor.js?v=20261002f"></script>
-  <script src="pages/painel-dia.js?v=20261002f"></script>
-  <script src="pages/proximas-agendas.js?v=20261002f"></script>
-  <script src="pages/agenda.js?v=20261002f"></script>
-  <script src="pages/agenda-combinada.js?v=20261002f"></script>
-  <script src="pages/agenda-condutor.js?v=20261002f"></script>
-  <script src="pages/registro-km.js?v=20261002f"></script>
-  <script src="pages/gestor.js?v=20261002f"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261002f"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002f"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261002f"></script>
-  <script src="pages/gerenciar-km.js?v=20261002f"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261002f"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261002f"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261002f"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261002f"></script>
-  <script src="pages/relatorios.js?v=20261002f"></script>
-  <script src="pages/alterar-senha.js?v=20261002f"></script>
-  <script src="app.js?v=20261002f"></script>
+  <script src="config.js?v=20261002g"></script>
+  <script src="Supabase/supabase-client.js?v=20261002g"></script>
+  <script src="api.js?v=20261002g"></script>
+  <script src="utils.js?v=20261002g"></script>
+  <script src="components.js?v=20261002g"></script>
+  <script src="pages/login.js?v=20261002g"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261002g"></script>
+  <script src="pages/cadastro.js?v=20261002g"></script>
+  <script src="pages/nova-solicitacao.js?v=20261002g"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261002g"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261002g"></script>
+  <script src="pages/viagens-do-dia.js?v=20261002g"></script>
+  <script src="pages/notificacoes.js?v=20261002g"></script>
+  <script src="pages/dashboard-condutor.js?v=20261002g"></script>
+  <script src="pages/painel-dia.js?v=20261002g"></script>
+  <script src="pages/proximas-agendas.js?v=20261002g"></script>
+  <script src="pages/agenda.js?v=20261002g"></script>
+  <script src="pages/agenda-combinada.js?v=20261002g"></script>
+  <script src="pages/agenda-condutor.js?v=20261002g"></script>
+  <script src="pages/registro-km.js?v=20261002g"></script>
+  <script src="pages/gestor.js?v=20261002g"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261002g"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002g"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261002g"></script>
+  <script src="pages/gerenciar-km.js?v=20261002g"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261002g"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261002g"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261002g"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261002g"></script>
+  <script src="pages/relatorios.js?v=20261002g"></script>
+  <script src="pages/alterar-senha.js?v=20261002g"></script>
+  <script src="app.js?v=20261002g"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
