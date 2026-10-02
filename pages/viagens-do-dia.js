@@ -66,7 +66,15 @@ async function carregarViagensDoDia() {
       try { cacheCondutoresParaExibicao = await listarCondutoresParaExibicao(); } catch (e) { /* mostra e-mail se falhar */ }
     }
 
-    const hojeISO = new Date().toISOString().split('T')[0];
+    // CORREÇÃO (pedido do usuário, "não carregou as viagens do dia"):
+    // new Date().toISOString() usa o fuso UTC - no horário de Brasília
+    // (UTC-3), das ~21h às 23h59 locais o relógio em UTC já virou pro dia
+    // SEGUINTE, então "hoje" aqui virava amanhã e a busca saía vazia (sem
+    // erro nenhum, só nenhuma viagem pra aquela data errada). Mesmo ajuste
+    // já usado em outras telas (ver filtrarAgendaHoje() em agenda.js):
+    // soma/subtrai o offset do fuso do navegador antes de extrair a data.
+    const hoje = new Date();
+    const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     const dados = await buscarSolicitacoesPorData(hojeISO, hojeISO);
     // PEDIDO DO USUÁRIO ("carregar somente as viagens confirmadas e
     // canceladas do dia"): antes mostrava TODOS os status (Pendente/Em

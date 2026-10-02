@@ -493,6 +493,10 @@ function renderizarTabelaDestinatariosRelatorio(destinatarios) {
         <div class="flex gap-2">
           <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarDestinatarioRelatorio(${d.id})">Editar</button>
           <button class="${d.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoDestinatarioRelatorio(${d.id}, ${!d.ativo})">${d.ativo ? 'Bloquear' : 'Ativar'}</button>
+          <!-- PEDIDO DO USUÁRIO ("dar opção de excluir o e-mail cadastrado"):
+               a função de API (excluirDestinatarioRelatorio) já existia em
+               api.js, só não tinha botão nenhum ligado a ela nesta tela. -->
+          <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirDestinatarioRelatorioUI(${d.id})">Excluir</button>
         </div>
       </td>
     </tr>
@@ -557,6 +561,24 @@ async function alternarAtivoDestinatarioRelatorio(id, ativar) {
   }
 }
 
+// PEDIDO DO USUÁRIO ("dar opção de excluir o e-mail cadastrado"): exclusão
+// de verdade (DELETE), diferente de Bloquear (que só marca ativo=false) -
+// por isso pede confirmação antes.
+async function excluirDestinatarioRelatorioUI(id) {
+  if (!usuarioPodeEditarTela('gerenciar-usuarios')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
+  const d = cacheDestinatariosRelatorio.find(x => String(x.id) === String(id));
+  if (!d) return;
+  if (!confirm(`Excluir o destinatário "${d.nome || d.email}" (${d.email})? Essa ação não pode ser desfeita.`)) return;
+  try {
+    await excluirDestinatarioRelatorio(id);
+    Components.Toast.success('Destinatário excluído!');
+    carregarDestinatariosRelatorio();
+  } catch (e) {
+    console.error('Erro ao excluir destinatário do relatório de agenda:', e);
+    Components.Toast.error('Erro ao excluir: ' + e.message);
+  }
+}
+
 // Expor globalmente
 window.carregarGerenciarUsuarios = carregarGerenciarUsuarios;
 window.preencherDropdownUnidadeUsuario = preencherDropdownUnidadeUsuario;
@@ -574,3 +596,4 @@ window.limparFormDestinatarioRelatorio = limparFormDestinatarioRelatorio;
 window.salvarDestinatarioRelatorio = salvarDestinatarioRelatorio;
 window.editarDestinatarioRelatorio = editarDestinatarioRelatorio;
 window.alternarAtivoDestinatarioRelatorio = alternarAtivoDestinatarioRelatorio;
+window.excluirDestinatarioRelatorioUI = excluirDestinatarioRelatorioUI;
