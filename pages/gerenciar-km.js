@@ -191,8 +191,17 @@ async function vincularMotoristaKmGestor(driverId) {
 // (Bora Lá) - salvarKmGestor() usa isso pra saber pra onde mandar o PATCH.
 let idEdicaoLegado = false;
 
-function limparFormKmGestor() {
+// PEDIDO DO USUÁRIO ("lançar km/ condutor - manter o último selecionado
+// após clicar em salvar"): form.reset() sempre voltava o <select> de
+// Condutor pra "Selecione..." depois de salvar - obrigava escolher o
+// condutor de novo a cada lançamento, mesmo lançando vários KMs seguidos
+// pro mesmo condutor. manterCondutor=true preserva o valor atual do
+// select depois do reset (usado só ao salvar - "Cancelar edição" continua
+// limpando tudo, inclusive o condutor).
+function limparFormKmGestor(manterCondutor = false) {
+  const condutorAtual = document.getElementById('km-gestor-condutor')?.value || '';
   document.getElementById('form-km-gestor').reset();
+  if (manterCondutor) document.getElementById('km-gestor-condutor').value = condutorAtual;
   document.getElementById('km-gestor-id-edicao').value = '';
   idEdicaoLegado = false;
   document.getElementById('titulo-form-km-gestor').textContent = 'Lançar KM';
@@ -263,7 +272,7 @@ async function salvarKmGestor() {
       Components.Toast.success('Registro salvo!');
     }
 
-    limparFormKmGestor();
+    limparFormKmGestor(true);
     carregarRegistrosKmGestor();
   } catch (e) {
     Components.Toast.error('Erro: ' + e.message);

@@ -85,7 +85,7 @@ async function carregarGerenciamentoSolicitacoes(forcarAtualizacao = false) {
     // Sem isso, um erro aqui deixava a tabela travada no spinner de
     // "Carregando..." pra sempre (nada reescrevia o tbody depois do catch).
     console.error('Erro ao carregar gerenciamento de solicitações:', e);
-    tbody.innerHTML = `<tr><td colspan="16" class="text-center text-red-500 p-4">Erro ao carregar. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciamentoSolicitacoes(true)">Tentar de novo</button></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15" class="text-center text-red-500 p-4">Erro ao carregar. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciamentoSolicitacoes(true)">Tentar de novo</button></td></tr>`;
     Components.Toast.error('Erro ao carregar solicitações');
   }
 }
@@ -284,7 +284,7 @@ async function salvarEdicoesLinhaGestor(id) {
 function renderizarTabelaGestorCompleta(dados) {
   const tbody = document.getElementById('tb-gestor-geral');
   if (!dados.length) {
-    tbody.innerHTML = '<tr><td colspan="16" class="text-center text-slate-500 p-4">Nenhuma solicitação</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="15" class="text-center text-slate-500 p-4">Nenhuma solicitação</td></tr>';
     return;
   }
 
@@ -354,27 +354,35 @@ function renderizarTabelaGestorCompleta(dados) {
           <option value="">—</option>
           ${opcoesCondutor}
         </select>
-      </td>
-      <td>
-        <!-- CORREÇÃO (pedido do usuário, 2ª rodada de "diminuir os botões
-             de ação" - a 1ª, text-[11px]/py-1/px-1.5, ainda não era
-             pequena o suficiente): removidos os ícones ✓/✗ (a cor de
-             fundo - verde/vermelho/laranja - já indica a ação, o ícone
-             era redundante e só ocupava largura) e reduzido mais o
-             padding/fonte (text-[10px]/py-0.5/px-1, leading mais apertado,
-             gap menor entre os botões da célula). -->
-        <div class="flex flex-wrap gap-0.5">
+        <!-- PEDIDO DO USUÁRIO ("colocar os botões abaixo de condutor ida e
+             condutor volta, nessa ordem: salvar | confirmar | cancelar |
+             ocupado | excluir"): a coluna "Ações" separada foi removida -
+             os botões agora ficam aqui, abaixo do select de Condutor
+             Volta (que já fica abaixo de Condutor Ida, na coluna
+             anterior), nesta ordem fixa. -->
+        <div class="flex flex-wrap gap-0.5 mt-1">
+          <!-- PEDIDO DO USUÁRIO: botão para salvar as alterações de edição
+               (antes não existia nenhum - o salvamento automático por
+               campo não funcionava de forma confiável). Só aparece quando
+               a linha tem alguma edição pendente. -->
+          <!-- PEDIDO DO USUÁRIO ("botões de ação - diminuir o tamanho, usar
+               cores mais claras - como paleta de status"): trocado de
+               .btn-success/.btn-warning/.btn-danger/.btn-primary (sólidos,
+               grandes) pra .btn-acao-claro + a cor da própria paleta clara
+               dos badges de status (ver .badge-confirmada etc. e o
+               comentário de .btn-acao-claro, mais acima no <style>). -->
+          <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
           <!-- PEDIDO DO USUÁRIO: "Ocupado" (sem veículo disponível) agora
                também é oferecido ANTES de confirmar (Pendente/Em Análise),
                não só depois - antes só dava pra marcar Ocupado numa
                solicitação já Confirmada. -->
           ${status === 'Pendente' || status === 'Em Análise' ? `
             <button class="btn-acao-claro btn-acao-verde" onclick="confirmarSolicitacaoGestor('${s.id}')">Confirmar</button>
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
             <button class="btn-acao-claro btn-acao-vermelho" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
+            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
           ` : status === 'Confirmada' ? `
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
             <button class="btn-acao-claro btn-acao-vermelho" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
+            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
           ` : (status === 'Ocupado' || status === 'Cancelada') ? `
             <!-- PEDIDO DO USUÁRIO ("criar possibilidade de reverter status
                  Ocupado e Cancelado"): antes, uma solicitação marcada como
@@ -389,17 +397,6 @@ function renderizarTabelaGestorCompleta(dados) {
                  solicitante). -->
             <button class="btn-acao-claro btn-acao-azul" onclick="reverterStatusGestor('${s.id}')">Reverter</button>
           ` : ''}
-          <!-- PEDIDO DO USUÁRIO: botão para salvar as alterações de edição
-               (antes não existia nenhum - o salvamento automático por
-               campo não funcionava de forma confiável). Só aparece quando
-               a linha tem alguma edição pendente. -->
-          <!-- PEDIDO DO USUÁRIO ("botões de ação - diminuir o tamanho, usar
-               cores mais claras - como paleta de status"): trocado de
-               .btn-success/.btn-warning/.btn-danger/.btn-primary (sólidos,
-               grandes) pra .btn-acao-claro + a cor da própria paleta clara
-               dos badges de status (ver .badge-confirmada etc. e o
-               comentário de .btn-acao-claro, mais acima no <style>). -->
-          <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
           <!-- PEDIDO DO USUÁRIO ("crie o botão Excluir - poderá excluir o
                registro definitivamente - somente o admin pode excluir"):
                aparece sempre, em qualquer status (diferente de Cancelar,
