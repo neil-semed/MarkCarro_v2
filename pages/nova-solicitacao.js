@@ -320,6 +320,23 @@ async function enviarSolicitacao() {
     // navegação automática em outras telas (busca por "PEDIDO DO USUÁRIO:
     // não navegar" no restante do app).
     if (sucesso > 0) {
+      // PEDIDO DO USUÁRIO ("notificar o responsável quando alguém do setor
+      // cria ou cancela uma solicitação"): até aqui criar uma solicitação
+      // não avisava ninguém (só o cancelamento avisava os gestores) - agora
+      // o responsável pelo setor (se houver um definido - ver
+      // gerenciar-usuarios.js/notificarResponsavelSetor em api.js) recebe
+      // um aviso tanto numa solicitação própria quanto numa criada pelo
+      // Gestor em nome de um Solicitante Externo (dados.unidade/dados.setor
+      // cobrem os dois casos, ver "dados" acima).
+      if (dados.unidade && dados.setor) {
+        const quemSolicitou = dados.nome_ext || usuarioAtual.nome;
+        notificarResponsavelSetor(
+          dados.unidade,
+          dados.setor,
+          `${quemSolicitou} criou uma nova solicitação de viagem (${dados.origem} → ${dados.destino}).`,
+          'nova_solicitacao_setor'
+        ).catch(e => console.warn('Erro ao notificar responsável do setor:', e));
+      }
       prepararFormSolicitacao();
     }
   } finally {

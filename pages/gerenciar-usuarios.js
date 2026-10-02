@@ -8,6 +8,14 @@
 // vazia e o botão "Editar" não preenchia nada.
 let cacheUsuarios = [];
 
+// PEDIDO DO USUÁRIO ("responsável pelo setor... um responsável, indexado
+// ao e-mail do setor - atribuído em Gerenciar Usuários"): todos os pares
+// Unidade+Setor que já têm um e-mail de responsável definido (tabelas_apoio
+// - ver listarResponsaveisSetor()/definirResponsavelSetor() em api.js),
+// carregado uma vez por abertura da tela, pra marcar a coluna "Responsável"
+// e pré-marcar o checkbox do formulário sem uma consulta por linha.
+let cacheResponsaveisSetor = [];
+
 // PEDIDO DO USUÁRIO ("o admin poderá criar e atribuir menus conforme
 // definir"): até aqui só dava pra criar Solicitante nesta tela - não
 // existia NENHUM jeito, pelo próprio app, de criar um Admin com um
@@ -34,6 +42,12 @@ async function carregarGerenciarUsuarios() {
   aplicarModoConsultaTela('gerenciar-usuarios', ['form-usuario', 'form-usuario-admin', 'form-destinatario-relatorio']);
   try {
     const usuarios = await listarUsuarios();
+    try {
+      cacheResponsaveisSetor = await listarResponsaveisSetor();
+    } catch (e) {
+      console.error('Erro ao carregar responsáveis de setor:', e);
+      cacheResponsaveisSetor = [];
+    }
     cacheUsuarios = (usuarios || []).filter(u => u.tipo === 'solicitante');
     renderizarTabelaUsuarios(cacheUsuarios);
 
@@ -55,17 +69,26 @@ async function carregarGerenciarUsuarios() {
     // (e.message), direto na tela.
     console.error('Erro ao carregar usuários:', e);
     const detalhe = (e && e.message) ? e.message : 'motivo desconhecido';
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-8">Erro ao carregar usuários: ${detalhe} <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciarUsuarios()">Tentar de novo</button></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-red-500 py-8">Erro ao carregar usuários: ${detalhe} <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciarUsuarios()">Tentar de novo</button></td></tr>`;
     Components.Toast.error('Erro ao carregar usuários: ' + detalhe);
     const tbodyAdmin = document.getElementById('tb-usuarios-admin');
     if (tbodyAdmin) tbodyAdmin.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 py-8">Erro ao carregar administradores: ${detalhe}</td></tr>`;
   }
 }
 
+// PEDIDO DO USUÁRIO ("responsável pelo setor"): este solicitante é o
+// e-mail gravado em tabelas_apoio.email para a própria Unidade+Setor dele?
+function _ehResponsavelPeloSetor(u) {
+  return cacheResponsaveisSetor.some(r =>
+    r.unidade === u.unidade && r.setor === u.setor &&
+    (r.email || '').toLowerCase() === (u.email || '').toLowerCase()
+  );
+}
+
 function renderizarTabelaUsuarios(usuarios) {
   const tbody = document.getElementById('tb-usuarios');
   if (!usuarios.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-slate-500">Nenhum solicitante</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500">Nenhum solicitante</td></tr>';
     return;
   }
 
@@ -76,6 +99,7 @@ function renderizarTabelaUsuarios(usuarios) {
       <td>${u.telefone || ''}</td>
       <td>${u.unidade || ''}</td>
       <td>${u.setor || ''}</td>
+      <td>${_ehResponsavelPeloSetor(u) ? '<span class="badge badge-confirmada">Responsável</span>' : ''}</td>
       <td><span class="badge ${u.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
       <td>
         <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarUsuario('${u.email}')">Editar</button>
@@ -92,6 +116,12 @@ function renderizarTabelaUsuarios(usuarios) {
 function limparFormUsuario() {
   document.getElementById('form-usuario').reset();
   document.getElementById('usuario-email-original').value = '';
+  // PEDIDO DO USUÁRIO ("responsável pelo setor"): guardam a Unidade/Setor
+  // de ANTES da edição, pra _sincronizarResponsavelSetor() saber de onde
+  // tirar a responsabilidade se a pessoa mudar de setor ou desmarcar o
+  // checkbox (ver editarUsuario()/salvarUsuarioGestor() abaixo).
+  document.getElementById('usuario-unidade-original').value = '';
+  document.getElementById('usuario-setor-original').value = '';
   document.getElementById('titulo-form-usuario').textContent = 'Novo Solicitante';
   document.getElementById('btn-cancelar-edicao-usuario').classList.add('hidden');
   // form.reset() volta o <select> de Unidade pra primeira opção, mas não
@@ -147,6 +177,37 @@ async function carregarSetoresUsuario(setorSelecionado) {
 // em vez do <input> do formulário. Resultado: salvar sempre mandava
 // nome/e-mail vazios, e "Editar" nunca preenchia o formulário. Renomeado
 // pra "uform-nome"/"uform-email", únicos no documento.
+// PEDIDO DO USUÁRIO ("responsável pelo setor... um responsável, indexado
+// ao e-mail do setor"): grava/remove o e-mail deste solicitante em
+// tabelas_apoio.email (definirResponsavelSetor, api.js) - UNIQUE(unidade,
+// setor) já garante só um responsável por setor. Se a Unidade/Setor da
+// pessoa mudou (ou o checkbox foi desmarcado), limpa de onde ela era
+// responsável antes - mas só se ainda for ELA lá (não apaga quem assumiu
+// o lugar dela nesse meio tempo). Lança '__RESPONSAVEL_SETOR_CANCELADO__'
+// quando o admin desiste de substituir outro responsável já existente -
+// salvarUsuarioGestor() trata esse caso sem desfazer o resto do que já
+// tinha sido salvo (nome/telefone/unidade/setor do próprio usuário).
+async function _sincronizarResponsavelSetor(email, unidade, setor, marcado, unidadeOriginal, setorOriginal) {
+  const mudouDeSetor = unidadeOriginal !== unidade || setorOriginal !== setor;
+  if ((mudouDeSetor || !marcado) && unidadeOriginal && setorOriginal) {
+    const responsavelAntigo = await buscarResponsavelSetor(unidadeOriginal, setorOriginal);
+    if ((responsavelAntigo || '').toLowerCase() === (email || '').toLowerCase()) {
+      await definirResponsavelSetor(unidadeOriginal, setorOriginal, null);
+    }
+  }
+
+  if (!marcado || !unidade || !setor) return;
+
+  const responsavelAtual = await buscarResponsavelSetor(unidade, setor);
+  if (responsavelAtual && responsavelAtual.toLowerCase() !== email.toLowerCase()) {
+    const nomeAtual = (cacheUsuarios.find(u => (u.email || '').toLowerCase() === responsavelAtual.toLowerCase()) || {}).nome || responsavelAtual;
+    if (!confirm(`"${nomeAtual}" já é o responsável pelo setor "${setor}" (${unidade}). Substituir?`)) {
+      throw new Error('__RESPONSAVEL_SETOR_CANCELADO__');
+    }
+  }
+  await definirResponsavelSetor(unidade, setor, email);
+}
+
 async function salvarUsuarioGestor() {
   if (!usuarioPodeEditarTela('gerenciar-usuarios')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
 
@@ -162,6 +223,9 @@ async function salvarUsuarioGestor() {
     unidade: document.getElementById('usuario-unidade').value,
     setor: document.getElementById('usuario-setor').value
   };
+  const ehResponsavelSetor = document.getElementById('usuario-responsavel-setor')?.checked || false;
+  const unidadeOriginalResp = document.getElementById('usuario-unidade-original')?.value || '';
+  const setorOriginalResp = document.getElementById('usuario-setor-original')?.value || '';
 
   if (!dados.nome || !dados.email) return Components.Toast.error('Nome e e-mail são obrigatórios');
   if (!emailOriginal && !dados.senha) return Components.Toast.error('Defina uma senha para novo usuário');
@@ -198,6 +262,17 @@ async function salvarUsuarioGestor() {
       try { await adminConfirmarEmail(user.id); } catch (e) { console.error('Erro ao confirmar e-mail (não bloqueia o cadastro):', e); }
     }
 
+    try {
+      await _sincronizarResponsavelSetor(dados.email, dados.unidade, dados.setor, ehResponsavelSetor, unidadeOriginalResp, setorOriginalResp);
+    } catch (erroResp) {
+      if (erroResp && erroResp.message === '__RESPONSAVEL_SETOR_CANCELADO__') {
+        Components.Toast.warning('Usuário salvo, mas a atribuição de Responsável pelo Setor foi cancelada.');
+      } else {
+        console.error('Erro ao atualizar responsável pelo setor:', erroResp);
+        Components.Toast.error('Usuário salvo, mas houve erro ao atualizar "Responsável pelo Setor".');
+      }
+    }
+
     Components.Toast.success(emailOriginal ? 'Usuário atualizado!' : 'Usuário cadastrado!');
     limparFormUsuario();
     carregarGerenciarUsuarios();
@@ -230,6 +305,13 @@ async function editarUsuario(email) {
   // o valor salvo depois que as opções chegarem, por isso o await aqui
   // (antes, com os dois como texto livre, isso não era um problema).
   await carregarSetoresUsuario(u.setor || '');
+
+  document.getElementById('usuario-unidade-original').value = u.unidade || '';
+  document.getElementById('usuario-setor-original').value = u.setor || '';
+  // PEDIDO DO USUÁRIO ("responsável pelo setor"): pré-marca o checkbox se
+  // este e-mail já for o responsável gravado pra Unidade/Setor dele.
+  const chkResponsavel = document.getElementById('usuario-responsavel-setor');
+  if (chkResponsavel) chkResponsavel.checked = _ehResponsavelPeloSetor(u);
 
   document.getElementById('titulo-form-usuario').textContent = 'Editar Solicitante';
   document.getElementById('btn-cancelar-edicao-usuario').classList.remove('hidden');

@@ -94,7 +94,22 @@ async function carregarSetoresPerfilAcesso(setorSelecionado) {
     const dados = await listarSetoresPorUnidade(unidade);
     selSetor.innerHTML = '<option value="">Selecione o Setor...</option>' +
       (dados || []).map(s => `<option value="${s.setor}">${s.setor}</option>`).join('');
-    if (setorSelecionado) selSetor.value = setorSelecionado;
+    // CORREÇÃO ("perfil de acesso / setor não está carregando dropdown"):
+    // se o Setor gravado neste perfil não bate com NENHUMA opção vinda de
+    // tabelas_apoio (ex.: perfil salvo quando este campo ainda era texto
+    // livre, ou o Setor foi renomeado depois em Gerenciar Unidades), o
+    // <select>.value = setorSelecionado é ignorado silenciosamente pelo
+    // navegador - o Setor nunca aparecia selecionado, mas o dado salvo
+    // continuava existindo (só não aparecia). Agora, nesse caso, o próprio
+    // valor salvo é adicionado como opção extra (selecionada), pra não
+    // esconder/perder o dado.
+    if (setorSelecionado) {
+      selSetor.value = setorSelecionado;
+      if (selSetor.value !== setorSelecionado) {
+        selSetor.insertAdjacentHTML('beforeend', `<option value="${setorSelecionado}">${setorSelecionado} (não cadastrado em Gerenciar Unidades)</option>`);
+        selSetor.value = setorSelecionado;
+      }
+    }
   } catch (e) {
     console.error('Erro ao carregar setores:', e);
     selSetor.innerHTML = '<option value="">Erro ao carregar</option>';
@@ -202,7 +217,22 @@ async function editarPerfilAcesso(id) {
   document.getElementById('perfil-acesso-id-edicao').value = p.id;
   document.getElementById('perfil-acesso-nome').value = p.nome || '';
   preencherDropdownUnidadePerfilAcesso();
-  document.getElementById('perfil-acesso-unidade').value = p.unidade || '';
+
+  const selUnidade = document.getElementById('perfil-acesso-unidade');
+  selUnidade.value = p.unidade || '';
+  // CORREÇÃO ("perfil de acesso / setor não está carregando dropdown"):
+  // raiz do problema - quando a Unidade salva no perfil não bate com
+  // NENHUMA opção atual de cacheUnidades, o <select>.value = p.unidade
+  // acima é ignorado pelo navegador (o campo fica em branco). Sem Unidade
+  // selecionada, carregarSetoresPerfilAcesso() nem chega a buscar - por
+  // isso o Setor ficava sempre travado em "Selecione a Unidade primeiro",
+  // mesmo com o perfil já tendo Unidade/Setor gravados. Mesma correção do
+  // Setor logo abaixo: adiciona o valor salvo como opção extra.
+  if (p.unidade && selUnidade.value !== p.unidade) {
+    selUnidade.insertAdjacentHTML('beforeend', `<option value="${p.unidade}">${p.unidade} (não cadastrada em Gerenciar Unidades)</option>`);
+    selUnidade.value = p.unidade;
+  }
+
   await carregarSetoresPerfilAcesso(p.setor || '');
 
   const telas = Array.isArray(p.telas_permitidas) ? p.telas_permitidas : [];

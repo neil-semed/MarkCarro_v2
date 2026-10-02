@@ -12,6 +12,13 @@ let cacheMinhasSolicitacoes = [];
 // comentário lá) - passou a ser reaproveitada também por Viagens do Dia,
 // Agenda de Corridas e Agenda Geral do Condutor, não só por esta tela.
 
+// PEDIDO DO USUÁRIO ("responsável pelo setor... vê, edita e cancela as
+// solicitações de todo o setor"): cache e estado do card "Solicitações do
+// Setor", que só aparece pra quem estiver marcado como responsável (ver
+// verificarResponsavelSetor() abaixo).
+let cacheSolicitacoesSetor = [];
+let infoResponsavelSetorAtual = null; // {unidade, setor} ou null
+
 async function carregarMinhasSolicitacoes() {
   if (!usuarioAtual) return;
   const tbody = document.getElementById('tb-minhas-solicitacoes');
@@ -30,6 +37,86 @@ async function carregarMinhasSolicitacoes() {
   } catch (e) {
     Components.Toast.error('Erro ao carregar solicitações');
   }
+
+  verificarResponsavelSetor();
+}
+
+// PEDIDO DO USUÁRIO ("responsável pelo setor... só no computador/
+// navegador, não modifique o apk"): mostra o card "Solicitações do Setor"
+// só quando o e-mail logado estiver marcado como responsável de algum
+// setor (tabelas_apoio.email - ver gerenciar-usuarios.js) E a página não
+// estiver rodando dentro do app instalado (mesma checagem de
+// Capacitor.isNativePlatform() já usada no index.html pro banner do APK/
+// escala do login) - sem mexer em nada do projeto mobile/Capacitor, essa
+// tela simplesmente nunca aparece lá dentro.
+async function verificarResponsavelSetor() {
+  const card = document.getElementById('card-solicitacoes-setor');
+  if (!card || !usuarioAtual) return;
+
+  const dentroDoAppInstalado = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+  if (dentroDoAppInstalado) {
+    card.classList.add('hidden');
+    return;
+  }
+
+  try {
+    infoResponsavelSetorAtual = await buscarSetorResponsavelPorEmail(usuarioAtual.email);
+  } catch (e) {
+    console.error('Erro ao verificar responsável pelo setor:', e);
+    infoResponsavelSetorAtual = null;
+  }
+
+  if (!infoResponsavelSetorAtual) {
+    card.classList.add('hidden');
+    return;
+  }
+
+  card.classList.remove('hidden');
+  const rotulo = document.getElementById('rotulo-setor-responsavel');
+  if (rotulo) rotulo.textContent = `${infoResponsavelSetorAtual.setor} - ${infoResponsavelSetorAtual.unidade}`;
+  await carregarSolicitacoesSetor();
+}
+
+async function carregarSolicitacoesSetor() {
+  if (!infoResponsavelSetorAtual) return;
+  const tbody = document.getElementById('tb-solicitacoes-setor');
+  if (!tbody) return;
+  Components.Loading.show(tbody);
+  try {
+    cacheSolicitacoesSetor = await buscarSolicitacoesPorSetor(infoResponsavelSetorAtual.unidade, infoResponsavelSetorAtual.setor) || [];
+    renderizarSolicitacoesSetor();
+  } catch (e) {
+    console.error('Erro ao carregar solicitações do setor:', e);
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-red-500 py-8">Erro ao carregar solicitações do setor.</td></tr>';
+  }
+}
+
+function _linhaTabelaSolicitacaoSetor(s) {
+  return `
+    <tr>
+      <td>${s.email_solicitante || ''}</td>
+      <td>${formatarDataBR(s.data_viagem)}</td>
+      <td>${formatarHoraBR(s.hora_saida)} - ${formatarHoraBR(s.hora_retorno)}</td>
+      <td>${s.origem} → ${s.destino}</td>
+      <td><span class="badge ${classeStatus(s.status)}">${s.status}</span></td>
+      <td>${infoCondutorParaSolicitante(s).join('<br>')}</td>
+      <td class="whitespace-nowrap">
+        ${podeEditarSolicitacao(s) ? `<button class="btn-azul-claro text-xs py-1.5 px-2.5 mr-1" onclick="abrirEdicaoSolicitacao('${s.id}', { origem: cacheSolicitacoesSetor, recarregar: carregarSolicitacoesSetor })">Editar</button>` : ''}
+        ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}', { origem: cacheSolicitacoesSetor, recarregar: carregarSolicitacoesSetor })">Cancelar</button>` : ''}
+      </td>
+    </tr>
+  `;
+}
+
+function renderizarSolicitacoesSetor() {
+  const tbody = document.getElementById('tb-solicitacoes-setor');
+  if (!tbody) return;
+  if (!cacheSolicitacoesSetor.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-8">Nenhuma solicitação no setor</td></tr>';
+    return;
+  }
+  const ordenados = _ordenarCronologicamenteMinhasSolic(cacheSolicitacoesSetor);
+  tbody.innerHTML = ordenados.map(_linhaTabelaSolicitacaoSetor).join('');
 }
 
 // Mostra nome/código/telefone do condutor em vez do e-mail cru (equivalente
@@ -342,15 +429,25 @@ function _prepararSelectLocalEdicao(selectEl, valorAtual, idBoxOutro, idInputOut
   }
 }
 
-async function abrirEdicaoSolicitacao(id) {
-  const s = cacheMinhasSolicitacoes.find(x => String(x.id) === String(id));
+// PEDIDO DO USUÁRIO ("responsável pelo setor... edita as solicitações de
+// todo o setor"): "opcoes.origem"/"opcoes.recarregar" deixam esta mesma
+// função (e suas regras de prazo/motorista, iguais pras duas telas) servir
+// tanto "Minhas Solicitações" (padrão, sem precisar passar nada) quanto o
+// card "Solicitações do Setor" (passando o cache e o recarregamento
+// daquele card) - sem duplicar o modal inteiro.
+async function abrirEdicaoSolicitacao(id, opcoes) {
+  opcoes = opcoes || {};
+  const origem = opcoes.origem || cacheMinhasSolicitacoes;
+  const recarregar = opcoes.recarregar || carregarMinhasSolicitacoes;
+
+  const s = origem.find(x => String(x.id) === String(id));
   if (!s) return;
   if (!podeEditarSolicitacao(s)) {
     // PEDIDO DO USUÁRIO ("informar ao usuário qualquer dessas situações"):
     // usa o motivo específico (motorista atribuído OU prazo de 12h) em vez
     // de uma mensagem genérica.
     Components.Toast.error(_motivoNaoEditavel(s) || 'Não é mais possível editar: esta solicitação já foi decidida.');
-    carregarMinhasSolicitacoes();
+    recarregar();
     return;
   }
 
@@ -428,7 +525,7 @@ async function abrirEdicaoSolicitacao(id) {
     if (!podeEditarSolicitacao(s)) {
       Components.Toast.error(_motivoNaoEditavel(s) || 'Não é mais possível editar.');
       overlay.remove();
-      carregarMinhasSolicitacoes();
+      recarregar();
       return;
     }
 
@@ -463,7 +560,7 @@ async function abrirEdicaoSolicitacao(id) {
       });
       Components.Toast.success('Solicitação atualizada.');
       overlay.remove();
-      carregarMinhasSolicitacoes();
+      recarregar();
     } catch (e) {
       console.error('Erro ao editar solicitação:', e);
       Components.Toast.error('Não foi possível salvar as alterações.');
@@ -475,10 +572,18 @@ async function abrirEdicaoSolicitacao(id) {
 // de "Cancelada" (que é reservado para quando o GESTOR cancela a corrida).
 // Também avisa todos os gestores pelo sino, como o sistema antigo fazia por
 // e-mail (notificarTodosGestores).
-async function cancelarSolicitacao(id) {
+// "opcoes.origem"/"opcoes.recarregar": mesmo motivo de abrirEdicaoSolicitacao
+// acima - permite ao Responsável pelo Setor cancelar a solicitação de um
+// COLEGA (não só a própria) a partir do card "Solicitações do Setor",
+// reaproveitando a mesma regra dos 30 minutos e o mesmo aviso aos gestores.
+async function cancelarSolicitacao(id, opcoes) {
+  opcoes = opcoes || {};
+  const origem = opcoes.origem || cacheMinhasSolicitacoes;
+  const recarregar = opcoes.recarregar || carregarMinhasSolicitacoes;
+
   if (!confirm('Cancelar esta solicitação?')) return;
 
-  const solicitacao = cacheMinhasSolicitacoes.find(s => String(s.id) === String(id));
+  const solicitacao = origem.find(s => String(s.id) === String(id));
   if (solicitacao && !podeCancelarSolicitacao(solicitacao)) {
     return Components.Toast.error('Não é mais possível cancelar: faltam menos de 30 minutos para a saída.');
   }
@@ -494,9 +599,21 @@ async function cancelarSolicitacao(id) {
         `${usuarioAtual.nome} cancelou a solicitação de ${quando} (${trecho}).`,
         'cancelamento_solicitante'
       ).catch(e => console.warn('Erro ao notificar gestores:', e));
+
+      // PEDIDO DO USUÁRIO ("notificar o responsável quando alguém do setor
+      // cria ou cancela uma solicitação"): além dos gestores, avisa também
+      // o responsável pelo setor desta solicitação, se houver um definido.
+      if (solicitacao.unidade && solicitacao.setor) {
+        notificarResponsavelSetor(
+          solicitacao.unidade,
+          solicitacao.setor,
+          `${usuarioAtual.nome} cancelou a solicitação de ${quando} (${trecho}).`,
+          'cancelamento_solicitante'
+        ).catch(e => console.warn('Erro ao notificar responsável do setor:', e));
+      }
     }
 
-    carregarMinhasSolicitacoes();
+    recarregar();
   } catch (e) {
     Components.Toast.error('Erro ao cancelar');
   }
@@ -538,3 +655,5 @@ window.filtrarMinhasSolicitacoesHoje = filtrarMinhasSolicitacoesHoje;
 window.cancelarSolicitacao = cancelarSolicitacao;
 window.abrirEdicaoSolicitacao = abrirEdicaoSolicitacao;
 window.exportarMinhasSolicitacoesXlsxUI = exportarMinhasSolicitacoesXlsxUI;
+window.verificarResponsavelSetor = verificarResponsavelSetor;
+window.carregarSolicitacoesSetor = carregarSolicitacoesSetor;
