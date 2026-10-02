@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002c">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002c">
-  <link rel="icon" href="favicon.png?v=20261002c">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002d">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002d">
+  <link rel="icon" href="favicon.png?v=20261002d">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -1518,6 +1518,39 @@
             </div>
 
           </div>
+
+          <!-- PEDIDO DO USUÁRIO ("responsável pelo setor... vê, edita e
+               cancela as solicitações de todo o setor - só no computador/
+               navegador, não modifique o apk"): só aparece pra quem está
+               marcado como Responsável pelo Setor em Gerenciar Usuários
+               (tabelas_apoio.email) E só fora do app instalado - ver
+               verificarResponsavelSetor() em pages/minhas-solicitacoes.js.
+               Fica escondido por padrão (classe "hidden"); a própria
+               verificação é quem decide se mostra. -->
+          <div id="card-solicitacoes-setor" class="card p-4 sm:p-6 mt-6 hidden">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-base shrink-0" aria-hidden="true">🗂️</span> Solicitações do Setor</h2>
+              <span id="rotulo-setor-responsavel" class="text-xs text-slate-500"></span>
+            </div>
+            <div class="table-container mb-2" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th class="table-th">Solicitante (e-mail)</th>
+                    <th class="table-th">Data Viagem</th>
+                    <th class="table-th">Horário</th>
+                    <th class="table-th">Trajeto</th>
+                    <th class="table-th">Status</th>
+                    <th class="table-th">Condutor</th>
+                    <th class="table-th">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tb-solicitacoes-setor">
+                  <tr><td colspan="7" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- Tela Dashboard do Solicitante -->
@@ -2725,6 +2758,8 @@
               </div>
               <form id="form-usuario" class="space-y-3" onsubmit="event.preventDefault(); salvarUsuarioGestor();">
                 <input type="hidden" id="usuario-email-original">
+                <input type="hidden" id="usuario-unidade-original">
+                <input type="hidden" id="usuario-setor-original">
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">Nome *</label>
                   <input type="text" id="uform-nome" class="input-field" required>
@@ -2764,6 +2799,19 @@
                     <option value="">Selecione a Unidade primeiro</option>
                   </select>
                 </div>
+                <!-- PEDIDO DO USUÁRIO ("responsável pelo setor... vê, edita
+                     e cancela as solicitações de todo o setor - atribuído
+                     aqui em Gerenciar Usuários, um responsável por setor,
+                     indexado ao e-mail do setor"): ver
+                     _sincronizarResponsavelSetor()/_ehResponsavelPeloSetor()
+                     em pages/gerenciar-usuarios.js. -->
+                <div class="flex items-start gap-2 pt-1">
+                  <input type="checkbox" id="usuario-responsavel-setor" class="w-4 h-4 mt-0.5 accent-mc-azul">
+                  <label for="usuario-responsavel-setor" class="text-sm text-slate-700">
+                    Responsável pelo Setor
+                    <span class="block text-xs text-slate-400">Vê, edita e cancela as solicitações de todo o setor (só no navegador/computador, não no app instalado).</span>
+                  </label>
+                </div>
                 <button type="submit" class="btn-primary w-full">Salvar</button>
               </form>
             </div>
@@ -2779,13 +2827,14 @@
                       <th class="table-th">Telefone</th>
                       <th class="table-th">Unidade</th>
                       <th class="table-th">Setor</th>
+                      <th class="table-th">Responsável</th>
                       <th class="table-th">Status</th>
                       <th class="table-th">Ações</th>
                       <th class="table-th">Acesso</th>
                     </tr>
                   </thead>
                   <tbody id="tb-usuarios">
-                    <tr><td colspan="8" class="text-center text-slate-500 py-8">Carregando...</td></tr>
+                    <tr><td colspan="9" class="text-center text-slate-500 py-8">Carregando...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -3491,38 +3540,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261002c"></script>
-  <script src="Supabase/supabase-client.js?v=20261002c"></script>
-  <script src="api.js?v=20261002c"></script>
-  <script src="utils.js?v=20261002c"></script>
-  <script src="components.js?v=20261002c"></script>
-  <script src="pages/login.js?v=20261002c"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261002c"></script>
-  <script src="pages/cadastro.js?v=20261002c"></script>
-  <script src="pages/nova-solicitacao.js?v=20261002c"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261002c"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261002c"></script>
-  <script src="pages/viagens-do-dia.js?v=20261002c"></script>
-  <script src="pages/notificacoes.js?v=20261002c"></script>
-  <script src="pages/dashboard-condutor.js?v=20261002c"></script>
-  <script src="pages/painel-dia.js?v=20261002c"></script>
-  <script src="pages/proximas-agendas.js?v=20261002c"></script>
-  <script src="pages/agenda.js?v=20261002c"></script>
-  <script src="pages/agenda-combinada.js?v=20261002c"></script>
-  <script src="pages/agenda-condutor.js?v=20261002c"></script>
-  <script src="pages/registro-km.js?v=20261002c"></script>
-  <script src="pages/gestor.js?v=20261002c"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261002c"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002c"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261002c"></script>
-  <script src="pages/gerenciar-km.js?v=20261002c"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261002c"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261002c"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261002c"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261002c"></script>
-  <script src="pages/relatorios.js?v=20261002c"></script>
-  <script src="pages/alterar-senha.js?v=20261002c"></script>
-  <script src="app.js?v=20261002c"></script>
+  <script src="config.js?v=20261002d"></script>
+  <script src="Supabase/supabase-client.js?v=20261002d"></script>
+  <script src="api.js?v=20261002d"></script>
+  <script src="utils.js?v=20261002d"></script>
+  <script src="components.js?v=20261002d"></script>
+  <script src="pages/login.js?v=20261002d"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261002d"></script>
+  <script src="pages/cadastro.js?v=20261002d"></script>
+  <script src="pages/nova-solicitacao.js?v=20261002d"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261002d"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261002d"></script>
+  <script src="pages/viagens-do-dia.js?v=20261002d"></script>
+  <script src="pages/notificacoes.js?v=20261002d"></script>
+  <script src="pages/dashboard-condutor.js?v=20261002d"></script>
+  <script src="pages/painel-dia.js?v=20261002d"></script>
+  <script src="pages/proximas-agendas.js?v=20261002d"></script>
+  <script src="pages/agenda.js?v=20261002d"></script>
+  <script src="pages/agenda-combinada.js?v=20261002d"></script>
+  <script src="pages/agenda-condutor.js?v=20261002d"></script>
+  <script src="pages/registro-km.js?v=20261002d"></script>
+  <script src="pages/gestor.js?v=20261002d"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261002d"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002d"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261002d"></script>
+  <script src="pages/gerenciar-km.js?v=20261002d"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261002d"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261002d"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261002d"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261002d"></script>
+  <script src="pages/relatorios.js?v=20261002d"></script>
+  <script src="pages/alterar-senha.js?v=20261002d"></script>
+  <script src="app.js?v=20261002d"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->

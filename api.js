@@ -374,6 +374,9 @@ async function buscarSolicitacoesPorEmail(email) {
 // supabase_rls_dashboard_solicitante.sql) - sem ela, o Postgres já filtra
 // tudo antes de chegar aqui e a consulta volta só as próprias solicitações
 // (igual buscarSolicitacoesPorEmail), sem erro nenhum.
+// Reaproveitada também pelo card "Solicitações do Setor" do Responsável
+// pelo Setor (pages/minhas-solicitacoes.js) - mesma consulta, só que ali
+// o retorno é exibido/editável linha a linha, não só somado num resumo.
 async function buscarSolicitacoesPorSetor(unidade, setor) {
   _checarClient();
   if (!unidade || !setor) return [];
@@ -518,6 +521,71 @@ async function listarSetoresPorUnidade(unidade) {
     .order('setor');
   if (error) throw error;
   return data;
+}
+
+// ============================================================
+// RESPONSÁVEL PELO SETOR
+// ============================================================
+// PEDIDO DO USUÁRIO ("responsável pelo setor... um responsável, indexado
+// ao e-mail do setor - atribuído em Gerenciar Usuários"): reaproveita o
+// campo "email" de tabelas_apoio (já existia, cadastrado em Gerenciar
+// Unidades, mas sem nenhum uso real no sistema até agora) como o único
+// responsável daquela Unidade+Setor - a própria UNIQUE(unidade, setor) da
+// tabela já garante "um responsável por setor" de graça.
+
+// Lista todos os pares Unidade+Setor com e-mail de responsável definido
+// (usado em Gerenciar Usuários pra marcar quem já é responsável, sem
+// precisar de uma consulta por linha da tabela de solicitantes).
+async function listarResponsaveisSetor() {
+  _checarClient();
+  const { data, error } = await _sb
+    .from('tabelas_apoio')
+    .select('unidade, setor, email');
+  if (error) throw error;
+  return data || [];
+}
+
+// E-mail do responsável atual por uma Unidade+Setor (ou null, se nenhum).
+async function buscarResponsavelSetor(unidade, setor) {
+  _checarClient();
+  if (!unidade || !setor) return null;
+  const { data, error } = await _sb
+    .from('tabelas_apoio')
+    .select('email')
+    .eq('unidade', unidade)
+    .eq('setor', setor)
+    .limit(1);
+  if (error) throw error;
+  return (data && data[0] && data[0].email) || null;
+}
+
+// Define (ou remove, passando email=null) quem é o responsável por uma
+// Unidade+Setor - usado por Gerenciar Usuários ao marcar/desmarcar o
+// checkbox "Responsável pelo Setor" de um Solicitante.
+async function definirResponsavelSetor(unidade, setor, email) {
+  _checarClient();
+  if (!unidade || !setor) return;
+  const { error } = await _sb
+    .from('tabelas_apoio')
+    .update({ email: email || null })
+    .eq('unidade', unidade)
+    .eq('setor', setor);
+  if (error) throw error;
+}
+
+// Unidade+Setor de que este e-mail é responsável (ou null) - usado em
+// Minhas Solicitações pra decidir se mostra o card "Solicitações do
+// Setor" pro usuário logado.
+async function buscarSetorResponsavelPorEmail(email) {
+  _checarClient();
+  if (!email) return null;
+  const { data, error } = await _sb
+    .from('tabelas_apoio')
+    .select('unidade, setor')
+    .eq('email', email)
+    .limit(1);
+  if (error) throw error;
+  return (data && data[0]) || null;
 }
 
 async function adicionarTabelaApoio(dados) {
@@ -864,6 +932,18 @@ async function notificarTodosGestores(mensagem, tipo = 'aviso_gestor') {
 
   const { error } = await _sb.from('notificacoes').insert(linhas);
   if (error) throw error;
+}
+
+// PEDIDO DO USUÁRIO ("notificar o responsável quando alguém do setor cria
+// ou cancela uma solicitação"): mesmo padrão de notificarTodosGestores(),
+// só que pro único e-mail responsável daquela Unidade+Setor (tabelas_apoio
+// - ver buscarSetorResponsavelPorEmail acima). Sem responsável definido
+// pra esse setor, não faz nada (silenciosamente).
+async function notificarResponsavelSetor(unidade, setor, mensagem, tipo) {
+  _checarClient();
+  const email = await buscarResponsavelSetor(unidade, setor);
+  if (!email) return;
+  await criarNotificacao({ email_destinatario: email, tipo, mensagem, lida: false });
 }
 
 // ============================================================
