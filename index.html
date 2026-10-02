@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002d">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002d">
-  <link rel="icon" href="favicon.png?v=20261002d">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002e">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002e">
+  <link rel="icon" href="favicon.png?v=20261002e">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -533,6 +533,22 @@
     /* Células de tabelas geradas via JS (sem classe table-td por linha) */
     .table-container table td {
       @apply px-4 py-3 text-sm text-slate-700 border-b border-slate-100 align-middle font-medium;
+    }
+
+    /* PEDIDO DO USUÁRIO (Gerenciar Solicitações: "diminuir um pouco o
+       espaçamento entre colunas" + "botões de ação - aumentar 10%") - só
+       nesta tabela (id="tabela-gestor-solicitacoes" no <div class=
+       "table-container"> dela), via seletor por id (mais específico que
+       .table-th/.table-container table td) pra não afetar nenhuma outra
+       tela que usa as mesmas classes (Agenda, Motoboy, Unidades etc.). */
+    #tabela-gestor-solicitacoes th,
+    #tabela-gestor-solicitacoes td {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    #tabela-gestor-solicitacoes .btn-acao-claro {
+      font-size: 9.9px;
+      padding: 4.4px 6.6px;
     }
 
     /* CORREÇÃO: "menus/atributos dos 3 perfis misturados" - .nav-pill,
@@ -1977,7 +1993,7 @@
               </div>
             </div>
 
-            <div class="table-container table-container-cheio" style="overflow-x:auto;">
+            <div id="tabela-gestor-solicitacoes" class="table-container table-container-cheio" style="overflow-x:auto;">
               <table class="w-full text-sm" style="border-collapse:collapse;">
                 <thead>
                   <tr>
@@ -1994,8 +2010,14 @@
                     <th class="table-th">Tipo</th>
                     <th class="table-th" style="min-width:80px">Qtd</th>
                     <th class="table-th">Status</th>
-                    <th class="table-th">Condutor Ida</th>
-                    <th class="table-th">Condutor Volta</th>
+                    <!-- PEDIDO DO USUÁRIO: "aumentar um pouco as colunas de
+                         condutor ida e condutor volta" - min-width maior
+                         (era sem nenhum) + w-full no <select> (ver
+                         renderizarTabelaGestorCompleta, pages/
+                         gerenciamento-solicitacoes.js) pra ele de fato
+                         ocupar o espaço extra, não só a célula. -->
+                    <th class="table-th" style="min-width:160px">Condutor Ida</th>
+                    <th class="table-th" style="min-width:160px">Condutor Volta</th>
                     <th class="table-th">Ações</th>
                   </tr>
                 </thead>
@@ -3540,38 +3562,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261002d"></script>
-  <script src="Supabase/supabase-client.js?v=20261002d"></script>
-  <script src="api.js?v=20261002d"></script>
-  <script src="utils.js?v=20261002d"></script>
-  <script src="components.js?v=20261002d"></script>
-  <script src="pages/login.js?v=20261002d"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261002d"></script>
-  <script src="pages/cadastro.js?v=20261002d"></script>
-  <script src="pages/nova-solicitacao.js?v=20261002d"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261002d"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261002d"></script>
-  <script src="pages/viagens-do-dia.js?v=20261002d"></script>
-  <script src="pages/notificacoes.js?v=20261002d"></script>
-  <script src="pages/dashboard-condutor.js?v=20261002d"></script>
-  <script src="pages/painel-dia.js?v=20261002d"></script>
-  <script src="pages/proximas-agendas.js?v=20261002d"></script>
-  <script src="pages/agenda.js?v=20261002d"></script>
-  <script src="pages/agenda-combinada.js?v=20261002d"></script>
-  <script src="pages/agenda-condutor.js?v=20261002d"></script>
-  <script src="pages/registro-km.js?v=20261002d"></script>
-  <script src="pages/gestor.js?v=20261002d"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261002d"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002d"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261002d"></script>
-  <script src="pages/gerenciar-km.js?v=20261002d"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261002d"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261002d"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261002d"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261002d"></script>
-  <script src="pages/relatorios.js?v=20261002d"></script>
-  <script src="pages/alterar-senha.js?v=20261002d"></script>
-  <script src="app.js?v=20261002d"></script>
+  <script src="config.js?v=20261002e"></script>
+  <script src="Supabase/supabase-client.js?v=20261002e"></script>
+  <script src="api.js?v=20261002e"></script>
+  <script src="utils.js?v=20261002e"></script>
+  <script src="components.js?v=20261002e"></script>
+  <script src="pages/login.js?v=20261002e"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261002e"></script>
+  <script src="pages/cadastro.js?v=20261002e"></script>
+  <script src="pages/nova-solicitacao.js?v=20261002e"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261002e"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261002e"></script>
+  <script src="pages/viagens-do-dia.js?v=20261002e"></script>
+  <script src="pages/notificacoes.js?v=20261002e"></script>
+  <script src="pages/dashboard-condutor.js?v=20261002e"></script>
+  <script src="pages/painel-dia.js?v=20261002e"></script>
+  <script src="pages/proximas-agendas.js?v=20261002e"></script>
+  <script src="pages/agenda.js?v=20261002e"></script>
+  <script src="pages/agenda-combinada.js?v=20261002e"></script>
+  <script src="pages/agenda-condutor.js?v=20261002e"></script>
+  <script src="pages/registro-km.js?v=20261002e"></script>
+  <script src="pages/gestor.js?v=20261002e"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261002e"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002e"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261002e"></script>
+  <script src="pages/gerenciar-km.js?v=20261002e"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261002e"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261002e"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261002e"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261002e"></script>
+  <script src="pages/relatorios.js?v=20261002e"></script>
+  <script src="pages/alterar-senha.js?v=20261002e"></script>
+  <script src="app.js?v=20261002e"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
