@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002i">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002i">
-  <link rel="icon" href="favicon.png?v=20261002i">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002j">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002j">
+  <link rel="icon" href="favicon.png?v=20261002j">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -2160,6 +2160,15 @@
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                   Gerar Relatório PDF
                 </button>
+                <!-- PEDIDO DO USUÁRIO: botão "Escala" - mesma geração do
+                     "Gerar Relatório PDF", mas só corridas com motorista
+                     atribuído, sem coluna Data, com coluna Celular do
+                     solicitante - ver exportarEscalaPDF() em
+                     pages/agenda.js. -->
+                <button onclick="exportarEscalaPDF()" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                  Escala
+                </button>
                 <button id="btn-exportar-agenda" onclick="exportarAgendaXlsxUI()" class="btn-primary text-sm">
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
                   Exportar Excel
@@ -3593,38 +3602,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261002i"></script>
-  <script src="Supabase/supabase-client.js?v=20261002i"></script>
-  <script src="api.js?v=20261002i"></script>
-  <script src="utils.js?v=20261002i"></script>
-  <script src="components.js?v=20261002i"></script>
-  <script src="pages/login.js?v=20261002i"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261002i"></script>
-  <script src="pages/cadastro.js?v=20261002i"></script>
-  <script src="pages/nova-solicitacao.js?v=20261002i"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261002i"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261002i"></script>
-  <script src="pages/viagens-do-dia.js?v=20261002i"></script>
-  <script src="pages/notificacoes.js?v=20261002i"></script>
-  <script src="pages/dashboard-condutor.js?v=20261002i"></script>
-  <script src="pages/painel-dia.js?v=20261002i"></script>
-  <script src="pages/proximas-agendas.js?v=20261002i"></script>
-  <script src="pages/agenda.js?v=20261002i"></script>
-  <script src="pages/agenda-combinada.js?v=20261002i"></script>
-  <script src="pages/agenda-condutor.js?v=20261002i"></script>
-  <script src="pages/registro-km.js?v=20261002i"></script>
-  <script src="pages/gestor.js?v=20261002i"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261002i"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002i"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261002i"></script>
-  <script src="pages/gerenciar-km.js?v=20261002i"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261002i"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261002i"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261002i"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261002i"></script>
-  <script src="pages/relatorios.js?v=20261002i"></script>
-  <script src="pages/alterar-senha.js?v=20261002i"></script>
-  <script src="app.js?v=20261002i"></script>
+  <script src="config.js?v=20261002j"></script>
+  <script src="Supabase/supabase-client.js?v=20261002j"></script>
+  <script src="api.js?v=20261002j"></script>
+  <script src="utils.js?v=20261002j"></script>
+  <script src="components.js?v=20261002j"></script>
+  <script src="pages/login.js?v=20261002j"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261002j"></script>
+  <script src="pages/cadastro.js?v=20261002j"></script>
+  <script src="pages/nova-solicitacao.js?v=20261002j"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261002j"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261002j"></script>
+  <script src="pages/viagens-do-dia.js?v=20261002j"></script>
+  <script src="pages/notificacoes.js?v=20261002j"></script>
+  <script src="pages/dashboard-condutor.js?v=20261002j"></script>
+  <script src="pages/painel-dia.js?v=20261002j"></script>
+  <script src="pages/proximas-agendas.js?v=20261002j"></script>
+  <script src="pages/agenda.js?v=20261002j"></script>
+  <script src="pages/agenda-combinada.js?v=20261002j"></script>
+  <script src="pages/agenda-condutor.js?v=20261002j"></script>
+  <script src="pages/registro-km.js?v=20261002j"></script>
+  <script src="pages/gestor.js?v=20261002j"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261002j"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002j"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261002j"></script>
+  <script src="pages/gerenciar-km.js?v=20261002j"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261002j"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261002j"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261002j"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261002j"></script>
+  <script src="pages/relatorios.js?v=20261002j"></script>
+  <script src="pages/alterar-senha.js?v=20261002j"></script>
+  <script src="app.js?v=20261002j"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
