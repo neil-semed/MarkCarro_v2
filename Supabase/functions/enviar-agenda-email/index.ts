@@ -206,56 +206,85 @@ Deno.serve(async (req: Request) => {
     const semAutoDeteccao = (texto: string) => texto.split('').join(ZWSP);
     const semLink = (texto: string) => `<span style="color:inherit;text-decoration:none;">${texto}</span>`;
 
+    // CORREÇÃO (pedido do usuário, "tirar todos os hiperlinks"): Solicitante
+    // e Condutor não passavam por semLink()/semAutoDeteccao() como Origem/
+    // Destino e Celular já passavam - quando caía no fallback pro e-mail cru
+    // (s.email_solicitante, ou o e-mail de condutor sem perfil encontrado em
+    // mapaCondutores), o Gmail auto-linkava (sublinhado azul, clicável) por
+    // conta própria. Agora as 4 colunas com possível e-mail/telefone cru
+    // passam pelo mesmo tratamento.
     const linhasHtml = lista.map((s) => `
       <tr>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ' &rarr; ' + formatarHoraBR(s.hora_retorno) : ''}</td>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.origem || '-'))} &rarr; ${semLink(semAutoDeteccao(s.destino || '-'))}</td>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${s.nome_ext || s.email_solicitante}</td>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.telefone_ext || '-'))}</td>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;text-align:center;">${s.qtd_pessoas ?? '-'}</td>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${celulaCondutor(s)}</td>
-        <td style="padding:5px 8px;border:1px solid #e2e8f0;">${s.status || 'Pendente'}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ' &rarr; ' + formatarHoraBR(s.hora_retorno) : ''}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.origem || '-'))} &rarr; ${semLink(semAutoDeteccao(s.destino || '-'))}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.nome_ext || s.email_solicitante))}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.telefone_ext || '-'))}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;text-align:center;">${s.qtd_pessoas ?? '-'}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(celulaCondutor(s)))}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${s.status || 'Pendente'}</td>
       </tr>`).join('');
 
     // Ícone do app (favicon.png, publicado no GitHub Pages junto do resto
     // do site) ao lado do título, no lugar do preenchimento azul de antes.
     const FAVICON_URL = 'https://neil-semed.github.io/MarkCarro_v2/favicon.png';
 
+    // CORREÇÃO (pedido do usuário, "no título, coloque um espaço após o
+    // favicon"): o cabeçalho usava flexbox (display:flex + gap) pra separar
+    // logo e título - gap em flexbox não é suportado em vários clientes de
+    // e-mail (ex: Outlook desktop não roda flexbox de jeito nenhum), então o
+    // "espaço" podia simplesmente não aparecer. Trocado por uma <table>
+    // (padrão de compatibilidade em e-mail) com padding-right explícito na
+    // célula da logo - funciona em qualquer cliente.
     const htmlEmail = `
       <div style="font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:0 auto;color:#1e293b;">
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:2px solid #facc15;">
-          <img src="${FAVICON_URL}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:6px;display:block;">
-          <div>
-            <h2 style="margin:0;font-size:15px;color:#1e293b;">MarkCarro | Agenda de Corridas</h2>
-            <p style="margin:1px 0 0;font-size:10px;color:#64748b;">SEMED Nova Lima</p>
-          </div>
-        </div>
+        <table role="presentation" style="width:100%;border-collapse:collapse;padding:12px 4px;border-bottom:2px solid #facc15;">
+          <tr>
+            <td style="padding:0 10px 0 0;width:28px;">
+              <img src="${FAVICON_URL}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:6px;display:block;">
+            </td>
+            <td>
+              <h2 style="margin:0;font-size:15px;color:#1e293b;">MarkCarro | Agenda de Corridas</h2>
+              <p style="margin:1px 0 0;font-size:10px;color:#64748b;">SEMED Nova Lima</p>
+            </td>
+          </tr>
+        </table>
         <div style="padding:12px 4px;">
           <p style="font-size:12px;margin:0 0 10px;"><strong>Período:</strong> ${periodoTitulo} &nbsp;&middot;&nbsp; <strong>Corridas:</strong> ${lista.length}</p>
-          <table style="border-collapse:collapse;width:100%;font-size:11px;">
+          <table style="border-collapse:collapse;width:100%;font-size:10px;">
             <thead>
               <tr style="background:#facc15;">
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Horário</th>
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Origem &rarr; Destino</th>
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Solicitante</th>
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Celular</th>
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Pass</th>
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Condutor</th>
-                <th style="padding:5px 8px;border:1px solid #e2e8f0;text-align:left;">Status</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Horário</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Origem &rarr; Destino</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Solicitante</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Celular</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Pass</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Condutor</th>
+                <th style="padding:4px 7px;border:1px solid #e2e8f0;text-align:left;">Status</th>
               </tr>
             </thead>
             <tbody>${linhasHtml}</tbody>
           </table>
-          <p style="font-size:10px;color:#64748b;margin-top:14px;">Transporte - SEMED.<br>(Essa mensagem foi gerada automaticamente - modelo v20260930c)</p>
+          <p style="font-size:10px;color:#64748b;margin-top:14px;">Transporte - SEMED.<br>(Essa mensagem foi gerada automaticamente - modelo v20261002a)</p>
         </div>
       </div>`;
 
     // Meta de format-detection vai no <head> do e-mail - impede Apple
     // Mail/Gmail mobile de auto-linkar telefone/endereço/data/e-mail.
+    // CORREÇÃO (pedido do usuário, "tratar essas mensagens de segurança ou
+    // texto em inglês"): lang="pt-BR" + Content-Language ajudam o Gmail a
+    // detectar o idioma certo do corpo do e-mail (o aviso "parece estar em
+    // inglês" aparece quando o texto corrido é escasso - a maior parte do
+    // e-mail é tabela/números/nomes próprios - e o detector de idioma do
+    // Gmail erra por falta de texto pra analisar). O aviso de "mensagem
+    // suspeita"/imagens ocultas, por outro lado, é do histórico de
+    // reputação do domínio de envio do Brevo (SPF/DKIM/DMARC) com aquele
+    // destinatário - não dá pra resolver só pelo HTML do e-mail; tende a
+    // sumir conforme a caixa de entrada "aprende" a confiar no remetente.
     const htmlEmailCompleto = `<!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Language" content="pt-BR">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
 </head>
 <body style="margin:0;padding:0;">
