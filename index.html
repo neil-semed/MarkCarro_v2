@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002h">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002h">
-  <link rel="icon" href="favicon.png?v=20261002h">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002i">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002i">
+  <link rel="icon" href="favicon.png?v=20261002i">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -533,6 +533,32 @@
     /* Células de tabelas geradas via JS (sem classe table-td por linha) */
     .table-container table td {
       @apply px-4 py-3 text-sm text-slate-700 border-b border-slate-100 align-middle font-medium;
+    }
+
+    /* PEDIDO DO USUÁRIO ("Minhas Solicitações não está responsiva no uso do
+       PC - ajuste... responsável do setor também"): com várias colunas
+       (Trajeto, Justificativa, Condutor etc.), a tabela ficava mais larga
+       que a tela em resoluções comuns de notebook - a coluna Ações (com os
+       botões Editar/Cancelar) era a primeira a ficar fora da área visível,
+       exigindo rolar a tabela pro lado SEM nenhum indício visual de que
+       dava pra rolar. Fixa (position:sticky) a última coluna (Ações) na
+       borda direita do próprio container (mesma ideia já usada no
+       cabeçalho - .table-th, sticky no topo -, só que no eixo horizontal)
+       nas 2 telas do Solicitante/Responsável do Setor que têm esse
+       problema - os botões ficam sempre visíveis, não importa o quanto
+       role pro lado. Não mexe em nenhuma outra tabela do app. */
+    #tela-minhas-solicitacoes .table-container table th:last-child,
+    #tela-minhas-solicitacoes .table-container table td:last-child,
+    #card-solicitacoes-setor .table-container table th:last-child,
+    #card-solicitacoes-setor .table-container table td:last-child {
+      position: sticky;
+      right: 0;
+      background: white;
+      box-shadow: -6px 0 6px -6px rgba(15, 23, 42, 0.18);
+    }
+    #tela-minhas-solicitacoes .table-container table th:last-child,
+    #card-solicitacoes-setor .table-container table th:last-child {
+      z-index: 6;
     }
 
     /* PEDIDO DO USUÁRIO (Gerenciar Solicitações: "diminuir um pouco o
@@ -3567,38 +3593,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261002h"></script>
-  <script src="Supabase/supabase-client.js?v=20261002h"></script>
-  <script src="api.js?v=20261002h"></script>
-  <script src="utils.js?v=20261002h"></script>
-  <script src="components.js?v=20261002h"></script>
-  <script src="pages/login.js?v=20261002h"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261002h"></script>
-  <script src="pages/cadastro.js?v=20261002h"></script>
-  <script src="pages/nova-solicitacao.js?v=20261002h"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261002h"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261002h"></script>
-  <script src="pages/viagens-do-dia.js?v=20261002h"></script>
-  <script src="pages/notificacoes.js?v=20261002h"></script>
-  <script src="pages/dashboard-condutor.js?v=20261002h"></script>
-  <script src="pages/painel-dia.js?v=20261002h"></script>
-  <script src="pages/proximas-agendas.js?v=20261002h"></script>
-  <script src="pages/agenda.js?v=20261002h"></script>
-  <script src="pages/agenda-combinada.js?v=20261002h"></script>
-  <script src="pages/agenda-condutor.js?v=20261002h"></script>
-  <script src="pages/registro-km.js?v=20261002h"></script>
-  <script src="pages/gestor.js?v=20261002h"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261002h"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002h"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261002h"></script>
-  <script src="pages/gerenciar-km.js?v=20261002h"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261002h"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261002h"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261002h"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261002h"></script>
-  <script src="pages/relatorios.js?v=20261002h"></script>
-  <script src="pages/alterar-senha.js?v=20261002h"></script>
-  <script src="app.js?v=20261002h"></script>
+  <script src="config.js?v=20261002i"></script>
+  <script src="Supabase/supabase-client.js?v=20261002i"></script>
+  <script src="api.js?v=20261002i"></script>
+  <script src="utils.js?v=20261002i"></script>
+  <script src="components.js?v=20261002i"></script>
+  <script src="pages/login.js?v=20261002i"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261002i"></script>
+  <script src="pages/cadastro.js?v=20261002i"></script>
+  <script src="pages/nova-solicitacao.js?v=20261002i"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261002i"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261002i"></script>
+  <script src="pages/viagens-do-dia.js?v=20261002i"></script>
+  <script src="pages/notificacoes.js?v=20261002i"></script>
+  <script src="pages/dashboard-condutor.js?v=20261002i"></script>
+  <script src="pages/painel-dia.js?v=20261002i"></script>
+  <script src="pages/proximas-agendas.js?v=20261002i"></script>
+  <script src="pages/agenda.js?v=20261002i"></script>
+  <script src="pages/agenda-combinada.js?v=20261002i"></script>
+  <script src="pages/agenda-condutor.js?v=20261002i"></script>
+  <script src="pages/registro-km.js?v=20261002i"></script>
+  <script src="pages/gestor.js?v=20261002i"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261002i"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002i"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261002i"></script>
+  <script src="pages/gerenciar-km.js?v=20261002i"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261002i"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261002i"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261002i"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261002i"></script>
+  <script src="pages/relatorios.js?v=20261002i"></script>
+  <script src="pages/alterar-senha.js?v=20261002i"></script>
+  <script src="app.js?v=20261002i"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
