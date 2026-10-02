@@ -343,24 +343,33 @@ function renderizarTabelaGestorCompleta(dados) {
       <td>${s.tipo_viagem}</td>
       <td style="min-width:80px"><input type="number" value="${v.qtd_pessoas}" class="input-field text-sm py-1.5 px-2" min="1" onchange="marcarCampoAlteradoGestor('${s.id}', 'qtd_pessoas', this.value)"></td>
       <td><span class="badge ${classeStatus(status)}">${status}</span></td>
-      <td style="min-width:160px">
-        <select class="input-field text-sm py-1.5 px-2 w-full select-condutor-ida" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_ida', this.value)">
-          <option value="">—</option>
-          ${opcoesCondutor}
-        </select>
-      </td>
-      <td style="min-width:160px">
-        <select class="input-field text-sm py-1.5 px-2 w-full select-condutor-volta" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_volta', this.value)">
-          <option value="">—</option>
-          ${opcoesCondutor}
-        </select>
-        <!-- PEDIDO DO USUÁRIO ("colocar os botões abaixo de condutor ida e
-             condutor volta, nessa ordem: salvar | confirmar | cancelar |
-             ocupado | excluir"): a coluna "Ações" separada foi removida -
-             os botões agora ficam aqui, abaixo do select de Condutor
-             Volta (que já fica abaixo de Condutor Ida, na coluna
-             anterior), nesta ordem fixa. -->
-        <div class="flex flex-wrap gap-0.5 mt-1">
+      <!-- PEDIDO DO USUÁRIO ("colocar os botões abaixo de condutor ida e
+           condutor volta - como se fossem células mescladas -, nessa
+           ordem: salvar | confirmar | cancelar | ocupado | excluir.
+           distribuir os botões nesse espaço mesclado; elimine a coluna
+           Ações"): Condutor Ida e Condutor Volta viraram 1 única célula
+           (colspan=2, ver cabeçalho em index.html) - os 2 selects ficam
+           lado a lado no topo, e os botões de ação (sem coluna "Ações"
+           separada) ficam distribuídos (grid-cols-5, ocupando a largura
+           toda da célula mesclada) logo abaixo. -->
+      <td colspan="2" style="min-width:320px">
+        <div class="flex gap-1 mb-1">
+          <div class="flex-1 min-w-0">
+            <span class="block text-[10px] text-slate-400 leading-tight">Ida</span>
+            <select class="input-field text-sm py-1.5 px-2 w-full select-condutor-ida" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_ida', this.value)">
+              <option value="">—</option>
+              ${opcoesCondutor}
+            </select>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="block text-[10px] text-slate-400 leading-tight">Volta</span>
+            <select class="input-field text-sm py-1.5 px-2 w-full select-condutor-volta" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_volta', this.value)">
+              <option value="">—</option>
+              ${opcoesCondutor}
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-0.5">
           <!-- PEDIDO DO USUÁRIO: botão para salvar as alterações de edição
                (antes não existia nenhum - o salvamento automático por
                campo não funcionava de forma confiável). Só aparece quando
@@ -371,18 +380,18 @@ function renderizarTabelaGestorCompleta(dados) {
                grandes) pra .btn-acao-claro + a cor da própria paleta clara
                dos badges de status (ver .badge-confirmada etc. e o
                comentário de .btn-acao-claro, mais acima no <style>). -->
-          <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
+          <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul flex-1 ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
           <!-- PEDIDO DO USUÁRIO: "Ocupado" (sem veículo disponível) agora
                também é oferecido ANTES de confirmar (Pendente/Em Análise),
                não só depois - antes só dava pra marcar Ocupado numa
                solicitação já Confirmada. -->
           ${status === 'Pendente' || status === 'Em Análise' ? `
-            <button class="btn-acao-claro btn-acao-verde" onclick="confirmarSolicitacaoGestor('${s.id}')">Confirmar</button>
-            <button class="btn-acao-claro btn-acao-vermelho" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
+            <button class="btn-acao-claro btn-acao-verde flex-1" onclick="confirmarSolicitacaoGestor('${s.id}')">Confirmar</button>
+            <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
+            <button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
           ` : status === 'Confirmada' ? `
-            <button class="btn-acao-claro btn-acao-vermelho" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
+            <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
+            <button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
           ` : (status === 'Ocupado' || status === 'Cancelada') ? `
             <!-- PEDIDO DO USUÁRIO ("criar possibilidade de reverter status
                  Ocupado e Cancelado"): antes, uma solicitação marcada como
@@ -395,14 +404,14 @@ function renderizarTabelaGestorCompleta(dados) {
                  Cancelar voltam a aparecer). Só essas 2 situações - o pedido
                  não incluiu "Desprezado" (cancelamento feito pelo próprio
                  solicitante). -->
-            <button class="btn-acao-claro btn-acao-azul" onclick="reverterStatusGestor('${s.id}')">Reverter</button>
+            <button class="btn-acao-claro btn-acao-azul flex-1" onclick="reverterStatusGestor('${s.id}')">Reverter</button>
           ` : ''}
           <!-- PEDIDO DO USUÁRIO ("crie o botão Excluir - poderá excluir o
                registro definitivamente - somente o admin pode excluir"):
                aparece sempre, em qualquer status (diferente de Cancelar,
                que só existe em alguns status) - é uma ação à parte, de
                limpeza de registro, não do fluxo normal da solicitação. -->
-          <button class="btn-acao-claro btn-acao-vermelho" onclick="excluirSolicitacaoGestor('${s.id}')">Excluir</button>
+          <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="excluirSolicitacaoGestor('${s.id}')">Excluir</button>
         </div>
       </td>
     </tr>
