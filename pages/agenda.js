@@ -336,44 +336,48 @@ function _gerarRelatorioAgendaPDF(dados, opcoes) {
   });
 
   // Tabela principal - colunas simplificadas (mesmo visual do e-mail da
-  // Agenda): Horário (saída --> retorno), Origem --> Destino, Condutor
-  // (ida/volta combinados), Celular do solicitante. "Escala" não tem a
-  // coluna Data (pedido do usuário).
+  // Agenda): Horário (saída » retorno), Origem » Destino, Condutor (ida/
+  // volta combinados), Celular do solicitante. "Escala" não tem a coluna
+  // Data (pedido do usuário).
   // CORREÇÃO (pedido do usuário, "os dois relatórios com erro"): a seta
-  // unicode "→" usada antes não é suportada pelas fontes padrão do jsPDF
-  // (helvetica/times/courier só cobrem WinAnsi) - saía quebrada no PDF e
-  // isso também atrapalhava o cálculo de quebra de linha do autoTable.
-  // Trocada por "-->" (ASCII, mesmo padrão já usado no Horário), que
-  // renderiza certo e quebra linha normalmente.
+  // unicode "→" não é suportada pelas fontes padrão do jsPDF (helvetica/
+  // times/courier só cobrem WinAnsiEncoding) - saía quebrada e atrapalhava
+  // a quebra de linha do autoTable. "-->" (ASCII) resolvia o bug mas ficava
+  // feio ("melhorar as setinhas") - "»" (guilhemet duplo) É suportado pelo
+  // WinAnsiEncoding (cp1252, posição 0xBB), renderiza certinho e fica mais
+  // parecido com uma seta de verdade.
   const cabecalho = [
     ...(comData ? ['DATA'] : []),
-    'HORÁRIO', 'ORIGEM --> DESTINO', 'SOLICITANTE', 'CELULAR', 'PASS', 'CONDUTOR', 'STATUS',
+    'HORÁRIO', 'ORIGEM » DESTINO', 'SOLICITANTE', 'CELULAR', 'PASS', 'CONDUTOR', 'STATUS',
   ];
   const corpo = dados.map(s => [
     ...(comData ? [formatarDataBR(s.data_viagem)] : []),
-    `${formatarHoraBR(s.hora_saida) || '-'} --> ${formatarHoraBR(s.hora_retorno) || '-'}`,
-    `${s.origem || '-'} --> ${s.destino || '-'}`,
+    `${formatarHoraBR(s.hora_saida) || '-'} » ${formatarHoraBR(s.hora_retorno) || '-'}`,
+    `${s.origem || '-'} » ${s.destino || '-'}`,
     s.nome_ext || s.email_solicitante || '-',
     s.telefone_ext || '-',
     String(s.qtd_pessoas ?? ''),
     combinarCondutoresAgenda(s),
     s.status || 'Pendente',
   ]);
+  // CORREÇÃO (pedido do usuário, "ajustar a coluna de data ao tamanho da
+  // data"): 16mm quebrava "05/10/2026" em duas linhas ("05/10/202" + "6") -
+  // 20mm é o suficiente pra data no formato dd/mm/aaaa sem quebrar.
   const columnStyles = comData
-    ? { 0: { cellWidth: 16 }, 1: { cellWidth: 24 }, 2: { cellWidth: 65 }, 3: { cellWidth: 38 }, 4: { cellWidth: 26 }, 5: { cellWidth: 10, halign: 'center' }, 6: { cellWidth: 38 }, 7: { cellWidth: 18, halign: 'center' } }
+    ? { 0: { cellWidth: 20 }, 1: { cellWidth: 24 }, 2: { cellWidth: 61 }, 3: { cellWidth: 38 }, 4: { cellWidth: 26 }, 5: { cellWidth: 10, halign: 'center' }, 6: { cellWidth: 38 }, 7: { cellWidth: 18, halign: 'center' } }
     : { 0: { cellWidth: 24 }, 1: { cellWidth: 75 }, 2: { cellWidth: 42 }, 3: { cellWidth: 28 }, 4: { cellWidth: 10, halign: 'center' }, 5: { cellWidth: 42 }, 6: { cellWidth: 20, halign: 'center' } };
 
-  // PEDIDO DO USUÁRIO: tirar o efeito zebrado (sem alternateRowStyles) e
-  // garantir quebra de texto com a altura da linha ajustada ao conteúdo -
-  // overflow:'linebreak' já faz isso automaticamente no autoTable (altura
-  // da linha cresce conforme o texto quebra), agora sem o bug da seta acima.
+  // PEDIDO DO USUÁRIO: tirar o efeito zebrado (sem alternateRowStyles),
+  // diminuir o tamanho dos textos da tabela (8pt -> 7pt) e garantir quebra
+  // de texto com a altura da linha ajustada ao conteúdo - overflow:
+  // 'linebreak' já faz isso automaticamente no autoTable.
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 4,
     head: [cabecalho],
     body: corpo,
     theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 1.5, valign: 'middle', lineColor: [148, 163, 184], lineWidth: 0.15, overflow: 'linebreak' },
-    headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'left', fontSize: 8 },
+    styles: { fontSize: 7, cellPadding: 1.2, valign: 'middle', lineColor: [148, 163, 184], lineWidth: 0.15, overflow: 'linebreak' },
+    headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'left', fontSize: 7 },
     columnStyles,
   });
 
