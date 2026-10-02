@@ -92,17 +92,32 @@ async function carregarSolicitacoesSetor() {
 }
 
 function _linhaTabelaSolicitacaoSetor(s) {
+  // PEDIDO DO USUÁRIO ("ajuste... responsável do setor para responsivas"):
+  // sem "overflow-wrap:break-word" + max-width, um e-mail (sem espaço
+  // nenhum pra quebrar linha) forçava essa coluna - e a tabela inteira -
+  // bem mais larga que a tela no PC, empurrando a coluna Ações pra fora da
+  // área visível (mesma causa raiz corrigida em _linhaTabelaMinhasSolic,
+  // logo abaixo).
   return `
     <tr>
-      <td>${s.email_solicitante || ''}</td>
+      <td style="max-width:170px; overflow-wrap:break-word;">${s.email_solicitante || ''}</td>
       <td>${formatarDataBR(s.data_viagem)}</td>
       <td>${formatarHoraBR(s.hora_saida)} - ${formatarHoraBR(s.hora_retorno)}</td>
-      <td>${s.origem} → ${s.destino}</td>
+      <td style="max-width:200px; overflow-wrap:break-word;">${s.origem} → ${s.destino}</td>
       <td><span class="badge ${classeStatus(s.status)}">${s.status}</span></td>
       <td>${infoCondutorParaSolicitante(s).join('<br>')}</td>
-      <td class="whitespace-nowrap">
-        ${podeEditarSolicitacao(s) ? `<button class="btn-azul-claro text-xs py-1.5 px-2.5 mr-1" onclick="abrirEdicaoSolicitacao('${s.id}', { origem: cacheSolicitacoesSetor, recarregar: carregarSolicitacoesSetor })">Editar</button>` : ''}
-        ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}', { origem: cacheSolicitacoesSetor, recarregar: carregarSolicitacoesSetor })">Cancelar</button>` : ''}
+      <td style="max-width:150px">
+        <!-- PEDIDO DO USUÁRIO ("responsivas"): "whitespace-nowrap" direto na
+             célula (como era antes) força os 2 botões lado a lado numa
+             largura fixa - com a coluna Ações agora fixa (sticky) na borda
+             direita da tabela (ver <style> no index.html), isso cortava o
+             botão "Cancelar" sem nenhuma forma de alcançá-lo. flex-wrap
+             deixa o 2º botão quebrar pra uma linha embaixo quando não
+             cabem os dois lado a lado, em vez de cortar. -->
+        <div class="flex flex-wrap gap-1">
+          ${podeEditarSolicitacao(s) ? `<button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="abrirEdicaoSolicitacao('${s.id}', { origem: cacheSolicitacoesSetor, recarregar: carregarSolicitacoesSetor })">Editar</button>` : ''}
+          ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}', { origem: cacheSolicitacoesSetor, recarregar: carregarSolicitacoesSetor })">Cancelar</button>` : ''}
+        </div>
       </td>
     </tr>
   `;
@@ -257,19 +272,40 @@ function _linhaTabelaMinhasSolic(s) {
   // Cancelada/Desprezado já mostram o próprio status), explica o motivo
   // embaixo dos botões em vez de simplesmente esconder o "Editar".
   const motivoEdicao = (s.status !== 'Cancelada' && s.status !== 'Desprezado') ? _motivoNaoEditavel(s) : null;
+  // PEDIDO DO USUÁRIO ("Minhas Solicitações não está responsiva no uso do
+  // pc"): causa raiz encontrada - a frase do motivoEdicao ("Já há motorista
+  // atribuído a esta viagem - não é possível editar.", por exemplo) ficava
+  // DENTRO do <td class="whitespace-nowrap"> da coluna Ações, herdando o
+  // "não quebra linha" da célula inteira - uma frase longa numa linha só
+  // forçava essa coluna (e a tabela inteira) bem mais larga que a tela no
+  // PC, empurrando os botões Editar/Cancelar pra fora da área visível, sem
+  // nenhum indício de que dava pra rolar pra ver o resto. Agora só os
+  // BOTÕES continuam sem quebrar linha (nowrap aplicado neles, não mais na
+  // célula toda) - o texto do motivo quebra normalmente (whitespace-normal
+  // + break-words) dentro do max-width da célula. Mesma causa também
+  // corrigida em Trajeto/Justificativa (max-width + overflow-wrap), que já
+  // quebravam linha mas sem limite de largura nenhum.
   return `
     <tr>
       <td>${formatarDataHoraBR(s.data_solicitacao)}</td>
       <td>${formatarDataBR(s.data_viagem)}</td>
       <td>${formatarHoraBR(s.hora_saida)} - ${formatarHoraBR(s.hora_retorno)}</td>
-      <td>${s.origem} → ${s.destino}</td>
-      <td>${s.justificativa || ''}</td>
+      <td style="max-width:200px; overflow-wrap:break-word;">${s.origem} → ${s.destino}</td>
+      <td style="max-width:200px; overflow-wrap:break-word;">${s.justificativa || ''}</td>
       <td><span class="badge ${classeStatus(s.status)}">${s.status}</span> ${s.tipo_viagem === 'Motoboy' ? '<span class="badge badge-motoboy">🏍️ Motoboy</span>' : ''} ${_mostraBadgeEditado(s) ? '<span class="badge badge-editado">Editado</span>' : ''}</td>
-      <td>${infoCondutorParaSolicitante(s).join('<br>')}</td>
-      <td class="whitespace-nowrap">
-        ${podeEditarSolicitacao(s) ? `<button class="btn-azul-claro text-xs py-1.5 px-2.5 mr-1" onclick="abrirEdicaoSolicitacao('${s.id}')">Editar</button>` : ''}
-        ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}
-        ${motivoEdicao ? `<div class="text-[11px] text-slate-400 mt-1 italic">${motivoEdicao}</div>` : ''}
+      <td style="max-width:170px; overflow-wrap:break-word;">${infoCondutorParaSolicitante(s).join('<br>')}</td>
+      <td style="max-width:150px;">
+        <!-- PEDIDO DO USUÁRIO ("responsivas"): com a coluna Ações fixa
+             (sticky) na borda direita da tabela (ver <style> no
+             index.html), um "whitespace-nowrap" forçando os 2 botões lado
+             a lado cortava o "Cancelar" sem nenhuma forma de alcançá-lo.
+             flex-wrap deixa o 2º botão quebrar pra uma linha embaixo
+             quando não cabem os dois lado a lado, em vez de cortar. -->
+        <div class="flex flex-wrap gap-1">
+          ${podeEditarSolicitacao(s) ? `<button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="abrirEdicaoSolicitacao('${s.id}')">Editar</button>` : ''}
+          ${podeCancelarSolicitacao(s) ? `<button class="btn-danger text-xs py-1.5 px-2.5" onclick="cancelarSolicitacao('${s.id}')">Cancelar</button>` : ''}
+        </div>
+        ${motivoEdicao ? `<div class="text-[11px] text-slate-400 mt-1 italic whitespace-normal break-words">${motivoEdicao}</div>` : ''}
       </td>
     </tr>
   `;
