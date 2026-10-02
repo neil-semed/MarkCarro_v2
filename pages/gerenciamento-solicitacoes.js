@@ -343,14 +343,14 @@ function renderizarTabelaGestorCompleta(dados) {
       <td>${s.tipo_viagem}</td>
       <td style="min-width:80px"><input type="number" value="${v.qtd_pessoas}" class="input-field text-sm py-1.5 px-2" min="1" onchange="marcarCampoAlteradoGestor('${s.id}', 'qtd_pessoas', this.value)"></td>
       <td><span class="badge ${classeStatus(status)}">${status}</span></td>
-      <td>
-        <select class="input-field text-sm py-1.5 px-2 select-condutor-ida" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_ida', this.value)">
+      <td style="min-width:160px">
+        <select class="input-field text-sm py-1.5 px-2 w-full select-condutor-ida" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_ida', this.value)">
           <option value="">—</option>
           ${opcoesCondutor}
         </select>
       </td>
-      <td>
-        <select class="input-field text-sm py-1.5 px-2 select-condutor-volta" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_volta', this.value)">
+      <td style="min-width:160px">
+        <select class="input-field text-sm py-1.5 px-2 w-full select-condutor-volta" onchange="marcarCampoAlteradoGestor('${s.id}', 'condutor_volta', this.value)">
           <option value="">—</option>
           ${opcoesCondutor}
         </select>
@@ -400,6 +400,12 @@ function renderizarTabelaGestorCompleta(dados) {
                dos badges de status (ver .badge-confirmada etc. e o
                comentário de .btn-acao-claro, mais acima no <style>). -->
           <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
+          <!-- PEDIDO DO USUÁRIO ("crie o botão Excluir - poderá excluir o
+               registro definitivamente - somente o admin pode excluir"):
+               aparece sempre, em qualquer status (diferente de Cancelar,
+               que só existe em alguns status) - é uma ação à parte, de
+               limpeza de registro, não do fluxo normal da solicitação. -->
+          <button class="btn-acao-claro btn-acao-vermelho" onclick="excluirSolicitacaoGestor('${s.id}')">Excluir</button>
         </div>
       </td>
     </tr>
@@ -660,6 +666,32 @@ function editarSolicitacaoGestor(id) {
   Components.Toast.info('Edite diretamente na tabela');
 }
 
+// PEDIDO DO USUÁRIO ("crie o botão Excluir em Ações - poderá excluir o
+// registro de solicitação, definitivamente - somente o admin pode
+// excluir"): diferente de Cancelar (só muda o status pra "Cancelada" - a
+// linha continua existindo no histórico), isto APAGA a linha de verdade da
+// tabela "solicitacoes" - ação irreversível, por isso o texto do confirm()
+// deixa isso claro. Usa excluirSolicitacao() (api.js) - já existia pronta,
+// com a policy de RLS "Admin exclui solicitacao" também já aplicada no
+// banco, mas nenhuma tela chamava essa função ainda. Esta tela (Gerenciar
+// Solicitações) já é admin-only, então o mesmo usuarioPodeEditarTela() de
+// todos os outros botões aqui já cobre "somente o admin pode excluir".
+async function excluirSolicitacaoGestor(id) {
+  if (!usuarioPodeEditarTela('gerenciamento-solicitacoes')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
+  const solicitacao = cacheTodasSolicitacoesGestor.find(s => String(s.id) === String(id));
+  const trecho = solicitacao ? ` (${solicitacao.origem} → ${solicitacao.destino})` : '';
+  if (!confirm(`Excluir definitivamente esta solicitação${trecho}? Essa ação NÃO pode ser desfeita.`)) return;
+
+  try {
+    await excluirSolicitacao(id);
+    Components.Toast.success('Solicitação excluída.');
+    carregarGerenciamentoSolicitacoes(true);
+  } catch (e) {
+    console.error('Erro ao excluir solicitação:', e);
+    Components.Toast.error('Erro ao excluir: ' + (e?.message || 'motivo desconhecido'));
+  }
+}
+
 // Expor globalmente
 window.carregarGerenciamentoSolicitacoes = carregarGerenciamentoSolicitacoes;
 window.exportarSolicitacoesXlsxUI = exportarSolicitacoesXlsxUI;
@@ -668,6 +700,7 @@ window.confirmarGeralGestor = confirmarGeralGestor;
 window.marcarOcupadoGestor = marcarOcupadoGestor;
 window.cancelarSolicitacaoGestor = cancelarSolicitacaoGestor;
 window.reverterStatusGestor = reverterStatusGestor;
+window.excluirSolicitacaoGestor = excluirSolicitacaoGestor;
 window.editarSolicitacaoGestor = editarSolicitacaoGestor;
 window.marcarCampoAlteradoGestor = marcarCampoAlteradoGestor;
 window.salvarEdicoesLinhaGestor = salvarEdicoesLinhaGestor;
