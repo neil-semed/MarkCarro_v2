@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002k">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002k">
-  <link rel="icon" href="favicon.png?v=20261002k">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261002m">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261002m">
+  <link rel="icon" href="favicon.png?v=20261002m">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -1503,7 +1503,11 @@
         </div>
 
         <!-- Tela Minhas Solicitações (Solicitante) -->
-        <div id="tela-minhas-solicitacoes" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
+        <!-- PEDIDO DO USUÁRIO ("aumente as telas mais 40%"): 1383px (já
+             35% maior que o max-w-5xl original) -> 1936px (1383 * 1,40).
+             "Solicitações do Setor" é filha deste mesmo contêiner (ver
+             mais abaixo), então cresce junto automaticamente. -->
+        <div id="tela-minhas-solicitacoes" class="hidden animate-fade-in max-w-[1936px] mx-auto w-full">
           <div class="card p-4 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-base shrink-0" aria-hidden="true">📅</span> Minhas Solicitações</h2>
@@ -1578,7 +1582,7 @@
               <table class="w-full text-sm" style="border-collapse:collapse;">
                 <thead>
                   <tr>
-                    <th class="table-th">Solicitante (e-mail)</th>
+                    <th class="table-th">Solicitante</th>
                     <th class="table-th">Data Viagem</th>
                     <th class="table-th">Horário</th>
                     <th class="table-th">Trajeto</th>
@@ -3602,38 +3606,38 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261002k"></script>
-  <script src="Supabase/supabase-client.js?v=20261002k"></script>
-  <script src="api.js?v=20261002k"></script>
-  <script src="utils.js?v=20261002k"></script>
-  <script src="components.js?v=20261002k"></script>
-  <script src="pages/login.js?v=20261002k"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261002k"></script>
-  <script src="pages/cadastro.js?v=20261002k"></script>
-  <script src="pages/nova-solicitacao.js?v=20261002k"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261002k"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261002k"></script>
-  <script src="pages/viagens-do-dia.js?v=20261002k"></script>
-  <script src="pages/notificacoes.js?v=20261002k"></script>
-  <script src="pages/dashboard-condutor.js?v=20261002k"></script>
-  <script src="pages/painel-dia.js?v=20261002k"></script>
-  <script src="pages/proximas-agendas.js?v=20261002k"></script>
-  <script src="pages/agenda.js?v=20261002k"></script>
-  <script src="pages/agenda-combinada.js?v=20261002k"></script>
-  <script src="pages/agenda-condutor.js?v=20261002k"></script>
-  <script src="pages/registro-km.js?v=20261002k"></script>
-  <script src="pages/gestor.js?v=20261002k"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261002k"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002k"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261002k"></script>
-  <script src="pages/gerenciar-km.js?v=20261002k"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261002k"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261002k"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261002k"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261002k"></script>
-  <script src="pages/relatorios.js?v=20261002k"></script>
-  <script src="pages/alterar-senha.js?v=20261002k"></script>
-  <script src="app.js?v=20261002k"></script>
+  <script src="config.js?v=20261002m"></script>
+  <script src="Supabase/supabase-client.js?v=20261002m"></script>
+  <script src="api.js?v=20261002m"></script>
+  <script src="utils.js?v=20261002m"></script>
+  <script src="components.js?v=20261002m"></script>
+  <script src="pages/login.js?v=20261002m"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261002m"></script>
+  <script src="pages/cadastro.js?v=20261002m"></script>
+  <script src="pages/nova-solicitacao.js?v=20261002m"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261002m"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261002m"></script>
+  <script src="pages/viagens-do-dia.js?v=20261002m"></script>
+  <script src="pages/notificacoes.js?v=20261002m"></script>
+  <script src="pages/dashboard-condutor.js?v=20261002m"></script>
+  <script src="pages/painel-dia.js?v=20261002m"></script>
+  <script src="pages/proximas-agendas.js?v=20261002m"></script>
+  <script src="pages/agenda.js?v=20261002m"></script>
+  <script src="pages/agenda-combinada.js?v=20261002m"></script>
+  <script src="pages/agenda-condutor.js?v=20261002m"></script>
+  <script src="pages/registro-km.js?v=20261002m"></script>
+  <script src="pages/gestor.js?v=20261002m"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261002m"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261002m"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261002m"></script>
+  <script src="pages/gerenciar-km.js?v=20261002m"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261002m"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261002m"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261002m"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261002m"></script>
+  <script src="pages/relatorios.js?v=20261002m"></script>
+  <script src="pages/alterar-senha.js?v=20261002m"></script>
+  <script src="app.js?v=20261002m"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
