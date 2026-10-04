@@ -458,6 +458,12 @@ function obterDescricaoCondutor(email) {
   return [c.nome, c.telefone, veiculo].filter(Boolean).join(' - ');
 }
 
+// Solicitações de escola = setor "ADM Escolar" (mesma regra da Edge Function
+// enviar-email-status-solicitacao). Só elas recebem e-mail de confirmado/ocupado.
+function _ehSolicitacaoEscola(s) {
+  return String((s && s.setor) || '').trim().toLowerCase() === 'adm escolar';
+}
+
 // Compartilhado entre confirmarSolicitacaoGestor (confirmação individual) e
 // confirmarGeralGestor (confirmação em lote) - mesmas notificações nos dois
 // casos: solicitante sempre, condutor(es) só quando é corrida "extra".
@@ -479,6 +485,10 @@ function _notificarConfirmacao(solicitacao, condutorIda, condutorVolta) {
     mensagem: msg,
     lida: false
   }).catch(e => console.warn('Erro ao notificar solicitante:', e));
+
+  // E-mail "Confirmação de Viagem" - só solicitações de escola (a Edge Function
+  // confere o setor); falha de e-mail não atrapalha a confirmação.
+  if (_ehSolicitacaoEscola(solicitacao)) enviarEmailStatusSolicitacao(solicitacao.id, 'confirmada');
 
   // Corrida "extra" (solicitada no mesmo dia da viagem) - avisa também
   // o(s) condutor(es) escalados, igual ao sistema antigo fazia.
@@ -596,6 +606,9 @@ async function marcarOcupadoGestor(id) {
         mensagem: `Sem veículo disponível para ${quando} (${trecho}). Entre em contato para reagendar.`,
         lida: false
       }).catch(e => console.warn('Erro ao notificar solicitante:', e));
+
+      // E-mail "Sem veículo disponível" - só solicitações de escola.
+      if (_ehSolicitacaoEscola(solicitacao)) enviarEmailStatusSolicitacao(solicitacao.id, 'ocupado');
     }
 
     carregarGerenciamentoSolicitacoes(true);
