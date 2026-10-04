@@ -20,7 +20,8 @@
 //   contexto  {}                      -> dados do usuário, unidades e locais
 //   setores   { unidade }             -> setores da unidade (tabelas_apoio)
 //   listar    {}                      -> solicitações do e-mail logado + condutores
-//   criar     { datas[], hora_saida, hora_retorno, origem, destino, justificativa,
+//   criar     (envia e-mail "Recebemos seu pedido" a quem criou)
+//             { datas[], hora_saida, hora_retorno, origem, destino, justificativa,
 //               tipo_viagem, qtd_pessoas, unidade, setor }
 //             Escola: unidade = unidade logada, setor = "ADM Escolar", nome e
 //             telefone do solicitante = os do Bora Lá.
@@ -105,6 +106,76 @@ async function podeVer(u: UsuarioBora, tela: string): Promise<boolean> {
 function emailLike(e: string) { return e.replace(/[\\%_]/g, (m) => '\\' + m); }
 
 function dataBR(d: string) { const [y, m, dd] = String(d || '').slice(0, 10).split('-'); return y ? `${dd}/${m}/${y}` : '-'; }
+
+// ------------------------------------------------------------
+// E-mail "Recebemos seu pedido" (Brevo) - enviado ao e-mail de login de quem
+// criou a solicitação (Escola ou Admin) assim que ela é gravada.
+// Secrets (os mesmos da função enviar-agenda-email): BREVO_API_KEY,
+// AGENDA_EMAIL_REMETENTE, AGENDA_EMAIL_REMETENTE_NOME (opcional).
+// Nunca bloqueia a criação: qualquer falha só vai pro log.
+// ------------------------------------------------------------
+const FAVICON_URL = 'https://neil-semed.github.io/MarkCarro_v2/favicon.png';
+const escHtml = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const ZWSP = '​';
+const semLinkHtml = (t: unknown) => `<span style="color:inherit;text-decoration:none;">${escHtml(String(t ?? '').split('').join(ZWSP))}</span>`;
+
+function primeiroNomeFormatado(nome: string): string {
+  if (!nome || nome.includes('@')) return '';
+  const p = nome.trim().split(/\s+/)[0] || '';
+  return p ? p.charAt(0).toLocaleUpperCase('pt-BR') + p.slice(1).toLocaleLowerCase('pt-BR') : '';
+}
+
+function listaDatasBR(datas: string[]): string {
+  const f = datas.map(dataBR);
+  if (f.length <= 1) return `no dia <strong>${escHtml(f[0] || '-')}</strong>`;
+  return `nos dias <strong>${escHtml(f.slice(0, -1).join(', '))} e ${escHtml(f[f.length - 1])}</strong>`;
+}
+
+function htmlPedidoRecebido(nome: string, destino: string, datas: string[], pessoas: number): string {
+  const primeiro = primeiroNomeFormatado(nome);
+  const pessoasTxt = pessoas === 1 ? '1 pessoa' : `${pessoas} pessoas`;
+  return `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="Content-Language" content="pt-BR">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no"></head>
+<body style="margin:0;padding:0;">
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:620px;margin:0 auto;color:#1e293b;">
+<table role="presentation" style="width:100%;border-collapse:collapse;padding:12px 4px;border-bottom:2px solid #facc15;"><tr>
+<td style="padding:0 10px 0 0;width:28px;"><img src="${FAVICON_URL}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:6px;display:block;"></td>
+<td><h2 style="margin:0;font-size:15px;color:#1e293b;">MarkCarro | Pedido recebido</h2><p style="margin:1px 0 0;font-size:10px;color:#64748b;">SEMED Nova Lima</p></td></tr></table>
+<div style="padding:18px 4px;font-size:13px;line-height:1.6;">
+<p style="margin:0 0 12px;">Olá${primeiro ? ', <strong>' + escHtml(primeiro) + '</strong>' : ''}!</p>
+<p style="margin:0 0 12px;">Recebemos o seu pedido de transporte para <strong>${semLinkHtml(destino)}</strong>, ${listaDatasBR(datas)}, para <strong>${escHtml(pessoasTxt)}</strong>.</p>
+<p style="margin:0 0 12px;">Agora é só aguardar: vamos analisar com atenção e te damos uma resposta em breve. Pode ser que a gente precise ajustar algo, de acordo com a nossa agenda e a frota disponível.</p>
+<p style="margin:0 0 12px;">Só um lembrete: os veículos podem ser compartilhados com outras solicitações, tá bom?</p>
+<p style="margin:0 0 12px;">Se precisar cancelar ou alterar o pedido, é só acessar a aba <strong>Solicitações Carro</strong> no Bora Lá.</p>
+<p style="margin:0;">Abraço,<br><strong>Equipe de Transporte - SEMED</strong></p>
+<p style="font-size:10px;color:#64748b;margin-top:16px;">(Essa mensagem foi gerada automaticamente)</p>
+</div></div></body></html>`;
+}
+
+async function enviarEmailPedidoRecebido(para: string, nome: string, destino: string, datas: string[], pessoas: number): Promise<void> {
+  try {
+    const chave = (Deno.env.get('BREVO_API_KEY') || '').trim();
+    const remetente = (Deno.env.get('AGENDA_EMAIL_REMETENTE') || '').trim();
+    const remetenteNome = (Deno.env.get('AGENDA_EMAIL_REMETENTE_NOME') || 'MarkCarro').trim();
+    if (!chave || !remetente || !para || !datas.length) return;
+    const ordenadas = [...datas].sort();
+    const assunto = `[MarkCarro] Recebemos seu pedido de transporte - ${dataBR(ordenadas[0])}${ordenadas.length > 1 ? ` e mais ${ordenadas.length - 1} data(s)` : ''}`;
+    const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': chave, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: remetenteNome, email: remetente },
+        to: [{ email: para, name: nome || para }],
+        subject: assunto,
+        htmlContent: htmlPedidoRecebido(nome, destino, ordenadas, pessoas),
+      }),
+    });
+    if (!resp.ok) console.error('bora-la-solicitacoes: Brevo recusou o e-mail de pedido recebido:', resp.status, await resp.text().catch(() => ''));
+  } catch (err) {
+    console.error('bora-la-solicitacoes: falha ao enviar e-mail de pedido recebido:', err);
+  }
+}
 
 // Qualquer erro não previsto ainda volta com os cabeçalhos CORS (senão o navegador
 // mostra só "NetworkError" e o motivo real se perde).
@@ -250,6 +321,8 @@ async function atender(req: Request): Promise<Response> {
       if (resp) {
         await db.from('notificacoes').insert({ email_destinatario: resp, tipo: 'nova_solicitacao_setor', mensagem: `${u.nome} criou uma nova solicitação de viagem (${base.origem} → ${base.destino}).`, lida: false });
       }
+      // E-mail "Recebemos seu pedido" para quem criou (nunca bloqueia a criação).
+      await enviarEmailPedidoRecebido(u.email, u.nome, base.destino, datas, base.qtd_pessoas);
       return json({ criadas: (data || []).length });
     }
 
