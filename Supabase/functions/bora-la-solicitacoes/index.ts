@@ -24,6 +24,7 @@
 //               tipo_viagem, qtd_pessoas, unidade, setor }
 //             Escola: unidade = unidade logada, setor = "ADM Escolar", nome e
 //             telefone do solicitante = os do Bora Lá.
+//   editar    { id, hora_saida, hora_retorno, origem, destino, qtd_pessoas, justificativa }
 //   cancelar  { id }                  -> status "Desprezado" (mesma regra do MarkCarro:
 //                                        até 30 min antes da saída)
 //
@@ -34,7 +35,7 @@
 //      (--no-verify-jwt: o token é do Bora Lá; a validação é feita aqui dentro)
 // ============================================================
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -105,8 +106,19 @@ function emailLike(e: string) { return e.replace(/[\\%_]/g, (m) => '\\' + m); }
 
 function dataBR(d: string) { const [y, m, dd] = String(d || '').slice(0, 10).split('-'); return y ? `${dd}/${m}/${y}` : '-'; }
 
+// Qualquer erro não previsto ainda volta com os cabeçalhos CORS (senão o navegador
+// mostra só "NetworkError" e o motivo real se perde).
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
+  try {
+    return await atender(req);
+  } catch (err) {
+    console.error('bora-la-solicitacoes:', err);
+    return json({ error: 'Erro no MarkCarro: ' + ((err as Error)?.message || String(err)) }, 500);
+  }
+});
+
+async function atender(req: Request): Promise<Response> {
   if (req.method !== 'POST') return json({ error: 'Método não permitido.' }, 405);
 
   const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
@@ -160,7 +172,50 @@ Deno.serve(async (req) => {
         const { data: c } = await db.from('profiles').select('email, nome, telefone, capacidade').in('email', emails);
         condutores = c || [];
       }
-      return json({ solicitacoes: data || [], condutores });
+      // Cards "Meu setor": só totais da mesma unidade + setor (Escola: unidade logada + ADM Escolar).
+      const unidadeSetor = u.escola || perfilMc?.unidade || '';
+      const setorSetor = u.escola ? 'ADM Escolar' : (perfilMc?.setor || '');
+      let setor = null;
+      if (unidadeSetor && setorSetor) {
+        const { data: ds } = await db.from('solicitacoes').select('status').eq('unidade', unidadeSetor).eq('setor', setorSetor);
+        const st = (ds || []).map((x: { status: string }) => x.status || 'Pendente');
+        setor = {
+          total: st.length,
+          pendentes: st.filter((x: string) => ['Pendente', 'Em Análise'].includes(x)).length,
+          aprovadas: st.filter((x: string) => x === 'Confirmada').length,
+          ocupadas: st.filter((x: string) => x === 'Ocupado').length,
+          canceladas: st.filter((x: string) => ['Cancelada', 'Desprezado'].includes(x)).length,
+        };
+      }
+      const { data: locais } = await db.from('locais').select('nome').order('nome');
+      return json({ solicitacoes: data || [], condutores, setor, locais: (locais || []).map((l: { nome: string }) => l.nome) });
+    }
+
+    if (action === 'editar') {
+      // Mesma regra do MarkCarro: sem motorista atribuído e até 12h antes da saída.
+      if (!verLista) return json({ error: 'Sem acesso à aba Solicitações Carro.' }, 403);
+      const { data: s, error } = await db.from('solicitacoes').select('*').eq('id', body.id).maybeSingle();
+      if (error) throw error;
+      if (!s || String(s.email_solicitante || '').trim().toLowerCase() !== u.email) return json({ error: 'Solicitação não encontrada.' }, 404);
+      if (['Cancelada', 'Desprezado'].includes(s.status)) return json({ error: 'Esta solicitação já foi decidida.' }, 400);
+      if (s.condutor_ida || s.condutor_volta) return json({ error: 'Já há motorista atribuído a esta viagem - não é possível editar.' }, 400);
+      if (s.data_viagem && s.hora_saida) {
+        const saida = new Date(`${s.data_viagem}T${String(s.hora_saida).slice(0, 5)}:00-03:00`);
+        if (!isNaN(saida.getTime()) && saida.getTime() - Date.now() <= 12 * 60 * 60 * 1000) {
+          return json({ error: 'Faltam menos de 12h para o horário de saída - não é mais possível editar.' }, 400);
+        }
+      }
+      const t = (v: unknown) => String(v ?? '').trim();
+      const patch = {
+        hora_saida: t(body.hora_saida), hora_retorno: t(body.hora_retorno) || null,
+        origem: t(body.origem), destino: t(body.destino), justificativa: t(body.justificativa),
+        qtd_pessoas: Math.max(1, parseInt(String(body.qtd_pessoas), 10) || 1),
+        editado_pelo_solicitante: true,
+      };
+      if (!patch.hora_saida || !patch.origem || !patch.destino || !patch.justificativa) return json({ error: 'Preencha hora de saída, origem, destino e justificativa.' }, 400);
+      const { error: errUp } = await db.from('solicitacoes').update(patch).eq('id', s.id);
+      if (errUp) throw errUp;
+      return json({ ok: true });
     }
 
     if (action === 'criar') {
@@ -223,4 +278,4 @@ Deno.serve(async (req) => {
   } catch (err) {
     return json({ error: (err as Error)?.message || 'Erro inesperado no MarkCarro.' }, 500);
   }
-});
+}
