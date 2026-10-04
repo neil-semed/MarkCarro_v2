@@ -172,9 +172,12 @@ async function atender(req: Request): Promise<Response> {
         const { data: c } = await db.from('profiles').select('email, nome, telefone, capacidade').in('email', emails);
         condutores = c || [];
       }
-      // Cards "Meu setor": só totais da mesma unidade + setor (Escola: unidade logada + ADM Escolar).
-      const unidadeSetor = u.escola || perfilMc?.unidade || '';
-      const setorSetor = u.escola ? 'ADM Escolar' : (perfilMc?.setor || '');
+      // Cards "Meu setor": só totais da mesma unidade + setor.
+      // Usa a unidade/setor do cadastro no MarkCarro; sem cadastro, a última solicitação; senão Escola = unidade logada + ADM Escolar.
+      // Sem unidade/setor no cadastro, usa os da solicitação mais recente do próprio usuário.
+      const ultima = (data || []).find((x: Record<string, string>) => x.unidade && x.setor) as Record<string, string> | undefined;
+      const unidadeSetor = perfilMc?.unidade || ultima?.unidade || u.escola || '';
+      const setorSetor = perfilMc?.setor || ultima?.setor || (u.escola ? 'ADM Escolar' : '');
       let setor = null;
       if (unidadeSetor && setorSetor) {
         const { data: ds } = await db.from('solicitacoes').select('status').eq('unidade', unidadeSetor).eq('setor', setorSetor);
@@ -188,7 +191,7 @@ async function atender(req: Request): Promise<Response> {
         };
       }
       const { data: locais } = await db.from('locais').select('nome').order('nome');
-      return json({ solicitacoes: data || [], condutores, setor, locais: (locais || []).map((l: { nome: string }) => l.nome) });
+      return json({ email: u.email, perfil_mc: perfilMc || null, solicitacoes: data || [], condutores, setor, locais: (locais || []).map((l: { nome: string }) => l.nome) });
     }
 
     if (action === 'editar') {
