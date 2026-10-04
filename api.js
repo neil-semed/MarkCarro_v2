@@ -754,6 +754,34 @@ async function enviarAgendaPorEmail(dataInicio, dataFim) {
   return corpo;
 }
 
+// E-mail ao solicitante quando o gestor CONFIRMA ou marca como OCUPADO uma
+// solicitação (tipo = 'confirmada' | 'ocupado'). Só solicitações de escola
+// (setor "ADM Escolar") recebem - a Edge Function confere isso e devolve
+// { ignorado: true } para as demais. Nunca lança erro: falha de e-mail não
+// pode atrapalhar a confirmação; só registra no console.
+async function enviarEmailStatusSolicitacao(id, tipo) {
+  try {
+    _checarClient();
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return false;
+    const resp = await fetch(CONFIG.ENVIAR_EMAIL_STATUS_URL, {
+      method: 'POST',
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id, tipo })
+    });
+    const corpo = await resp.json().catch(() => ({}));
+    if (!resp.ok) { console.warn('E-mail de status da solicitação não enviado:', corpo?.error || resp.status); return false; }
+    return !corpo.ignorado;
+  } catch (e) {
+    console.warn('E-mail de status da solicitação não enviado:', e);
+    return false;
+  }
+}
+
 // ============================================================
 // COOPERATIVAS (vínculo do Condutor - nome/e-mail/telefone, Editar/
 // Bloquear igual a Unidades)

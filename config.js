@@ -27,7 +27,10 @@ const CONFIG = {
   // Function no PRÓPRIO projeto do MarkCarro (não é o Bora Lá). Ver
   // supabase/functions/enviar-agenda-email/index.ts e enviarAgendaPorEmail()
   // em api.js.
-  ENVIAR_AGENDA_EMAIL_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-agenda-email'
+  ENVIAR_AGENDA_EMAIL_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-agenda-email',
+  // E-mails de "Viagem confirmada" e "Sem veículo disponível" (só solicitações de escola)
+  // - ver Supabase/functions/enviar-email-status-solicitacao/index.ts.
+  ENVIAR_EMAIL_STATUS_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-email-status-solicitacao'
 };
 
 window.CONFIG = CONFIG;
