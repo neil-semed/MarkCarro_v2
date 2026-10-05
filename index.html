@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005k">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005k">
-  <link rel="icon" href="favicon.png?v=20261005k">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005l">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005l">
+  <link rel="icon" href="favicon.png?v=20261005l">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -822,47 +822,47 @@
     body.ui-compacta .barra-gestor h2 { font-size: 0.95rem; }
 
     /* ===== Padrão único de botões (Admin + Solicitante; Condutor/Motoboy/APK e telas públicas ficam fora) ===== */
-    body.ui-compacta .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) {
+    body.ui-compacta .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) {
       display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
       height: 1.75rem; min-height: 0; padding: 0 0.625rem; font-size: 11px; font-weight: 700; line-height: 1;
-      border-radius: 0.5rem; border: 2px solid; background: transparent; box-shadow: none; white-space: nowrap;
+      border-radius: 0.5rem; border: 2px solid; box-shadow: none; white-space: nowrap;
     }
-    body.ui-compacta .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { color: #0369a1; border-color: #0369a1; }
-    body.ui-compacta .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { color: #047857; border-color: #047857; }
-    body.ui-compacta .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { color: #b45309; border-color: #b45309; }
-    body.ui-compacta .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { color: #be123c; border-color: #be123c; }
-    body.ui-compacta .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { color: #334155; border-color: #64748b; }
-    body.ui-compacta .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover,
-    body.ui-compacta .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover { background: #f0f9ff; }
-    body.ui-compacta .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover { background: #ecfdf5; }
-    body.ui-compacta .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover { background: #fffbeb; }
-    body.ui-compacta .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover { background: #fff1f2; }
-    body.ui-compacta .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover,
-    body.ui-compacta .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):hover { background: #f1f5f9; }
+    body.ui-compacta .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #1e40af; border-color: #1e40af; color: #fff; }
+    body.ui-compacta .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #10b981; border-color: #10b981; color: #fff; }
+    body.ui-compacta .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+    body.ui-compacta .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #e11d48; border-color: #e11d48; color: #fff; }
+    body.ui-compacta .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #e0f2fe; border-color: #bae6fd; color: #0369a1; }
+    body.ui-compacta .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #fff; border-color: #64748b; color: #334155; }
+    body.ui-compacta .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #1e3a8a; border-color: #1e3a8a; }
+    body.ui-compacta .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #059669; border-color: #059669; }
+    body.ui-compacta .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #d97706; border-color: #d97706; }
+    body.ui-compacta .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #be123c; border-color: #be123c; }
+    body.ui-compacta .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #bae6fd; }
+    body.ui-compacta .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover,
+    body.ui-compacta .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #f1f5f9; }
     /* tamanho M: Salvar/Cancelar dos formulários */
-    body.ui-compacta form .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta form .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta form .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta form .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta form .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta form .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta form .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { height: 2rem; font-size: 12px; padding: 0 0.875rem; }
+    body.ui-compacta form .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta form .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta form .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta form .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta form .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta form .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta form .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { height: 2rem; font-size: 12px; padding: 0 0.875rem; }
     /* tamanho pequeno: botões dentro de linhas de tabela */
-    body.ui-compacta .table-container td .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .table-container td .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .table-container td .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .table-container td .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .table-container td .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .table-container td .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *),
-    body.ui-compacta .table-container td .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *) { height: 1.5rem; font-size: 10px; padding: 0 0.5rem; }
+    body.ui-compacta .table-container td .btn-primary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .table-container td .btn-secondary:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .table-container td .btn-success:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .table-container td .btn-danger:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .table-container td .btn-warning:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .table-container td .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
+    body.ui-compacta .table-container td .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { height: 1.5rem; font-size: 10px; padding: 0 0.5rem; }
 
     /* ===== Lote 4 ===== */
     /* botões de ação: só contorno, sem fundo */
@@ -891,6 +891,13 @@
 
     /* Central de Relatórios compacta (igual Gerenciar Solicitações) */
     body.ui-compacta #tela-relatorios #rel-botoes button { width: auto; flex: none; }
+    /* contorno de 2px em abas e cards */
+    body.ui-compacta #rel-tabs .rel-tab { border: 2px solid #94a3b8; color: #334155; font-weight: 600; }
+    body.ui-compacta #rel-tabs .rel-tab.ativa { background: #1e40af; border-color: #1e40af; color: #fff; }
+    body.ui-compacta #tela-relatorios > .card,
+    body.ui-compacta #rel-kpis .kpi-exec-card,
+    body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 > .card,
+    body.ui-compacta #tela-relatorios .chart-exec-card { border: 2px solid #94a3b8; box-shadow: none; }
     body.ui-compacta #rel-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.375rem; }
     body.ui-compacta #rel-tabs .rel-tab { flex: 1 1 auto; justify-content: center; font-size: 12px; padding: 0.1875rem 0.5rem; border-radius: 0.5rem; white-space: nowrap; }
     body.ui-compacta #tela-relatorios > .card { display: block; padding: 0.375rem 0.5rem; margin-bottom: 0.375rem; border-radius: 0.5rem; }
@@ -904,7 +911,9 @@
     body.ui-compacta #rel-filtros > div.hidden { display: none; }
     body.ui-compacta #rel-barra label { display: block; margin: 0; font-size: 10px; }
     body.ui-compacta #rel-barra select.input-field { height: 1.75rem; min-height: 0; padding: 0 0.375rem; font-size: 12px; width: auto; min-width: 6.5rem; max-width: 12rem; border: 1px solid #94a3b8; border-radius: 0.375rem; background-color: #fff; }
-    body.ui-compacta #rel-botoes { display: flex; flex-flow: row nowrap; align-items: center; gap: 0.25rem; margin: 0 0 0 auto; }
+    body.ui-compacta #rel-botoes { display: flex; flex-flow: row nowrap; align-items: center; gap: 0.25rem; margin: 0; }
+    body.ui-compacta #rel-acoes { display: flex; justify-content: flex-end; gap: 0.25rem; margin-bottom: 0.375rem; }
+    body.ui-compacta #rel-acoes button { width: auto; flex: none; }
     body.ui-compacta #rel-botoes .flex-1 { display: none; }
     body.ui-compacta #rel-kpis { gap: 0.375rem; margin-bottom: 0.375rem; }
     body.ui-compacta #rel-kpis .kpi-exec-card { padding: 0.375rem 0.625rem; border-radius: 0.5rem; }
@@ -3541,6 +3550,12 @@
             <button type="button" class="rel-tab" data-relatorio="motoboy" onclick="selecionarRelatorio('motoboy')"><span aria-hidden="true">🏍️</span> Motoboy</button>
           </div>
 
+          <div id="rel-acoes">
+            <button type="button" onclick="exportarRelatorioXlsxUI()" class="btn-outline text-sm">Excel</button>
+            <button type="button" onclick="exportarRelatorioPDF()" class="btn-outline text-sm">PDF</button>
+            <button type="button" onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Painel</button>
+          </div>
+
           <div class="card p-4 sm:p-5 mb-4">
             <div id="rel-cab" class="flex items-center justify-between gap-3 mb-3">
               <div>
@@ -3640,10 +3655,6 @@
             <div id="rel-botoes" class="flex flex-wrap items-center gap-2 mt-4">
               <button type="button" onclick="limparFiltrosRelatorio()" class="btn-outline text-sm">Limpar</button>
               <button type="button" onclick="carregarRelatorios(true)" class="btn-outline text-sm">Atualizar</button>
-              <span class="flex-1"></span>
-              <button type="button" onclick="exportarRelatorioXlsxUI()" class="btn-outline text-sm">Excel</button>
-              <button type="button" onclick="exportarRelatorioPDF()" class="btn-outline text-sm">PDF</button>
-              <button type="button" onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Painel</button>
             </div>
             </div>
           </div>
@@ -3809,39 +3820,39 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005k"></script>
-  <script src="Supabase/supabase-client.js?v=20261005k"></script>
-  <script src="api.js?v=20261005k"></script>
-  <script src="utils.js?v=20261005k"></script>
-  <script src="components.js?v=20261005k"></script>
-  <script src="pages/login.js?v=20261005k"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005k"></script>
-  <script src="pages/cadastro.js?v=20261005k"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005k"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005k"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005k"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005k"></script>
-  <script src="pages/notificacoes.js?v=20261005k"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005k"></script>
-  <script src="pages/painel-dia.js?v=20261005k"></script>
-  <script src="pages/proximas-agendas.js?v=20261005k"></script>
-  <script src="pages/agenda.js?v=20261005k"></script>
-  <script src="pages/agenda-combinada.js?v=20261005k"></script>
-  <script src="pages/agenda-condutor.js?v=20261005k"></script>
-  <script src="pages/registro-km.js?v=20261005k"></script>
-  <script src="pages/gestor.js?v=20261005k"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005k"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005k"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005k"></script>
-  <script src="pages/gerenciar-km.js?v=20261005k"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005k"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005k"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005k"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005k"></script>
-  <script src="pages/relatorios.js?v=20261005k"></script>
-  <script src="pages/alterar-senha.js?v=20261005k"></script>
-  <script src="ui-layout.js?v=20261005k"></script>
-  <script src="app.js?v=20261005k"></script>
+  <script src="config.js?v=20261005l"></script>
+  <script src="Supabase/supabase-client.js?v=20261005l"></script>
+  <script src="api.js?v=20261005l"></script>
+  <script src="utils.js?v=20261005l"></script>
+  <script src="components.js?v=20261005l"></script>
+  <script src="pages/login.js?v=20261005l"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005l"></script>
+  <script src="pages/cadastro.js?v=20261005l"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005l"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005l"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005l"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005l"></script>
+  <script src="pages/notificacoes.js?v=20261005l"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005l"></script>
+  <script src="pages/painel-dia.js?v=20261005l"></script>
+  <script src="pages/proximas-agendas.js?v=20261005l"></script>
+  <script src="pages/agenda.js?v=20261005l"></script>
+  <script src="pages/agenda-combinada.js?v=20261005l"></script>
+  <script src="pages/agenda-condutor.js?v=20261005l"></script>
+  <script src="pages/registro-km.js?v=20261005l"></script>
+  <script src="pages/gestor.js?v=20261005l"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005l"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005l"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005l"></script>
+  <script src="pages/gerenciar-km.js?v=20261005l"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005l"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005l"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005l"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005l"></script>
+  <script src="pages/relatorios.js?v=20261005l"></script>
+  <script src="pages/alterar-senha.js?v=20261005l"></script>
+  <script src="ui-layout.js?v=20261005l"></script>
+  <script src="app.js?v=20261005l"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
