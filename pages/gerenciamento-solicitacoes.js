@@ -147,6 +147,10 @@ function filtrarGestorHoje() {
 // fim da lista, em vez de aparecer misturado no meio por causa de string
 // vazia comparando "menor" que qualquer data real.
 function ordenarPorDataEHoraSaida(lista) {
+  // Ordem crescente: 1º data da viagem | 2º hora de saída | 3º data da
+  // solicitação | 4º hora da solicitação | 5º hora de retorno. Valor ausente
+  // vai pro fim de cada critério.
+  const tsSolic = x => { const t = Date.parse(x.data_solicitacao || ''); return isNaN(t) ? Infinity : t; };
   return lista.sort((a, b) => {
     const dataA = a.data_viagem || '9999-99-99';
     const dataB = b.data_viagem || '9999-99-99';
@@ -154,6 +158,11 @@ function ordenarPorDataEHoraSaida(lista) {
     const horaA = a.hora_saida || '99:99:99';
     const horaB = b.hora_saida || '99:99:99';
     if (horaA !== horaB) return horaA < horaB ? -1 : 1;
+    const sA = tsSolic(a), sB = tsSolic(b);
+    if (sA !== sB) return sA < sB ? -1 : 1;
+    const retA = a.hora_retorno || '99:99:99';
+    const retB = b.hora_retorno || '99:99:99';
+    if (retA !== retB) return retA < retB ? -1 : 1;
     return 0;
   });
 }
@@ -244,7 +253,7 @@ function marcarCampoAlteradoGestor(id, campo, valor) {
 async function salvarEdicoesLinhaGestor(id) {
   if (!usuarioPodeEditarTela('gerenciamento-solicitacoes')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
   const alteracoes = edicoesPendentesGestor[id];
-  if (!alteracoes || !Object.keys(alteracoes).length) return;
+  if (!alteracoes || !Object.keys(alteracoes).length) return Components.Toast.info('Nenhuma alteração para salvar.');
 
   const btn = document.getElementById(`btn-salvar-gestor-${id}`);
   const textoOriginal = btn?.innerHTML;
@@ -266,7 +275,6 @@ async function salvarEdicoesLinhaGestor(id) {
 
     const row = document.querySelector(`#tb-gestor-geral tr[data-id="${id}"]`);
     if (row) row.style.background = '';
-    document.getElementById(`btn-salvar-gestor-${id}`)?.classList.add('hidden');
   } catch (e) {
     console.error('Erro ao salvar alterações da solicitação', id, e);
     // CORREÇÃO (pedido do usuário: "não permite salvamento... há
@@ -380,37 +388,16 @@ function renderizarTabelaGestorCompleta(dados) {
                grandes) pra .btn-acao-claro + a cor da própria paleta clara
                dos badges de status (ver .badge-confirmada etc. e o
                comentário de .btn-acao-claro, mais acima no <style>). -->
-          <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul flex-1 ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
-          <!-- PEDIDO DO USUÁRIO: "Ocupado" (sem veículo disponível) agora
-               também é oferecido ANTES de confirmar (Pendente/Em Análise),
-               não só depois - antes só dava pra marcar Ocupado numa
-               solicitação já Confirmada. -->
+          <button id="btn-salvar-gestor-${s.id}" class="btn-acao-claro btn-acao-azul flex-1" onclick="salvarEdicoesLinhaGestor('${s.id}')">Salvar</button>
           ${status === 'Pendente' || status === 'Em Análise' ? `
             <button class="btn-acao-claro btn-acao-verde flex-1" onclick="confirmarSolicitacaoGestor('${s.id}')">Confirmar</button>
             <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
             <button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
-          ` : status === 'Confirmada' ? `
-            <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>
-            <button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>
-          ` : (status === 'Ocupado' || status === 'Cancelada') ? `
-            <!-- PEDIDO DO USUÁRIO ("criar possibilidade de reverter status
-                 Ocupado e Cancelado"): antes, uma solicitação marcada como
-                 Ocupado ou Cancelada pelo gestor ficava "morta" pra sempre
-                 nesta tela (nenhum botão de ação aparecia mais) - se o
-                 gestor tivesse marcado por engano, ou um veículo/motorista
-                 ficasse disponível depois, não tinha como voltar atrás sem
-                 mexer direto no banco. Reverter manda de volta pra "Em
-                 Análise" - reentra no fluxo normal (Confirmar/Ocupado/
-                 Cancelar voltam a aparecer). Só essas 2 situações - o pedido
-                 não incluiu "Desprezado" (cancelamento feito pelo próprio
-                 solicitante). -->
+          ` : `
+            ${status !== 'Cancelada' && status !== 'Desprezado' ? `<button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarSolicitacaoGestor('${s.id}')">Cancelar</button>` : ''}
             <button class="btn-acao-claro btn-acao-azul flex-1" onclick="reverterStatusGestor('${s.id}')">Reverter</button>
-          ` : ''}
-          <!-- PEDIDO DO USUÁRIO ("crie o botão Excluir - poderá excluir o
-               registro definitivamente - somente o admin pode excluir"):
-               aparece sempre, em qualquer status (diferente de Cancelar,
-               que só existe em alguns status) - é uma ação à parte, de
-               limpeza de registro, não do fluxo normal da solicitação. -->
+            ${status !== 'Ocupado' && status !== 'Desprezado' ? `<button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoGestor('${s.id}')">Ocupado</button>` : ''}
+          `}
           <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="excluirSolicitacaoGestor('${s.id}')">Excluir</button>
         </div>
       </td>
