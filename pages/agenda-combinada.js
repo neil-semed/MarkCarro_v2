@@ -111,6 +111,16 @@ function popularFiltroMotoristaAgendaCombinada(linhas) {
   if (nomes.includes(valorAtual)) sel.value = valorAtual;
 }
 
+// Status do Bora Lá chegam em inglês - traduzidos só na exibição.
+const _STATUS_BORA_LA_PT = {
+  approved: 'Aprovada', in_transit: 'Em trânsito', completed: 'Concluída',
+  pending: 'Pendente', cancelled: 'Cancelada', canceled: 'Cancelada', rejected: 'Recusada', scheduled: 'Agendada',
+};
+function statusAgendaCombinadaPT(st) {
+  const k = String(st || '').trim();
+  return _STATUS_BORA_LA_PT[k.toLowerCase()] || k;
+}
+
 function renderizarAgendaCombinada(dados, erroBoraLa) {
   const tbody = document.getElementById('tb-agenda-combinada');
   const avisoBoraLa = document.getElementById('aviso-bora-la-indisponivel');
@@ -131,7 +141,11 @@ function renderizarAgendaCombinada(dados, erroBoraLa) {
   // PEDIDO DO USUÁRIO: linha a linha (sem agrupar por cabeçalho), com Data
   // e Horário como colunas próprias - volta ao formato original da tela,
   // só que agora com a coluna Motorista.
-  filtrados.sort((a, b) => `${a.data_viagem || ''} ${a.hora_saida || ''}`.localeCompare(`${b.data_viagem || ''} ${b.hora_saida || ''}`));
+  // PEDIDO DO USUÁRIO: ordenar por data e horário de saída, os dois sistemas
+  // juntos (não por sistema). Datas/horas normalizadas (AAAA-MM-DD / HH:MM) e
+  // sem horário vai pro fim do dia.
+  const chaveOrdem = l => `${String(l.data_viagem || '9999-99-99').slice(0, 10)} ${String(l.hora_saida || '99:99').slice(0, 5)} ${String(l.hora_retorno || '99:99').slice(0, 5)}`;
+  filtrados.sort((a, b) => chaveOrdem(a).localeCompare(chaveOrdem(b)));
 
   tbody.innerHTML = filtrados.map(l => `
     <tr class="${!l.placa ? 'bg-amber-50' : ''}">
@@ -145,7 +159,7 @@ function renderizarAgendaCombinada(dados, erroBoraLa) {
         </span>
       </td>
       <td class="table-td">${l.detalhe || ''}</td>
-      <td class="table-td">${l.status || ''}</td>
+      <td class="table-td">${statusAgendaCombinadaPT(l.status)}</td>
     </tr>
   `).join('');
 }

@@ -292,39 +292,53 @@ function exportarAgendaXlsxUI() {
 // dois botões; só muda o conjunto de linhas e se a coluna Data aparece.
 function _gerarRelatorioAgendaPDF(dados, opcoes) {
   const { comData, rotulo, nomeArquivo, mensagemSucesso } = opcoes;
-
   const inicio = document.getElementById('agenda-data-inicio')?.value;
   const fim = document.getElementById('agenda-data-fim')?.value;
   const periodo = (inicio || fim)
     ? `${inicio ? formatarDataBR(inicio) : '…'} a ${fim ? formatarDataBR(fim) : '…'}`
     : 'Todas as datas';
+  _gerarRelatorioTabelaPDF(dados.map(s => ({
+    data: formatarDataBR(s.data_viagem),
+    saida: formatarHoraBR(s.hora_saida),
+    retorno: formatarHoraBR(s.hora_retorno),
+    origem: s.origem,
+    destino: s.destino,
+    solicitante: s.nome_ext || s.email_solicitante,
+    celular: s.telefone_ext,
+    extra: s.qtd_pessoas,
+    condutor: combinarCondutoresAgenda(s),
+    status: s.status,
+  })), {
+    titulo: 'MarkCarro | Agenda de Corridas', rotulo, periodo, comData, nomeArquivo, mensagemSucesso,
+    rotuloQtd: 'CORRIDAS', rotuloExtra: 'PASS', rotuloCondutor: 'CONDUTOR',
+  });
+}
 
+// Gerador de PDF em tabela compartilhado (Agenda de Corridas, Escala e
+// Motoboy - Documentos). Cada linha: {data, saida, retorno, origem, destino,
+// solicitante, celular, extra, condutor, status}. Colunas curtas (data,
+// horário, celular, quantidade, status) ocupam só o tamanho do conteúdo; a
+// sobra é dividida entre Origem, Destino, Solicitante e Condutor, que
+// quebram linha. Setinha desenhada (a fonte do PDF não tem "→") dentro da
+// própria célula de horário, entre saída e retorno.
+function _gerarRelatorioTabelaPDF(linhas, opc) {
+  const PAD = 1.2, FS = 7, LH = 3.1, ARW = 5, GAP = 1.6;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const larguraPagina = doc.internal.pageSize.getWidth();
+  const L = doc.internal.pageSize.getWidth(), DISP = L - 20;
+  const larg = (str, bold) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(FS); return doc.getTextWidth(String(str)); };
 
-  // Cabeçalho: logo (favicon do app) + título + "SEMED Nova Lima", sem
-  // faixa colorida de fundo - só uma linha azul fina de destaque embaixo.
   doc.addImage(LOGO_PDF_B64, 'PNG', 10, 4, 9, 9);
-  doc.setTextColor(15, 23, 42);
-  doc.setFontSize(12.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text('MarkCarro | Agenda de Corridas', 22, 9);
-  doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
+  doc.setTextColor(15, 23, 42); doc.setFontSize(12.5); doc.setFont('helvetica', 'bold');
+  doc.text(opc.titulo, 22, 9);
+  doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 116, 139);
   doc.text(CONFIG.ORGAO || 'SEMED Nova Lima', 22, 13.5);
-  doc.setFontSize(9);
-  doc.text(rotulo, larguraPagina - 10, 9, { align: 'right' });
+  doc.setFontSize(9); doc.text(opc.rotulo, L - 10, 9, { align: 'right' });
+  doc.setFillColor(37, 99, 235); doc.rect(0, 16, L, 0.8, 'F'); doc.setTextColor(0, 0, 0);
 
-  doc.setFillColor(37, 99, 235);
-  doc.rect(0, 16, larguraPagina, 0.8, 'F');
-  doc.setTextColor(0, 0, 0);
-
-  // Caixa PERÍODO / CORRIDAS.
   doc.autoTable({
-    startY: 20,
-    body: [['PERÍODO', periodo, 'CORRIDAS', String(dados.length)]],
+    startY: 20, margin: { left: 10, right: 10 }, tableWidth: 'wrap',
+    body: [['PERÍODO', opc.periodo, opc.rotuloQtd, String(linhas.length)]],
     theme: 'grid',
     styles: { fontSize: 8, cellPadding: 2, textColor: [0, 0, 0] },
     columnStyles: {
@@ -335,50 +349,68 @@ function _gerarRelatorioAgendaPDF(dados, opcoes) {
     },
   });
 
-  // Tabela principal - colunas simplificadas (mesmo visual do e-mail da
-  // Agenda): Horário (saída » retorno), Origem » Destino, Condutor (ida/
-  // volta combinados), Celular do solicitante. "Escala" não tem a coluna
-  // Data (pedido do usuário).
-  // CORREÇÃO (pedido do usuário, "os dois relatórios com erro"): a seta
-  // unicode "→" não é suportada pelas fontes padrão do jsPDF (helvetica/
-  // times/courier só cobrem WinAnsiEncoding) - saía quebrada e atrapalhava
-  // a quebra de linha do autoTable. "-->" (ASCII) resolvia o bug mas ficava
-  // feio ("melhorar as setinhas") - "»" (guilhemet duplo) É suportado pelo
-  // WinAnsiEncoding (cp1252, posição 0xBB), renderiza certinho e fica mais
-  // parecido com uma seta de verdade.
-  const cabecalho = [
-    ...(comData ? ['DATA'] : []),
-    'HORÁRIO', 'ORIGEM » DESTINO', 'SOLICITANTE', 'CELULAR', 'PASS', 'CONDUTOR', 'STATUS',
-  ];
-  const corpo = dados.map(s => [
-    ...(comData ? [formatarDataBR(s.data_viagem)] : []),
-    `${formatarHoraBR(s.hora_saida) || '-'} » ${formatarHoraBR(s.hora_retorno) || '-'}`,
-    `${s.origem || '-'} » ${s.destino || '-'}`,
-    s.nome_ext || s.email_solicitante || '-',
-    s.telefone_ext || '-',
-    String(s.qtd_pessoas ?? ''),
-    combinarCondutoresAgenda(s),
-    s.status || 'Pendente',
-  ]);
-  // CORREÇÃO (pedido do usuário, "ajustar a coluna de data ao tamanho da
-  // data"): 16mm quebrava "05/10/2026" em duas linhas ("05/10/202" + "6") -
-  // 20mm é o suficiente pra data no formato dd/mm/aaaa sem quebrar.
-  const columnStyles = comData
-    ? { 0: { cellWidth: 20 }, 1: { cellWidth: 24 }, 2: { cellWidth: 61 }, 3: { cellWidth: 38 }, 4: { cellWidth: 26 }, 5: { cellWidth: 10, halign: 'center' }, 6: { cellWidth: 38 }, 7: { cellWidth: 18, halign: 'center' } }
-    : { 0: { cellWidth: 24 }, 1: { cellWidth: 75 }, 2: { cellWidth: 42 }, 3: { cellWidth: 28 }, 4: { cellWidth: 10, halign: 'center' }, 5: { cellWidth: 42 }, 6: { cellWidth: 20, halign: 'center' } };
+  const v = f => linhas.map(f);
+  const cols = [];
+  if (opc.comData) cols.push({ h: 'DATA', t: 'txt', d: v(r => r.data || '-') });
+  cols.push({ h: 'HORÁRIO', t: 'par', d: v(r => [r.saida || '-', r.retorno || '-']) });
+  cols.push({ h: 'ORIGEM', t: 'txt', flex: true, d: v(r => r.origem || '-') });
+  cols.push({ h: 'DESTINO', t: 'txt', flex: true, d: v(r => r.destino || '-') });
+  cols.push({ h: 'SOLICITANTE', t: 'txt', flex: true, d: v(r => r.solicitante || '-') });
+  cols.push({ h: 'CELULAR', t: 'txt', d: v(r => r.celular || '-') });
+  cols.push({ h: opc.rotuloExtra, t: 'txt', center: true, d: v(r => String(r.extra ?? '')) });
+  cols.push({ h: opc.rotuloCondutor, t: 'txt', flex: true, d: v(r => r.condutor || '-') });
+  cols.push({ h: 'STATUS', t: 'txt', d: v(r => r.status || 'Pendente') });
 
-  // PEDIDO DO USUÁRIO: tirar o efeito zebrado (sem alternateRowStyles),
-  // diminuir o tamanho dos textos da tabela (8pt -> 7pt) e garantir quebra
-  // de texto com a altura da linha ajustada ao conteúdo - overflow:
-  // 'linebreak' já faz isso automaticamente no autoTable.
+  cols.forEach(c => {
+    if (c.t === 'par') {
+      const m = Math.max(...c.d.flat().map(x => larg(x)), 0);
+      c.w = Math.max(2 * m + ARW + 2 * GAP + 2 * PAD + 0.4, larg(c.h, true) + 2 * PAD + 0.6);
+      c.min = c.w;
+    } else {
+      const m = Math.max(...c.d.map(x => larg(x)), larg(c.h, true));
+      c.w = Math.min(m, c.flex ? 70 : m) + 2 * PAD + 0.6;
+      c.min = c.flex ? Math.min(c.w, 26) : c.w;
+    }
+  });
+  let tot = cols.reduce((a, c) => a + c.w, 0);
+  const flex = cols.filter(c => c.flex);
+  if (tot > DISP) {
+    const soma = flex.reduce((a, c) => a + c.w, 0), alvo = DISP - (tot - soma);
+    flex.forEach(c => { c.w = Math.max(c.min, c.w * alvo / soma); });
+  }
+  tot = cols.reduce((a, c) => a + c.w, 0);
+  if (tot < DISP && flex.length) flex.forEach(c => { c.w += (DISP - tot) / flex.length; });
+
+  const desenharSeta = (x, cy) => {
+    doc.setDrawColor(71, 85, 105); doc.setFillColor(71, 85, 105); doc.setLineWidth(0.25);
+    doc.line(x + 0.6, cy, x + ARW - 1.8, cy);
+    doc.triangle(x + ARW - 0.6, cy, x + ARW - 2.2, cy - 0.95, x + ARW - 2.2, cy + 0.95, 'F');
+  };
+  const desenharPar = (cell, a, b) => {
+    const half = (cell.width - 2 * PAD - ARW - 2 * GAP) / 2;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(FS); doc.setTextColor(0, 0, 0);
+    const y = cell.y + cell.height / 2 + LH * 0.28;
+    doc.text(String(a), cell.x + PAD, y);
+    doc.text(String(b), cell.x + PAD + half + 2 * GAP + ARW, y);
+    desenharSeta(cell.x + PAD + half + GAP, cell.y + cell.height / 2);
+  };
+
+  const columnStyles = {};
+  cols.forEach((c, i) => { columnStyles[i] = { cellWidth: c.w, halign: c.center ? 'center' : 'left' }; });
+
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 4,
-    head: [cabecalho],
-    body: corpo,
+    margin: { left: 10, right: 10 },
+    head: [cols.map(c => c.h)],
+    body: linhas.map((r, i) => cols.map(c => (c.t === 'par' ? '' : c.d[i]))),
     theme: 'grid',
-    styles: { fontSize: 7, cellPadding: 1.2, valign: 'middle', lineColor: [148, 163, 184], lineWidth: 0.15, overflow: 'linebreak' },
-    headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'left', fontSize: 7 },
+    styles: { fontSize: FS, cellPadding: PAD, valign: 'middle', textColor: [0, 0, 0], lineColor: [148, 163, 184], lineWidth: 0.15, overflow: 'linebreak' },
+    headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'left', fontSize: FS },
     columnStyles,
+    didDrawCell: (d) => {
+      const c = cols[d.column.index];
+      if (d.section === 'body' && c.t === 'par') desenharPar(d.cell, ...c.d[d.row.index]);
+    },
   });
 
   const paginas = doc.internal.getNumberOfPages();
@@ -389,9 +421,10 @@ function _gerarRelatorioAgendaPDF(dados, opcoes) {
     doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} - Página ${i} de ${paginas}`, 14, doc.internal.pageSize.getHeight() - 8);
   }
 
-  doc.save(nomeArquivo);
-  Components.Toast.success(mensagemSucesso);
+  doc.save(opc.nomeArquivo);
+  Components.Toast.success(opc.mensagemSucesso);
 }
+window._gerarRelatorioTabelaPDF = _gerarRelatorioTabelaPDF;
 
 // Reaproveita o mesmo filtro de Status já aplicado na tela (mesmo padrão de
 // exportarAgendaXlsxUI).
@@ -399,7 +432,8 @@ function exportarAgendaPDF() {
   if (typeof window.jspdf === 'undefined') return Components.Toast.error('Biblioteca de geração de PDF não carregada');
   const status = document.getElementById('agenda-filtro-status')?.value || 'TODOS';
   const dados = ordenarPorDataEHoraSaida(
-    status === 'TODOS' ? cacheAgenda.slice() : cacheAgenda.filter(s => (s.status || 'Pendente') === status)
+    (status === 'TODOS' ? cacheAgenda.slice() : cacheAgenda.filter(s => (s.status || 'Pendente') === status))
+      .filter(s => s.tipo_viagem !== 'Motoboy')
   );
   if (!dados.length) return Components.Toast.warning('Não há corridas no período para gerar o relatório');
 

@@ -98,6 +98,42 @@ function exportarMotoboyXlsxUI() {
   XLSX.writeFile(livro, 'MarkCarro_MotoboyDocumentos.xlsx');
 }
 
+// Relatório PDF de Motoboy - Documentos: mesmo desenho do PDF da Agenda,
+// só com pedidos de Motoboy (respeita os filtros da tela).
+function exportarMotoboyPDF() {
+  if (typeof window.jspdf === 'undefined') return Components.Toast.error('Biblioteca de geração de PDF não carregada');
+  const dataSolic = document.getElementById('filtro-motoboy-data-solic')?.value;
+  const dataViagem = document.getElementById('filtro-motoboy-data-viagem')?.value;
+  const status = document.getElementById('filtro-motoboy-status')?.value || 'TODOS';
+  let dados = cacheTodasMotoboy.slice();
+  if (dataSolic) dados = dados.filter(s => (s.data_solicitacao || '').slice(0, 10) === dataSolic);
+  if (dataViagem) dados = dados.filter(s => s.data_viagem === dataViagem);
+  if (status !== 'TODOS') dados = dados.filter(s => (s.status || 'Pendente') === status);
+  dados = ordenarPorDataEHoraSaida(dados);
+  if (!dados.length) return Components.Toast.warning('Não há pedidos de Motoboy para gerar o relatório');
+
+  _gerarRelatorioTabelaPDF(dados.map(s => ({
+    data: formatarDataBR(s.data_viagem),
+    saida: formatarHoraBR(s.hora_saida),
+    retorno: formatarHoraBR(s.hora_retorno),
+    origem: s.origem,
+    destino: s.destino,
+    solicitante: s.nome_ext || s.email_solicitante,
+    celular: s.telefone_ext,
+    extra: s.qtd_pessoas,
+    condutor: s.condutor_ida || '',
+    status: s.status,
+  })), {
+    titulo: 'MarkCarro | Motoboy - Documentos',
+    rotulo: 'Relatório Geral',
+    periodo: dataViagem ? formatarDataBR(dataViagem) : 'Todas as datas',
+    comData: true,
+    rotuloQtd: 'ENTREGAS', rotuloExtra: 'Nº DOC.', rotuloCondutor: 'MOTOBOY',
+    nomeArquivo: `markcarro-motoboy-${Date.now()}.pdf`,
+    mensagemSucesso: 'Relatório de Motoboy gerado com sucesso!',
+  });
+}
+
 function marcarCampoAlteradoMotoboy(id, campo, valor) {
   if (!edicoesPendentesMotoboy[id]) edicoesPendentesMotoboy[id] = {};
   edicoesPendentesMotoboy[id][campo] = valor;
@@ -389,6 +425,7 @@ window.aplicarFiltrosMotoboy = aplicarFiltrosMotoboy;
 window.filtrarMotoboyHoje = filtrarMotoboyHoje;
 window.limparFiltrosMotoboy = limparFiltrosMotoboy;
 window.exportarMotoboyXlsxUI = exportarMotoboyXlsxUI;
+window.exportarMotoboyPDF = exportarMotoboyPDF;
 window.marcarCampoAlteradoMotoboy = marcarCampoAlteradoMotoboy;
 window.handleSelectLocalMotoboy = handleSelectLocalMotoboy;
 window.salvarEdicoesLinhaMotoboy = salvarEdicoesLinhaMotoboy;
