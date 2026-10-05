@@ -17,7 +17,7 @@
 // stale-while-revalidate nunca convergia, porque o navegador nem
 // verificava se havia um Service Worker novo). Mantenha em sincronia com
 // o "?v=" usado nos <script> do index.html.
-const CACHE_VERSION = 'markcarro-v20261005d';
+const CACHE_VERSION = 'markcarro-v20261005f';
 
 const ARQUIVOS_APP_SHELL = [
   './',
@@ -63,7 +63,7 @@ const ARQUIVOS_APP_SHELL = [
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
     caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(ARQUIVOS_APP_SHELL))
+      .then(cache => cache.addAll(ARQUIVOS_APP_SHELL.map(u => new Request(u, { cache: 'reload' }))))
       .catch(erro => console.warn('[SW] Falha ao pré-cachear:', erro))
   );
   self.skipWaiting();
@@ -92,21 +92,18 @@ self.addEventListener('fetch', (evento) => {
     return; // deixa passar direto pra rede, sem interceptar
   }
 
+  // Rede primeiro (revalidando sempre, sem usar o cache HTTP do navegador):
+  // toda publicação nova aparece já no próximo carregamento. O cache só
+  // serve de reserva quando a rede falha (offline).
   evento.respondWith(
-    caches.match(evento.request).then(respostaCache => {
-      const buscaRede = fetch(evento.request)
-        .then(respostaRede => {
-          if (respostaRede && respostaRede.ok) {
-            const copia = respostaRede.clone();
-            caches.open(CACHE_VERSION).then(cache => cache.put(evento.request, copia));
-          }
-          return respostaRede;
-        })
-        .catch(() => respostaCache); // offline: usa o que tiver em cache
-
-      // Stale-while-revalidate: responde rápido com o cache (se existir)
-      // e atualiza o cache em segundo plano.
-      return respostaCache || buscaRede;
-    })
+    fetch(evento.request, { cache: 'no-cache' })
+      .then(respostaRede => {
+        if (respostaRede && respostaRede.ok) {
+          const copia = respostaRede.clone();
+          caches.open(CACHE_VERSION).then(cache => cache.put(evento.request, copia));
+        }
+        return respostaRede;
+      })
+      .catch(() => caches.match(evento.request))
   );
 });
