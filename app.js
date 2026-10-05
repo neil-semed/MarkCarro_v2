@@ -47,12 +47,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarInstalacaoPWA();
 });
 
+// CORREÇÃO ("não carrega unidades nem setores ao criar conta"): antes, locais
+// e unidades eram buscados juntos num Promise.all - se UMA das duas consultas
+// falhasse (ex.: a política de leitura de "locais" exige login e a tela
+// "Criar conta" roda sem login), as DUAS caíam no catch e o dropdown de
+// Unidade ficava só com "Outra Unidade". Agora cada consulta é independente
+// (Promise.allSettled): o que carregar aparece, e só o que falhar avisa.
 async function carregarDropdownsApoio() {
-  try {
-    const [locais, unidades] = await Promise.all([listarLocais(), listarUnidades()]);
-    cacheLocais = locais || [];
-    cacheUnidades = unidades || [];
+  const [resLocais, resUnidades] = await Promise.allSettled([listarLocais(), listarUnidades()]);
+  if (resLocais.status === 'rejected') console.error('Erro ao carregar locais:', resLocais.reason);
+  if (resUnidades.status === 'rejected') console.error('Erro ao carregar unidades:', resUnidades.reason);
 
+  cacheLocais = resLocais.status === 'fulfilled' ? (resLocais.value || []) : [];
+  cacheUnidades = resUnidades.status === 'fulfilled' ? (resUnidades.value || []) : [];
+
+  try {
     preencherDropdownUnidades(document.getElementById('cad-unidade'), true);
     preencherDropdownUnidades(document.getElementById('sol-unidade'), false);
 
@@ -64,9 +73,14 @@ async function carregarDropdownsApoio() {
     preencherDropdownLocais(document.getElementById('sol-origem'));
     preencherDropdownLocais(document.getElementById('sol-destino'));
   } catch (erro) {
-    console.error('Erro ao carregar dropdowns:', erro);
-    Components.Toast.error('Erro ao carregar dados de apoio');
+    console.error('Erro ao montar dropdowns:', erro);
   }
+
+  if (resUnidades.status === 'rejected') {
+    Components.Toast.error('Não foi possível carregar as Unidades. Atualize a página; se continuar, avise o administrador.');
+  }
+  // Locais: sem aviso aqui (na tela pública "Criar conta" nem são usados) -
+  // Nova Solicitação busca de novo, já autenticado, ao ser aberta.
 }
 
 function preencherDropdownUnidades(selectElem, comOpcaoOutro) {
