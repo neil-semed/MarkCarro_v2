@@ -77,7 +77,12 @@ async function carregarDropdownsApoio() {
   }
 
   if (resUnidades.status === 'rejected') {
-    Components.Toast.error('Não foi possível carregar as Unidades. Atualize a página; se continuar, avise o administrador.');
+    const motivo = resUnidades.reason?.message || String(resUnidades.reason || '');
+    Components.Toast.error('Não foi possível carregar as Unidades (' + motivo + '). Atualize a página; se continuar, avise o administrador.');
+  } else if (!cacheUnidades.length) {
+    // Com RLS, leitura sem permissão NÃO dá erro - só volta lista vazia.
+    console.warn('tabelas_apoio voltou vazia: sem permissão de leitura (RLS) ou tabela sem registros.');
+    Components.Toast.error('Nenhuma Unidade encontrada. Se a tabela tem dados, falta liberar a leitura no banco (rodar supabase_fix_cadastro_leitura_publica.sql).');
   }
   // Locais: sem aviso aqui (na tela pública "Criar conta" nem são usados) -
   // Nova Solicitação busca de novo, já autenticado, ao ser aberta.
