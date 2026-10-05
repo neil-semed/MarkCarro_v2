@@ -121,7 +121,7 @@ function handleSelectLocalMotoboy(selectEl, id, campo) {
 async function salvarEdicoesLinhaMotoboy(id) {
   if (!usuarioPodeEditarTela('gerenciar-motoboy-documentos')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
   const alteracoes = edicoesPendentesMotoboy[id];
-  if (!alteracoes || !Object.keys(alteracoes).length) return;
+  if (!alteracoes || !Object.keys(alteracoes).length) return Components.Toast.info('Nenhuma alteração para salvar.');
 
   const btn = document.getElementById(`btn-salvar-motoboy-${id}`);
   const textoOriginal = btn?.innerHTML;
@@ -138,7 +138,6 @@ async function salvarEdicoesLinhaMotoboy(id) {
 
     const row = document.querySelector(`#tb-motoboy-geral tr[data-id="${id}"]`);
     if (row) row.style.background = '';
-    document.getElementById(`btn-salvar-motoboy-${id}`)?.classList.add('hidden');
   } catch (e) {
     console.error('Erro ao salvar alterações do pedido de Motoboy', id, e);
     Components.Toast.error('Erro ao salvar: ' + (e?.message || 'motivo desconhecido'));
@@ -150,7 +149,7 @@ async function salvarEdicoesLinhaMotoboy(id) {
 function renderizarTabelaMotoboyCompleta(dados) {
   const tbody = document.getElementById('tb-motoboy-geral');
   if (!dados.length) {
-    tbody.innerHTML = '<tr><td colspan="14" class="text-center text-slate-500 p-4">Nenhum pedido de Motoboy</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" class="text-center text-slate-500 p-4">Nenhum pedido de Motoboy</td></tr>';
     return;
   }
 
@@ -196,25 +195,23 @@ function renderizarTabelaMotoboyCompleta(dados) {
       </td>
       <td style="min-width:80px"><input type="number" value="${v.qtd_pessoas}" class="input-field text-sm py-1.5 px-2" min="1" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'qtd_pessoas', this.value)"></td>
       <td><span class="badge ${classeStatus(status)}">${status}</span></td>
-      <td>
-        <select class="input-field text-sm py-1.5 px-2 select-motoboy" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'condutor_ida', this.value)">
-          <option value="">—</option>
+      <td style="min-width:330px">
+        <select class="input-field text-sm py-1.5 px-2 w-full mb-1 select-motoboy" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'condutor_ida', this.value)">
+          <option value="">— Motoboy —</option>
           ${opcoesMotoboy}
         </select>
-      </td>
-      <td>
-        <div class="flex flex-wrap gap-0.5">
+        <div class="flex gap-0.5">
+          <button id="btn-salvar-motoboy-${s.id}" class="btn-acao-claro btn-acao-azul flex-1" onclick="salvarEdicoesLinhaMotoboy('${s.id}')">Salvar</button>
           ${status === 'Pendente' || status === 'Em Análise' ? `
-            <button class="btn-acao-claro btn-acao-verde" onclick="confirmarMotoboy('${s.id}')">Confirmar</button>
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoMotoboy('${s.id}')">Ocupado</button>
-            <button class="btn-acao-claro btn-acao-vermelho" onclick="cancelarMotoboy('${s.id}')">Cancelar</button>
-          ` : status === 'Confirmada' ? `
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="marcarOcupadoMotoboy('${s.id}')">Ocupado</button>
-            <button class="btn-acao-claro btn-acao-vermelho" onclick="cancelarMotoboy('${s.id}')">Cancelar</button>
-          ` : (status === 'Ocupado' || status === 'Cancelada') ? `
-            <button class="btn-acao-claro btn-acao-azul" onclick="reverterStatusMotoboy('${s.id}')">Reverter</button>
-          ` : ''}
-          <button id="btn-salvar-motoboy-${s.id}" class="btn-acao-claro btn-acao-azul ${temPendencia ? '' : 'hidden'}" onclick="salvarEdicoesLinhaMotoboy('${s.id}')">Salvar</button>
+            <button class="btn-acao-claro btn-acao-verde flex-1" onclick="confirmarMotoboy('${s.id}')">Confirmar</button>
+            <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarMotoboy('${s.id}')">Cancelar</button>
+            <button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoMotoboy('${s.id}')">Ocupado</button>
+          ` : `
+            ${status !== 'Cancelada' && status !== 'Desprezado' ? `<button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="cancelarMotoboy('${s.id}')">Cancelar</button>` : ''}
+            <button class="btn-acao-claro btn-acao-azul flex-1" onclick="reverterStatusMotoboy('${s.id}')">Reverter</button>
+            ${status !== 'Ocupado' && status !== 'Desprezado' ? `<button class="btn-acao-claro btn-acao-amarelo flex-1" onclick="marcarOcupadoMotoboy('${s.id}')">Ocupado</button>` : ''}
+          `}
+          <button class="btn-acao-claro btn-acao-vermelho flex-1" onclick="excluirMotoboy('${s.id}')">Excluir</button>
         </div>
       </td>
     </tr>
@@ -368,7 +365,25 @@ async function reverterStatusMotoboy(id) {
   }
 }
 
+// Exclui definitivamente o pedido (mesma ação de Gerenciar Solicitações).
+async function excluirMotoboy(id) {
+  if (!usuarioPodeEditarTela('gerenciar-motoboy-documentos')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
+  const solicitacao = cacheTodasMotoboy.find(s => String(s.id) === String(id));
+  const trecho = solicitacao ? ` (${solicitacao.origem} → ${solicitacao.destino})` : '';
+  if (!confirm(`Excluir definitivamente este pedido de Motoboy${trecho}? Essa ação NÃO pode ser desfeita.`)) return;
+
+  try {
+    await excluirSolicitacao(id);
+    Components.Toast.success('Pedido excluído.');
+    carregarGerenciarMotoboyDocumentos(true);
+  } catch (e) {
+    console.error('Erro ao excluir pedido de Motoboy:', e);
+    Components.Toast.error('Erro ao excluir: ' + (e?.message || 'motivo desconhecido'));
+  }
+}
+
 // Expor globalmente
+window.excluirMotoboy = excluirMotoboy;
 window.carregarGerenciarMotoboyDocumentos = carregarGerenciarMotoboyDocumentos;
 window.aplicarFiltrosMotoboy = aplicarFiltrosMotoboy;
 window.filtrarMotoboyHoje = filtrarMotoboyHoje;

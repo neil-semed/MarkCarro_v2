@@ -383,8 +383,9 @@ async function carregarPainelPorPerfil() {
     document.getElementById('btn-gerenciar-cooperativas')?.classList.remove('hidden');
     document.getElementById('btn-gerenciar-perfis-acesso')?.classList.remove('hidden');
     document.getElementById('btn-relatorios')?.classList.remove('hidden');
-    document.getElementById('btn-senha-pill')?.classList.remove('hidden');
-    document.getElementById('btn-sair-pill')?.classList.remove('hidden');
+    // Senha/Sair do Admin ficam como ícones ao lado da saudação (não mais pílulas).
+    document.getElementById('btn-senha-topo')?.classList.remove('hidden');
+    document.getElementById('btn-sair-topo')?.classList.remove('hidden');
     // Admin não tem aba "Alertas" própria (essa aba só existe pro
     // Condutor/Solicitante) - continua dependendo do sino + painelzinho
     // pra ver notificações, então é o único perfil que o mantém visível.
