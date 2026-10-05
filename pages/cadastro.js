@@ -154,6 +154,8 @@ function voltarLogin() {
 function abrirCadastro() {
   document.getElementById('tela-login').classList.add('hidden');
   document.getElementById('tela-cadastro').classList.remove('hidden');
+  // Se a carga inicial das Unidades falhou/voltou vazia, tenta de novo ao abrir.
+  if (typeof cacheUnidades === 'undefined' || !cacheUnidades.length) carregarDropdownsApoio();
 }
 
 // Expor globalmente
