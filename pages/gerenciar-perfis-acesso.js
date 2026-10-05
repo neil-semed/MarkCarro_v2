@@ -38,6 +38,7 @@ const TELAS_DISPONIVEIS_PERFIL = [
   { id: 'gerenciar-cooperativas', label: 'Cooperativas', nivel: 'editavel' },
   { id: 'gerenciar-perfis-acesso', label: 'Perfis de Acesso', nivel: 'editavel' },
   { id: 'relatorios', label: 'Relatórios', nivel: 'consulta' },
+  { id: 'avisos', label: 'Avisos', nivel: 'editavel' },
   { id: 'minhas-solicitacoes', label: 'Minhas Solicitações (Solicitante)', nivel: 'simples' },
   { id: 'painel-dia', label: 'Painel do Dia (Condutor)', nivel: 'simples' },
   { id: 'agenda-condutor', label: 'Agenda do Condutor', nivel: 'simples' },

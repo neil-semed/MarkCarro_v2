@@ -334,7 +334,7 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
   doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 116, 139);
   doc.text(CONFIG.ORGAO || 'SEMED Nova Lima', 22, 13.5);
   doc.setFontSize(9); doc.text(opc.rotulo, L - 10, 9, { align: 'right' });
-  doc.setFillColor(37, 99, 235); doc.rect(0, 16, L, 0.8, 'F'); doc.setTextColor(0, 0, 0);
+  doc.setFillColor(250, 204, 21); doc.rect(10, 16, L - 20, 0.8, 'F'); doc.setTextColor(0, 0, 0);
 
   doc.autoTable({
     startY: 20, margin: { left: 10, right: 10 }, tableWidth: 'wrap',

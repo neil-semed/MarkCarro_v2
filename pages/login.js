@@ -199,7 +199,8 @@ const _BOTAO_NAV_POR_TELA_ADMIN = {
   'gerenciar-unidades': 'btn-gerenciar-unidades',
   'gerenciar-cooperativas': 'btn-gerenciar-cooperativas',
   'gerenciar-perfis-acesso': 'btn-gerenciar-perfis-acesso',
-  'relatorios': 'btn-relatorios'
+  'relatorios': 'btn-relatorios',
+  'avisos': 'btn-avisos'
 };
 // Mesmas chaves, agora apontando pra função que abre cada tela (usado só
 // pra escolher a tela inicial de um admin restrito, quando "Dashboard"
@@ -216,7 +217,8 @@ const _ABRIR_TELA_POR_TELA_ADMIN = {
   'gerenciar-unidades': 'abrirGerenciarUnidades',
   'gerenciar-cooperativas': 'abrirGerenciarCooperativas',
   'gerenciar-perfis-acesso': 'abrirGerenciarPerfisAcesso',
-  'relatorios': 'abrirRelatorios'
+  'relatorios': 'abrirRelatorios',
+  'avisos': 'abrirAvisos'
 };
 
 async function aplicarRestricaoPerfilAcessoAdmin() {
@@ -383,6 +385,7 @@ async function carregarPainelPorPerfil() {
     document.getElementById('btn-gerenciar-cooperativas')?.classList.remove('hidden');
     document.getElementById('btn-gerenciar-perfis-acesso')?.classList.remove('hidden');
     document.getElementById('btn-relatorios')?.classList.remove('hidden');
+    document.getElementById('btn-avisos')?.classList.remove('hidden');
     // Senha/Sair do Admin ficam como ícones ao lado da saudação (não mais pílulas).
     document.getElementById('btn-senha-topo')?.classList.remove('hidden');
     document.getElementById('btn-sair-topo')?.classList.remove('hidden');
@@ -577,11 +580,13 @@ async function atualizarContadorNotificacoes() {
   if (!usuarioAtual) return;
   try {
     const n = await contarNaoLidas(usuarioAtual.email);
+    const _checarAviso = n > 0 && (_ultimaContagemNotificacoes === null || n > _ultimaContagemNotificacoes);
 
     if (_ultimaContagemNotificacoes !== null && n > _ultimaContagemNotificacoes) {
       tocarSomNotificacao();
     }
     _ultimaContagemNotificacoes = n;
+    if (_checarAviso && typeof verificarAvisoSobreTela === 'function') verificarAvisoSobreTela();
 
     const badge = document.getElementById('badge-notificacoes');
     if (n > 0) {
@@ -637,7 +642,7 @@ async function carregarNotificacoes() {
 
     lista.innerHTML = notifs.map(n => `
       <div class="p-3 border-b border-slate-100 hover:bg-slate-50 ${n.lida ? '' : 'bg-blue-50'}" onclick="marcarNotificacaoLidaUI('${n.id}'); this.classList.remove('bg-blue-50')">
-        <p class="text-sm font-medium text-slate-900 ${n.lida ? '' : 'font-semibold'}">${n.mensagem}</p>
+        <p class="text-sm font-medium text-slate-900 ${n.lida ? '' : 'font-semibold'}">${n.tipo === 'aviso_admin' ? `<span class="aviso-badge ${n.prioridade === 'importante' ? 'imp' : 'norm'}">AVISO</span> <b>${escaparHtmlAviso(n.titulo || 'Aviso')}</b><br><span class="font-normal">${escaparHtmlAviso(n.mensagem)}</span>` : n.mensagem}</p>
         <p class="text-xs text-slate-500 mt-1">${formatarDataHoraBR(n.data_hora)}</p>
       </div>
     `).join('');

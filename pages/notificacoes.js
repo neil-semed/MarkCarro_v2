@@ -50,7 +50,7 @@ function renderizarTelaNotificacoes(notifs) {
 
   lista.innerHTML = notifs.map(n => `
     <div class="card p-3 mb-2 cursor-pointer transition-colors ${n.lida ? '' : 'border-l-4 border-l-mc-azul bg-blue-50/40'}" onclick="marcarNotificacaoLidaTelaUI('${n.id}')">
-      <p class="text-sm text-slate-900 ${n.lida ? '' : 'font-semibold'}">${n.mensagem}</p>
+      <p class="text-sm text-slate-900 ${n.lida ? '' : 'font-semibold'}">${n.tipo === 'aviso_admin' ? `<span class="aviso-badge ${n.prioridade === 'importante' ? 'imp' : 'norm'}">AVISO</span> <b>${escaparHtmlAviso(n.titulo || 'Aviso')}</b><br><span class="font-normal">${escaparHtmlAviso(n.mensagem)}</span>` : n.mensagem}</p>
       <p class="text-xs text-slate-500 mt-1">${formatarDataHoraBR(n.data_hora)}</p>
     </div>
   `).join('');

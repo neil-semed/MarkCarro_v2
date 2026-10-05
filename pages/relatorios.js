@@ -751,19 +751,18 @@ function exportarRelatorioPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  doc.setFillColor(30, 64, 175);
-  doc.rect(0, 0, 297, 18, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(15);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`MARKCARRO | ${_relatorioAtual.titulo.toUpperCase()}`, 10, 11);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(CONFIG.ORGAO || 'SEMED Nova Lima', 287, 11, { align: 'right' });
+  const LP = doc.internal.pageSize.getWidth();
+  if (typeof LOGO_PDF_B64 !== 'undefined') doc.addImage(LOGO_PDF_B64, 'PNG', 10, 4, 9, 9);
+  doc.setTextColor(15, 23, 42); doc.setFontSize(12.5); doc.setFont('helvetica', 'bold');
+  doc.text(`MarkCarro | ${_relatorioAtual.titulo}`, 22, 9);
+  doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 116, 139);
+  doc.text(CONFIG.ORGAO || 'SEMED Nova Lima', 22, 13.5);
+  doc.setFontSize(9); doc.text('Relatório', LP - 10, 9, { align: 'right' });
+  doc.setFillColor(250, 204, 21); doc.rect(10, 16, LP - 20, 0.8, 'F');
   doc.setTextColor(0, 0, 0);
 
   doc.autoTable({
-    startY: 23,
+    startY: 20, margin: { left: 10, right: 10 },
     body: [['GERADO EM', new Date().toLocaleString('pt-BR'), 'REGISTROS', String(_relatorioAtual.linhas.length)]],
     theme: 'grid',
     styles: { fontSize: 8, cellPadding: 2, textColor: [0, 0, 0] },
@@ -776,7 +775,7 @@ function exportarRelatorioPDF() {
   });
 
   doc.autoTable({
-    startY: doc.lastAutoTable.finalY + 5,
+    startY: doc.lastAutoTable.finalY + 5, margin: { left: 10, right: 10 },
     head: [_relatorioAtual.colunas.map(c => c.toUpperCase())],
     body: _relatorioAtual.linhas,
     theme: 'grid',
@@ -790,7 +789,7 @@ function exportarRelatorioPDF() {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(120);
-    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} - Página ${i} de ${paginas}`, 14, doc.internal.pageSize.getHeight() - 8);
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} - Página ${i} de ${paginas}`, 10, doc.internal.pageSize.getHeight() - 8);
   }
 
   doc.save(`markcarro-relatorio-${_relatorioAtivo}-${Date.now()}.pdf`);
