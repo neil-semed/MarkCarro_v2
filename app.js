@@ -342,6 +342,13 @@ function abrirRelatorios() {
   carregarRelatorios();
 }
 
+function abrirAvisos() {
+  esconderTodasTelas();
+  document.getElementById('tela-avisos').classList.remove('hidden');
+  marcarAbaAtiva('avisos');
+  carregarAvisos();
+}
+
 function abrirGerenciarMotoboyDocumentos() {
   esconderTodasTelas();
   document.getElementById('tela-gerenciar-motoboy-documentos').classList.remove('hidden');
@@ -490,6 +497,7 @@ window.abrirGerenciarUnidades = abrirGerenciarUnidades;
 window.abrirGerenciarCooperativas = abrirGerenciarCooperativas;
 window.abrirGerenciarPerfisAcesso = abrirGerenciarPerfisAcesso;
 window.abrirRelatorios = abrirRelatorios;
+window.abrirAvisos = abrirAvisos;
 window.abrirGerenciarMotoboyDocumentos = abrirGerenciarMotoboyDocumentos;
 window.abrirPainelDoDia = abrirPainelDoDia;
 window.abrirProximasAgendas = abrirProximasAgendas;

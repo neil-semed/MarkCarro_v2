@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005l">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005l">
-  <link rel="icon" href="favicon.png?v=20261005l">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005n">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005n">
+  <link rel="icon" href="favicon.png?v=20261005n">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -864,6 +864,9 @@
     body.ui-compacta .table-container td .btn-outline:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *),
     body.ui-compacta .table-container td .btn-azul-claro:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { height: 1.5rem; font-size: 10px; padding: 0 0.5rem; }
 
+    /* botões "Limpar filtros": preenchimento cinza claro */
+    body.ui-compacta .btn-outline.btn-limpar:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *) { background: #e2e8f0; }
+    body.ui-compacta .btn-outline.btn-limpar:not(#tela-login *):not(#tela-cadastro *):not(#tela-alterar-senha *):not(#tela-gerenciamento-solicitacoes *):not(#tela-gerenciar-motoboy-documentos *):hover { background: #cbd5e1; }
     /* ===== Lote 4 ===== */
     /* botões de ação: só contorno, sem fundo */
     body.ui-compacta .btn-acao-claro { background: transparent !important; border-width: 2px; border-style: solid; }
@@ -924,6 +927,17 @@
     body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 > .card { padding: 0.5rem 0.625rem; border-radius: 0.5rem; }
     body.ui-compacta #tela-relatorios .chart-exec-card { padding: 0.5rem 0.625rem; border-radius: 0.5rem; }
     body.ui-compacta #tela-relatorios .table-container { max-height: calc(100vh - 300px) !important; min-height: 240px; }
+  
+    /* Avisos administrativos */
+    .aviso-badge { display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:99px; letter-spacing:.02em; }
+    .aviso-badge.norm { background:#dbeafe; color:#1e40af; }
+    .aviso-badge.imp { background:#fef3c7; color:#92400e; }
+    #aviso-overlay.hidden { display:none; }
+    .avisos-lista { border:1px solid #e2e8f0; border-radius:.5rem; max-height:15rem; overflow-y:auto; }
+    .avisos-dest { display:flex; gap:.5rem; align-items:center; padding:.3rem .5rem; border-bottom:1px solid #f1f5f9; font-size:12px; cursor:pointer; }
+    .avisos-dest:hover { background:#f8fafc; }
+    .avisos-dest input { width:14px; height:14px; flex:none; accent-color:#1e40af; }
+    .avisos-dest small { display:block; color:#64748b; font-size:10px; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -1274,6 +1288,9 @@
               </button>
               <button id="btn-relatorios" data-aba="relatorios" onclick="abrirRelatorios()" class="nav-pill nav-pill-azul hidden">
                 <span aria-hidden="true">📈</span> Relatórios
+              </button>
+              <button id="btn-avisos" data-aba="avisos" onclick="abrirAvisos()" class="nav-pill nav-pill-azul hidden">
+                <span aria-hidden="true">📣</span> Avisos
               </button>
               <button id="btn-senha-pill" data-aba="alterar-senha" onclick="abrirAlterarSenha()" class="nav-pill nav-pill-cinza hidden">
                 <span aria-hidden="true">🔑</span> Senha
@@ -1758,7 +1775,7 @@
                 <!-- PEDIDO DO USUÁRIO: botão "HOJE" pra filtrar rápido pela
                      data de viagem de hoje, sem precisar abrir o calendário. -->
                 <button type="button" class="btn-outline text-sm" onclick="filtrarMinhasSolicitacoesHoje()">Hoje</button>
-                <button type="button" class="btn-outline text-sm w-full sm:w-auto" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
+                <button type="button" class="btn-outline btn-limpar text-sm w-full sm:w-auto" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
               </div>
             </div>
 
@@ -2025,7 +2042,7 @@
                 </select>
               </div>
               <div class="flex items-end">
-                <button type="button" class="btn-outline text-sm w-full" onclick="limparFiltrosDashboard()">Limpar filtros</button>
+                <button type="button" class="btn-outline btn-limpar text-sm w-full" onclick="limparFiltrosDashboard()">Limpar filtros</button>
               </div>
             </div>
 
@@ -2429,7 +2446,7 @@
                 </select>
               </div>
               <div class="flex items-end">
-                <button onclick="limparFiltrosAgenda()" class="btn-outline text-sm w-full">Limpar filtros</button>
+                <button onclick="limparFiltrosAgenda()" class="btn-outline btn-limpar text-sm w-full">Limpar filtros</button>
               </div>
             </div>
 
@@ -2512,7 +2529,7 @@
                 </select>
               </div>
               <div class="flex items-end">
-                <button onclick="limparFiltrosAgendaCombinada()" class="btn-outline text-sm w-full">Limpar filtros</button>
+                <button onclick="limparFiltrosAgendaCombinada()" class="btn-outline btn-limpar text-sm w-full">Limpar filtros</button>
               </div>
             </div>
 
@@ -2992,7 +3009,7 @@
                   </select>
                 </div>
                 <div class="col-span-2 sm:col-span-1 flex items-end">
-                  <button type="button" class="btn-outline text-sm w-full" onclick="limparFiltrosKmGestor()">Limpar filtros</button>
+                  <button type="button" class="btn-outline btn-limpar text-sm w-full" onclick="limparFiltrosKmGestor()">Limpar filtros</button>
                 </div>
               </div>
               <div id="aviso-km-bridge" class="hidden mb-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"></div>
@@ -3535,6 +3552,56 @@
              existentes no app (ver pages/relatorios.js) - nenhuma tabela
              nova no banco. Os filtros mostrados mudam conforme a aba
              ativa (cada relatório declara quais usa). -->
+        <div id="tela-avisos" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📣</span> Avisos</h2>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            <div class="card p-4">
+              <h3 class="text-base font-semibold text-slate-900 mb-3">Destinatários</h3>
+              <div class="flex flex-wrap items-end gap-2 mb-2">
+                <div style="width:9rem"><label class="block text-xs text-slate-500 mb-0.5">Público</label>
+                  <select id="avisos-filtro-publico" class="input-field" onchange="renderizarDestinatariosAviso()">
+                    <option value="">Todos</option><option value="solicitante">Solicitantes</option><option value="condutor">Condutores</option><option value="motoboy">Motoboys</option><option value="admin">Admins</option>
+                  </select></div>
+                <div style="width:11rem"><label class="block text-xs text-slate-500 mb-0.5">Unidade</label>
+                  <select id="avisos-filtro-unidade" class="input-field" onchange="renderizarDestinatariosAviso()"><option value="">Todas</option></select></div>
+                <div class="flex-1" style="min-width:7rem"><label class="block text-xs text-slate-500 mb-0.5">Buscar</label>
+                  <input type="text" id="avisos-busca" class="input-field" placeholder="Nome ou e-mail" oninput="renderizarDestinatariosAviso()"></div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span id="avisos-contagem" class="text-xs text-slate-600">0 selecionado(s)</span>
+                <span class="flex-1"></span>
+                <button type="button" class="btn-outline" onclick="selecionarTodosAviso()">Selecionar todos</button>
+                <button type="button" class="btn-outline btn-limpar" onclick="limparSelecaoAviso()">Limpar</button>
+              </div>
+              <div id="avisos-lista-dest" class="avisos-lista"></div>
+            </div>
+            <div class="card p-4" id="avisos-form-wrap">
+              <h3 class="text-base font-semibold text-slate-900 mb-3">Novo aviso</h3>
+              <form class="space-y-3" onsubmit="event.preventDefault(); enviarAviso();">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Título *</label>
+                  <input type="text" id="aviso-titulo" class="input-field" maxlength="120"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Prioridade</label>
+                  <select id="aviso-prioridade" class="input-field"><option value="normal">Normal</option><option value="importante">Importante</option></select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Mensagem *</label>
+                  <textarea id="aviso-mensagem" class="input-field" rows="5" maxlength="2000"></textarea></div>
+                <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" id="aviso-sobre-tela" class="w-4 h-4 accent-mc-azul" checked> Mostrar sobre a tela quando o usuário abrir o sistema</label>
+                <button type="submit" id="btn-enviar-aviso" class="btn-primary w-full">Enviar aviso</button>
+              </form>
+            </div>
+          </div>
+          <div class="card p-4 mt-4">
+            <h3 class="text-base font-semibold text-slate-900 mb-3">Avisos enviados</h3>
+            <div class="table-container" style="overflow-x:auto;">
+              <table class="w-full text-sm" style="border-collapse:collapse;">
+                <thead><tr><th class="table-th">Enviado em</th><th class="table-th">Título</th><th class="table-th">Prioridade</th><th class="table-th">Destinatários</th><th class="table-th">Lidos</th></tr></thead>
+                <tbody id="tb-avisos-enviados"><tr><td colspan="5" class="text-center text-slate-500 py-6">Carregando...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div id="tela-relatorios" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📈</span> Central de Relatórios</h2>
@@ -3653,7 +3720,7 @@
             </div>
 
             <div id="rel-botoes" class="flex flex-wrap items-center gap-2 mt-4">
-              <button type="button" onclick="limparFiltrosRelatorio()" class="btn-outline text-sm">Limpar</button>
+              <button type="button" onclick="limparFiltrosRelatorio()" class="btn-outline btn-limpar text-sm">Limpar</button>
               <button type="button" onclick="carregarRelatorios(true)" class="btn-outline text-sm">Atualizar</button>
             </div>
             </div>
@@ -3820,39 +3887,40 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005l"></script>
-  <script src="Supabase/supabase-client.js?v=20261005l"></script>
-  <script src="api.js?v=20261005l"></script>
-  <script src="utils.js?v=20261005l"></script>
-  <script src="components.js?v=20261005l"></script>
-  <script src="pages/login.js?v=20261005l"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005l"></script>
-  <script src="pages/cadastro.js?v=20261005l"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005l"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005l"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005l"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005l"></script>
-  <script src="pages/notificacoes.js?v=20261005l"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005l"></script>
-  <script src="pages/painel-dia.js?v=20261005l"></script>
-  <script src="pages/proximas-agendas.js?v=20261005l"></script>
-  <script src="pages/agenda.js?v=20261005l"></script>
-  <script src="pages/agenda-combinada.js?v=20261005l"></script>
-  <script src="pages/agenda-condutor.js?v=20261005l"></script>
-  <script src="pages/registro-km.js?v=20261005l"></script>
-  <script src="pages/gestor.js?v=20261005l"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005l"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005l"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005l"></script>
-  <script src="pages/gerenciar-km.js?v=20261005l"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005l"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005l"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005l"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005l"></script>
-  <script src="pages/relatorios.js?v=20261005l"></script>
-  <script src="pages/alterar-senha.js?v=20261005l"></script>
-  <script src="ui-layout.js?v=20261005l"></script>
-  <script src="app.js?v=20261005l"></script>
+  <script src="config.js?v=20261005n"></script>
+  <script src="Supabase/supabase-client.js?v=20261005n"></script>
+  <script src="api.js?v=20261005n"></script>
+  <script src="utils.js?v=20261005n"></script>
+  <script src="components.js?v=20261005n"></script>
+  <script src="pages/login.js?v=20261005n"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005n"></script>
+  <script src="pages/cadastro.js?v=20261005n"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005n"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005n"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005n"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005n"></script>
+  <script src="pages/notificacoes.js?v=20261005n"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005n"></script>
+  <script src="pages/painel-dia.js?v=20261005n"></script>
+  <script src="pages/proximas-agendas.js?v=20261005n"></script>
+  <script src="pages/agenda.js?v=20261005n"></script>
+  <script src="pages/agenda-combinada.js?v=20261005n"></script>
+  <script src="pages/agenda-condutor.js?v=20261005n"></script>
+  <script src="pages/registro-km.js?v=20261005n"></script>
+  <script src="pages/gestor.js?v=20261005n"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005n"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005n"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005n"></script>
+  <script src="pages/gerenciar-km.js?v=20261005n"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005n"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005n"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005n"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005n"></script>
+  <script src="pages/relatorios.js?v=20261005n"></script>
+  <script src="pages/avisos.js?v=20261005n"></script>
+  <script src="pages/alterar-senha.js?v=20261005n"></script>
+  <script src="ui-layout.js?v=20261005n"></script>
+  <script src="app.js?v=20261005n"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
@@ -3990,6 +4058,22 @@
       });
     })();
   </script>
+
+  <!-- Aviso administrativo sobre a tela (todos os perfis) -->
+  <div id="aviso-overlay" class="hidden" role="dialog" aria-modal="true" style="position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:18px;max-width:26rem;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden;">
+      <div style="display:flex;gap:12px;align-items:center;padding:16px;background:linear-gradient(#f0f9ff,#fff);border-bottom:1px solid #e2e8f0;">
+        <div id="aviso-overlay-icone" style="width:44px;height:44px;border-radius:12px;background:#1e40af;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;" aria-hidden="true">📣</div>
+        <div style="min-width:0;"><span id="aviso-overlay-badge" class="aviso-badge norm">AVISO ADMINISTRATIVO</span>
+          <div id="aviso-overlay-titulo" style="font-weight:800;font-size:16px;color:#0f172a;margin-top:4px;word-break:break-word;"></div></div>
+      </div>
+      <div style="padding:16px;">
+        <div id="aviso-overlay-mensagem" style="font-size:14px;line-height:1.5;color:#1e293b;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;"></div>
+        <p style="margin:14px 0 12px;font-size:11px;color:#94a3b8;">O aviso continuará disponível no sino de notificações até ser marcado como lido.</p>
+        <button type="button" class="btn-primary w-full" onclick="fecharAvisoSobreTela()" style="height:2.25rem;font-size:13px;">Entendi</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
