@@ -17,7 +17,7 @@
 // stale-while-revalidate nunca convergia, porque o navegador nem
 // verificava se havia um Service Worker novo). Mantenha em sincronia com
 // o "?v=" usado nos <script> do index.html.
-const CACHE_VERSION = 'markcarro-v20261005c';
+const CACHE_VERSION = 'markcarro-v20261005d';
 
 const ARQUIVOS_APP_SHELL = [
   './',
@@ -27,6 +27,7 @@ const ARQUIVOS_APP_SHELL = [
   './api.js',
   './utils.js',
   './components.js',
+  './ui-layout.js',
   './app.js',
   './pages/login.js',
   './pages/cadastro.js',
