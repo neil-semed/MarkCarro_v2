@@ -64,7 +64,7 @@ function renderizarTabelaUnidades(unidades) {
       <td class="table-td"><span class="badge ${u.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${u.ativo ? 'Ativa' : 'Inativa'}</span></td>
       <td class="table-td">
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarUnidade(${u.id})">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarUnidade(${u.id})">Editar</button>
           <button class="${u.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoUnidade(${u.id}, ${!u.ativo})">${u.ativo ? 'Bloquear' : 'Ativar'}</button>
         </div>
       </td>
@@ -309,7 +309,7 @@ function renderizarTabelaSetores(lista) {
       <td class="table-td">${s.email || ''}</td>
       <td class="table-td">
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarSetor(${s.id})">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarSetor(${s.id})">Editar</button>
           <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirSetor(${s.id})">Excluir</button>
         </div>
       </td>

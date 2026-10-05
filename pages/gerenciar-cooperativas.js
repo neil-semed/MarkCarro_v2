@@ -44,7 +44,7 @@ function renderizarTabelaCooperativas(cooperativas) {
       <td class="table-td"><span class="badge ${c.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${c.ativo ? 'Ativa' : 'Bloqueada'}</span></td>
       <td class="table-td">
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarCooperativa(${c.id})">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarCooperativa(${c.id})">Editar</button>
           <button class="${c.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoCooperativa(${c.id}, ${!c.ativo})">${c.ativo ? 'Bloquear' : 'Ativar'}</button>
         </div>
       </td>

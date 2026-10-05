@@ -184,7 +184,7 @@ function renderizarTabelaPerfisAcesso(perfis) {
       <td class="table-td"><span class="badge ${p.bloqueado ? 'badge-cancelada' : 'badge-confirmada'}">${p.bloqueado ? 'Bloqueado' : 'Ativo'}</span></td>
       <td class="table-td">
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarPerfilAcesso('${p.id}')">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarPerfilAcesso('${p.id}')">Editar</button>
           <button class="${p.bloqueado ? 'btn-success' : 'btn-danger'} text-xs py-1.5 px-2.5" onclick="alternarBloqueioPerfilAcesso('${p.id}', ${!p.bloqueado})">${p.bloqueado ? 'Desbloquear' : 'Bloquear'}</button>
           <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirPerfilAcessoUI('${p.id}')">Excluir</button>
         </div>

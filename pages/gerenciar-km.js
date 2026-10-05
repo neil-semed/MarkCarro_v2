@@ -140,8 +140,8 @@ function renderizarRegistrosKmGestor(dados) {
               <option value="">Vincular a...</option>
               ${cacheCondutores.map(c => `<option value="${c.email}">${c.nome}</option>`).join('')}
             </select>
-            <button class="btn-acao-claro btn-acao-amarelo" onclick="vincularMotoristaKmGestor('${r._driver_id}')">Vincular</button>
-            <button class="btn-acao-claro btn-acao-vermelho" onclick="excluirKmGestor('${r.id}')">Excluir</button>
+            <button class="btn-warning text-xs py-1.5 px-2.5" onclick="vincularMotoristaKmGestor('${r._driver_id}')">Vincular</button>
+            <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirKmGestor('${r.id}')">Excluir</button>
           </div>
         </td>
       </tr>
@@ -164,8 +164,8 @@ function renderizarRegistrosKmGestor(dados) {
       <td>
         <div class="flex gap-2 items-center">
           ${r._legado ? '<span class="text-xs text-slate-400" title="Registro de antes da integração com o Bora Lá">antigo</span>' : ''}
-          <button class="btn-acao-claro btn-acao-azul" onclick="editarKmGestor('${r.id}')">Editar</button>
-          <button class="btn-acao-claro btn-acao-vermelho" onclick="excluirKmGestor('${r.id}')">Excluir</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarKmGestor('${r.id}')">Editar</button>
+          <button class="btn-danger text-xs py-1.5 px-2.5" onclick="excluirKmGestor('${r.id}')">Excluir</button>
         </div>
       </td>
     </tr>

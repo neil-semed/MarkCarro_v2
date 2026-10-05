@@ -73,7 +73,7 @@ function renderizarTabelaCondutores(condutores) {
       </td>
       <td>
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarCondutor('${c.email}')">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarCondutor('${c.email}')">Editar</button>
           <button class="${c.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoCondutor('${c.email}', ${!c.ativo})">${c.ativo ? 'Bloquear' : 'Ativar'}</button>
         </div>
       </td>

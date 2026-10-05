@@ -102,7 +102,7 @@ function renderizarTabelaUsuarios(usuarios) {
       <td>${_ehResponsavelPeloSetor(u) ? '<span class="badge badge-confirmada">Responsável</span>' : ''}</td>
       <td><span class="badge ${u.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
       <td>
-        <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarUsuario('${u.email}')">Editar</button>
+        <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarUsuario('${u.email}')">Editar</button>
       </td>
       <td>
         <button class="${u.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoUsuario('${u.email}', ${!u.ativo})">
@@ -382,7 +382,7 @@ function renderizarTabelaUsuariosAdmin(usuarios) {
       <td class="table-td"><span class="badge ${u.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
       <td class="table-td">
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarUsuarioAdmin('${u.email}')">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarUsuarioAdmin('${u.email}')">Editar</button>
           <button class="${u.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" ${u.email === usuarioAtual?.email ? 'disabled title="Você não pode bloquear seu próprio acesso"' : ''} onclick="alternarAtivoUsuarioAdmin('${u.email}', ${!u.ativo})">${u.ativo ? 'Bloquear' : 'Ativar'}</button>
         </div>
       </td>
@@ -491,7 +491,7 @@ function renderizarTabelaDestinatariosRelatorio(destinatarios) {
       <td class="table-td"><span class="badge ${d.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${d.ativo ? 'Ativo' : 'Inativo'}</span></td>
       <td class="table-td">
         <div class="flex gap-2">
-          <button class="btn-outline text-xs py-1.5 px-2.5" onclick="editarDestinatarioRelatorio(${d.id})">Editar</button>
+          <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarDestinatarioRelatorio(${d.id})">Editar</button>
           <button class="${d.ativo ? 'btn-danger' : 'btn-success'} text-xs py-1.5 px-2.5" onclick="alternarAtivoDestinatarioRelatorio(${d.id}, ${!d.ativo})">${d.ativo ? 'Bloquear' : 'Ativar'}</button>
           <!-- PEDIDO DO USUÁRIO ("dar opção de excluir o e-mail cadastrado"):
                a função de API (excluirDestinatarioRelatorio) já existia em
