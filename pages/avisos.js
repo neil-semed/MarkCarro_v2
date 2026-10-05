@@ -174,7 +174,7 @@ async function verificarAvisoSobreTela() {
     document.getElementById('aviso-overlay-icone').style.background = imp ? '#d97706' : '#1e40af';
     document.getElementById('aviso-overlay-titulo').textContent = n.titulo || 'Aviso';
     document.getElementById('aviso-overlay-mensagem').textContent = n.mensagem || '';
-    document.getElementById('aviso-overlay').classList.remove('hidden');
+    document.getElementById('aviso-overlay').style.display = 'flex';
   } catch (e) {
     console.warn('Erro ao verificar aviso:', e);
   }
@@ -182,7 +182,7 @@ async function verificarAvisoSobreTela() {
 
 async function fecharAvisoSobreTela() {
   const id = _avisoAbertoId;
-  document.getElementById('aviso-overlay').classList.add('hidden');
+  document.getElementById('aviso-overlay').style.display = 'none';
   _avisoAbertoId = null;
   if (id) {
     try { await marcarNotificacaoLida(id); } catch (e) { console.warn('Erro ao marcar aviso como lido:', e); }
