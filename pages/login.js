@@ -117,6 +117,7 @@ async function fazerLogout() {
   usuarioAtual = null;
   sessionStorage.removeItem('markcarro_usuario');
 
+  document.body.classList.remove('ui-compacta', 'ui-admin', 'ui-sol', 'ui-titulo-topo');
   document.getElementById('app-principal').classList.add('hidden');
   document.getElementById('tela-login').classList.remove('hidden');
   document.getElementById('form-login')?.reset();
@@ -332,6 +333,12 @@ async function carregarPainelPorPerfil() {
   document.getElementById('header-marca-solicitante')?.classList.add('hidden');
   document.getElementById('header-marca-texto-solicitante')?.classList.add('hidden');
   document.getElementById('header-titulo-marca-padrao')?.classList.remove('hidden');
+  // Layout compacto (topo com favicon + título da tela, tabelas zebradas etc.)
+  // só para Admin e Solicitante - Condutor/Motoboy ficam como estão.
+  document.body.classList.remove('ui-compacta', 'ui-admin', 'ui-sol');
+  if (tipo === 'admin') document.body.classList.add('ui-compacta', 'ui-admin');
+  else if (tipo !== 'condutor') document.body.classList.add('ui-compacta', 'ui-sol');
+  window.atualizarTituloTopo?.();
   // Faixa do topo volta a poder quebrar linha por padrão - só o Condutor
   // força linha única (ver o "else if (tipo === 'condutor')" mais abaixo).
   document.getElementById('header-linha-principal')?.classList.remove('flex-nowrap', 'overflow-x-auto');
