@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005f">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005f">
-  <link rel="icon" href="favicon.png?v=20261005f">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005g">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005g">
+  <link rel="icon" href="favicon.png?v=20261005g">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -804,8 +804,7 @@
     body.ui-compacta .table-container tbody tr:nth-child(odd) { background: #ffffff; }
     body.ui-compacta .table-container tbody tr:nth-child(even) { background: #f1f5f9; }
     body.ui-compacta .table-container tbody tr { cursor: pointer; }
-    body.ui-compacta .table-container tbody tr:hover:not([style*="background"]) { background: #e0f2fe; }
-    body.ui-compacta .table-container tbody tr.linha-selecionada:not([style*="background"]) { background: #bae6fd; }
+    body.ui-compacta .table-container tbody tr.linha-selecionada:not([style*="background"]) { background: #e0f2fe; }
     body.ui-compacta .table-container tbody tr.linha-selecionada td:first-child { box-shadow: inset 4px 0 0 #0369a1; }
     /* colunas fixas à direita (Minhas Solicitações / setor) herdam a cor da linha */
     body.ui-compacta #tela-minhas-solicitacoes .table-container table td:last-child,
@@ -821,6 +820,51 @@
     body.ui-compacta .barra-gestor .btn-success,
     body.ui-compacta .barra-gestor .btn-secondary { height: 1.75rem; min-height: 0; padding: 0 0.5rem; font-size: 11px; line-height: 1; white-space: nowrap; }
     body.ui-compacta .barra-gestor h2 { font-size: 0.95rem; }
+
+    /* ===== Lote 4 ===== */
+    /* botões de ação: só contorno, sem fundo */
+    body.ui-compacta .btn-acao-claro { background: transparent !important; border-width: 2px; border-style: solid; }
+    body.ui-compacta .btn-acao-verde { border-color: #047857; }
+    body.ui-compacta .btn-acao-amarelo { border-color: #b45309; }
+    body.ui-compacta .btn-acao-vermelho { border-color: #be123c; }
+    body.ui-compacta .btn-acao-azul { border-color: #0369a1; }
+    body.ui-compacta #tela-gerenciar-km .btn-acao-claro { font-size: 9.9px; padding: 4.4px 6.6px; }
+    body.ui-compacta #tela-gerenciar-km .table-container table td { padding-top: 0.1875rem; padding-bottom: 0.1875rem; }
+
+    /* pílulas do topo: maiores e esticadas cobrindo toda a linha */
+    body.ui-compacta #header-nav-admin .nav-pill { font-size: 13px; padding: 0.1875rem 0.5rem; flex: 1 1 auto; justify-content: center; text-align: center; }
+
+    /* horários: sem o símbolo do relógio, a célula inteira continua abrindo o seletor */
+    body.ui-compacta .table-container input[type="time"].input-field { position: relative; }
+    body.ui-compacta .table-container input[type="time"]::-webkit-calendar-picker-indicator {
+      position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; background: transparent;
+    }
+
+    /* Central de Relatórios compacta (igual Gerenciar Solicitações) */
+    body.ui-compacta #tela-relatorios > div:first-child { margin-bottom: 0.25rem; }
+    body.ui-compacta #tela-relatorios .btn-secondary,
+    body.ui-compacta #tela-relatorios .btn-outline { height: 1.75rem; min-height: 0; padding: 0 0.5rem; font-size: 11px; line-height: 1; white-space: nowrap; }
+    body.ui-compacta #rel-tabs { gap: 0.25rem; margin-bottom: 0.375rem; }
+    body.ui-compacta #rel-tabs .rel-tab { flex: 1 1 auto; justify-content: center; font-size: 12px; padding: 0.1875rem 0.5rem; border-radius: 0.5rem; }
+    body.ui-compacta #tela-relatorios > .card { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.25rem 0.5rem; padding: 0.375rem 0.5rem; margin-bottom: 0.375rem; border-radius: 0.5rem; }
+    body.ui-compacta #tela-relatorios > .card > div:first-child { flex-basis: 100%; margin: 0; }
+    body.ui-compacta #tela-relatorios > .card > div:first-child > div { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    body.ui-compacta #tela-relatorios #rel-titulo { font-size: 0.8rem; }
+    body.ui-compacta #tela-relatorios #rel-subtitulo { margin: 0; font-size: 11px; }
+    body.ui-compacta #tela-relatorios > .card > .grid,
+    body.ui-compacta #tela-relatorios > .card > .flex.mt-4 { display: contents; }
+    body.ui-compacta #tela-relatorios > .card > .flex.mt-4 .flex-1 { flex: 1 1 0; }
+    body.ui-compacta #tela-relatorios > .card label { margin-bottom: 0; font-size: 10px; }
+    body.ui-compacta #tela-relatorios > .card select.input-field { height: 1.75rem; padding: 0 0.375rem; font-size: 12px; width: auto; min-width: 6.5rem; min-height: 0; }
+    body.ui-compacta #rel-kpis { gap: 0.375rem; margin-bottom: 0.375rem; }
+    body.ui-compacta #rel-kpis .kpi-exec-card { padding: 0.375rem 0.625rem; border-radius: 0.5rem; }
+    body.ui-compacta #rel-kpis .kpi-exec-icon { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; }
+    body.ui-compacta #rel-kpis .kpi-exec-icon span { font-size: 14px !important; }
+    body.ui-compacta #rel-kpis .text-xl { font-size: 1rem; }
+    body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 { gap: 0.375rem; }
+    body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 > .card { padding: 0.5rem 0.625rem; border-radius: 0.5rem; }
+    body.ui-compacta #tela-relatorios .chart-exec-card { padding: 0.5rem 0.625rem; border-radius: 0.5rem; }
+    body.ui-compacta #tela-relatorios .table-container { max-height: calc(100vh - 300px) !important; min-height: 240px; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -2217,6 +2261,10 @@
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
                   Excel
                 </button>
+                <button id="btn-exportar-pdf-motoboy" onclick="exportarMotoboyPDF()" class="btn-outline text-sm">
+                  <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                  Relatório PDF
+                </button>
                 <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Painel</button>
               </div>
             </div>
@@ -3431,7 +3479,6 @@
         <div id="tela-relatorios" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📈</span> Central de Relatórios</h2>
-            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
 
           <div id="rel-tabs" class="flex flex-wrap items-center gap-2 mb-4">
@@ -3442,6 +3489,7 @@
             <button type="button" class="rel-tab" data-relatorio="unidades" onclick="selecionarRelatorio('unidades')"><span aria-hidden="true">🏫</span> Unidades / Setores</button>
             <button type="button" class="rel-tab" data-relatorio="cooperativas" onclick="selecionarRelatorio('cooperativas')"><span aria-hidden="true">🤝</span> Cooperativas</button>
             <button type="button" class="rel-tab" data-relatorio="motoboy" onclick="selecionarRelatorio('motoboy')"><span aria-hidden="true">🏍️</span> Motoboy</button>
+            <button type="button" onclick="voltarParaPainelGestor()" class="btn-secondary text-sm ml-auto">← Painel</button>
           </div>
 
           <div class="card p-4 sm:p-5 mb-4">
@@ -3540,8 +3588,8 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2 mt-4">
-              <button type="button" onclick="limparFiltrosRelatorio()" class="btn-outline text-sm">Limpar filtros</button>
-              <button type="button" onclick="carregarRelatorios(true)" class="btn-outline text-sm">🔄 Atualizar dados</button>
+              <button type="button" onclick="limparFiltrosRelatorio()" class="btn-outline text-sm">Limpar</button>
+              <button type="button" onclick="carregarRelatorios(true)" class="btn-outline text-sm">🔄 Atualizar</button>
               <span class="flex-1"></span>
               <button type="button" onclick="exportarRelatorioXlsxUI()" class="btn-outline text-sm">⬇️ Excel</button>
               <button type="button" onclick="exportarRelatorioPDF()" class="btn-outline text-sm">⬇️ PDF</button>
@@ -3709,39 +3757,39 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005f"></script>
-  <script src="Supabase/supabase-client.js?v=20261005f"></script>
-  <script src="api.js?v=20261005f"></script>
-  <script src="utils.js?v=20261005f"></script>
-  <script src="components.js?v=20261005f"></script>
-  <script src="pages/login.js?v=20261005f"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005f"></script>
-  <script src="pages/cadastro.js?v=20261005f"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005f"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005f"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005f"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005f"></script>
-  <script src="pages/notificacoes.js?v=20261005f"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005f"></script>
-  <script src="pages/painel-dia.js?v=20261005f"></script>
-  <script src="pages/proximas-agendas.js?v=20261005f"></script>
-  <script src="pages/agenda.js?v=20261005f"></script>
-  <script src="pages/agenda-combinada.js?v=20261005f"></script>
-  <script src="pages/agenda-condutor.js?v=20261005f"></script>
-  <script src="pages/registro-km.js?v=20261005f"></script>
-  <script src="pages/gestor.js?v=20261005f"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005f"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005f"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005f"></script>
-  <script src="pages/gerenciar-km.js?v=20261005f"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005f"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005f"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005f"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005f"></script>
-  <script src="pages/relatorios.js?v=20261005f"></script>
-  <script src="pages/alterar-senha.js?v=20261005f"></script>
-  <script src="ui-layout.js?v=20261005f"></script>
-  <script src="app.js?v=20261005f"></script>
+  <script src="config.js?v=20261005g"></script>
+  <script src="Supabase/supabase-client.js?v=20261005g"></script>
+  <script src="api.js?v=20261005g"></script>
+  <script src="utils.js?v=20261005g"></script>
+  <script src="components.js?v=20261005g"></script>
+  <script src="pages/login.js?v=20261005g"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005g"></script>
+  <script src="pages/cadastro.js?v=20261005g"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005g"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005g"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005g"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005g"></script>
+  <script src="pages/notificacoes.js?v=20261005g"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005g"></script>
+  <script src="pages/painel-dia.js?v=20261005g"></script>
+  <script src="pages/proximas-agendas.js?v=20261005g"></script>
+  <script src="pages/agenda.js?v=20261005g"></script>
+  <script src="pages/agenda-combinada.js?v=20261005g"></script>
+  <script src="pages/agenda-condutor.js?v=20261005g"></script>
+  <script src="pages/registro-km.js?v=20261005g"></script>
+  <script src="pages/gestor.js?v=20261005g"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005g"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005g"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005g"></script>
+  <script src="pages/gerenciar-km.js?v=20261005g"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005g"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005g"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005g"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005g"></script>
+  <script src="pages/relatorios.js?v=20261005g"></script>
+  <script src="pages/alterar-senha.js?v=20261005g"></script>
+  <script src="ui-layout.js?v=20261005g"></script>
+  <script src="app.js?v=20261005g"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
