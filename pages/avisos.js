@@ -95,7 +95,7 @@ async function enviarAviso() {
   try {
     const avisoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
     const linhas = [..._avisosSelecionados].map(email => ({
-      email_destinatario: email, tipo: 'aviso_admin', titulo, mensagem, prioridade,
+      email_destinatario: String(email).trim().toLowerCase(), tipo: 'aviso_admin', titulo, mensagem, prioridade,
       sobre_tela: sobreTela, enviado_por: usuarioAtual.email, aviso_id: avisoId, lida: false
     }));
     for (let i = 0; i < linhas.length; i += 500) {
@@ -122,27 +122,28 @@ async function carregarAvisosEnviados() {
   const tb = document.getElementById('tb-avisos-enviados');
   try {
     const { data, error } = await _sb.from('notificacoes')
-      .select('aviso_id,titulo,prioridade,data_hora,lida,id')
+      .select('id,aviso_id,titulo,prioridade,data_hora,lida,email_destinatario')
       .eq('tipo', 'aviso_admin').order('data_hora', { ascending: false }).limit(5000);
     if (error) throw error;
-    const grupos = new Map();
-    (data || []).forEach(r => {
-      const k = r.aviso_id || r.id;
-      if (!grupos.has(k)) grupos.set(k, { titulo: r.titulo, prioridade: r.prioridade, data: r.data_hora, total: 0, lidos: 0 });
-      const g = grupos.get(k); g.total++; if (r.lida) g.lidos++;
-    });
-    if (!grupos.size) { tb.innerHTML = '<tr><td colspan="5" class="text-center text-slate-500 py-6">Nenhum aviso enviado</td></tr>'; return; }
-    tb.innerHTML = [...grupos.values()].map(g => `
+    if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">Nenhum aviso enviado</td></tr>'; return; }
+    const porEmail = new Map(_avisosUsuarios.map(u => [String(u.email).toLowerCase(), u]));
+    tb.innerHTML = data.map(r => {
+      const u = porEmail.get(String(r.email_destinatario || '').toLowerCase());
+      const imp = r.prioridade === 'importante';
+      return `
       <tr>
-        <td class="table-td whitespace-nowrap">${formatarDataHoraBR(g.data)}</td>
-        <td class="table-td">${escaparHtmlAviso(g.titulo || '-')}</td>
-        <td class="table-td"><span class="aviso-badge ${g.prioridade === 'importante' ? 'imp' : 'norm'}">${g.prioridade === 'importante' ? 'IMPORTANTE' : 'NORMAL'}</span></td>
-        <td class="table-td">${g.total}</td>
-        <td class="table-td whitespace-nowrap">${g.lidos} de ${g.total}</td>
-      </tr>`).join('');
+        <td class="table-td whitespace-nowrap">${formatarDataHoraBR(r.data_hora)}</td>
+        <td class="table-td">${escaparHtmlAviso(r.titulo || '-')}</td>
+        <td class="table-td"><span class="aviso-badge ${imp ? 'imp' : 'norm'}">${imp ? 'IMPORTANTE' : 'NORMAL'}</span></td>
+        <td class="table-td">${escaparHtmlAviso(u ? (u.nome || u.email) : r.email_destinatario)}</td>
+        <td class="table-td">${escaparHtmlAviso(u?.setor || '-')}</td>
+        <td class="table-td">${escaparHtmlAviso(u ? _avisoPerfilRotulo(u) : '-')}</td>
+        <td class="table-td whitespace-nowrap">${r.lida ? 'Lido' : 'Não lido'}</td>
+      </tr>`;
+    }).join('');
   } catch (e) {
     console.error('Erro ao carregar avisos enviados:', e);
-    tb.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 py-6">Erro ao carregar avisos enviados.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="7" class="text-center text-red-500 py-6">Erro ao carregar avisos enviados.</td></tr>';
   }
 }
 
