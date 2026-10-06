@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005u">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005u">
-  <link rel="icon" href="favicon.png?v=20261005u">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005w">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005w">
+  <link rel="icon" href="favicon.png?v=20261005w">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -893,6 +893,13 @@
     body.ui-compacta #tela-gerenciar-km .table-container table td:last-child { width: 1%; white-space: nowrap; }
     body.ui-compacta #tela-gerenciar-km .table-container table td:last-child > div { gap: 0.25rem; }
 
+    /* botões Hoje / Limpar filtros maiores */
+    .btn-filtro-g { height: 2.25rem !important; min-height: 2.25rem !important; font-size: 12px !important; padding: 0 0.875rem !important; line-height: 1 !important; }
+    /* checkbox "Ocultar solicitações passadas": só no navegador do PC */
+    .solic-so-pc { display: none; }
+    @media (min-width: 1024px) { html:not(.app-nativo) .solic-so-pc { display: inline-flex; } }
+    @media (min-width: 1024px) { #tela-minhas-solicitacoes .grid.grid-cols-2 { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.75rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > div:not(.col-span-2) { width: 9rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > div:nth-child(3) { width: 15rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > .col-span-2 { align-items: center; flex-basis: 100%; } }
+
     /* Central de Relatórios compacta (igual Gerenciar Solicitações) */
     body.ui-compacta #tela-relatorios #rel-botoes button { width: auto; flex: none; }
     /* contorno de 2px em abas e cards */
@@ -903,23 +910,23 @@
     body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 > .card,
     body.ui-compacta #tela-relatorios .chart-exec-card { border: 2px solid #94a3b8; box-shadow: none; }
     body.ui-compacta #rel-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.375rem; }
-    body.ui-compacta #rel-tabs .rel-tab { flex: 1 1 auto; justify-content: center; font-size: 12px; padding: 0.1875rem 0.5rem; border-radius: 0.5rem; white-space: nowrap; }
+    body.ui-compacta #rel-tabs .rel-tab { flex: 1 1 auto; justify-content: center; font-size: 12px; min-height: 2rem; padding: 0.1875rem 0.5rem; border-radius: 0.5rem; white-space: nowrap; }
     body.ui-compacta #tela-relatorios > .card { display: block; padding: 0.375rem 0.5rem; margin-bottom: 0.375rem; border-radius: 0.5rem; }
     body.ui-compacta #rel-cab { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 0.25rem; }
     body.ui-compacta #rel-cab > div { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
     body.ui-compacta #rel-cab #rel-titulo { font-size: 0.8rem; margin: 0; }
     body.ui-compacta #rel-cab #rel-subtitulo { font-size: 11px; margin: 0; }
-    body.ui-compacta #rel-barra { display: flex; flex-flow: row wrap; align-items: flex-end; justify-content: flex-start; gap: 0.25rem 0.5rem; }
+    body.ui-compacta #rel-barra { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); align-items: stretch; gap: 0.5rem; }
+    body.ui-compacta #rel-barra-esq { display: flex; flex-direction: column; justify-content: flex-start; gap: 0.375rem; min-width: 0; }
+    @media (max-width: 1023px) { body.ui-compacta #rel-barra { grid-template-columns: 1fr; } }
     body.ui-compacta #rel-filtros { display: flex; flex-flow: row wrap; align-items: flex-end; gap: 0.25rem 0.5rem; }
     body.ui-compacta #rel-filtros > div { flex: none; width: auto; }
     body.ui-compacta #rel-filtros > div.hidden { display: none; }
     body.ui-compacta #rel-barra label { display: block; margin: 0; font-size: 10px; }
     body.ui-compacta #rel-barra select.input-field { height: 1.75rem; min-height: 0; padding: 0 0.375rem; font-size: 12px; width: auto; min-width: 6.5rem; max-width: 12rem; border: 1px solid #94a3b8; border-radius: 0.375rem; background-color: #fff; }
     body.ui-compacta #rel-botoes { display: flex; flex-flow: row nowrap; align-items: center; gap: 0.25rem; margin: 0; }
-    body.ui-compacta #rel-acoes { display: flex; justify-content: flex-end; gap: 0.25rem; margin-bottom: 0.375rem; }
-    body.ui-compacta #rel-acoes button { width: auto; flex: none; }
     body.ui-compacta #rel-botoes .flex-1 { display: none; }
-    body.ui-compacta #rel-kpis { gap: 0.375rem; margin-bottom: 0.375rem; }
+    body.ui-compacta #rel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.375rem; margin: 0; align-content: stretch; }
     body.ui-compacta #rel-kpis .kpi-exec-card { padding: 0.375rem 0.625rem; border-radius: 0.5rem; }
     body.ui-compacta #rel-kpis .kpi-exec-icon { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; }
     body.ui-compacta #rel-kpis .kpi-exec-icon span { font-size: 14px !important; }
@@ -927,7 +934,7 @@
     body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 { gap: 0.375rem; }
     body.ui-compacta #tela-relatorios .grid.lg\:grid-cols-5 > .card { padding: 0.5rem 0.625rem; border-radius: 0.5rem; }
     body.ui-compacta #tela-relatorios .chart-exec-card { padding: 0.5rem 0.625rem; border-radius: 0.5rem; }
-    body.ui-compacta #tela-relatorios .table-container { max-height: calc(100vh - 300px) !important; min-height: 240px; }
+    body.ui-compacta #tela-relatorios .table-container { max-height: calc(100vh - 260px) !important; min-height: 280px; }
   
     /* Avisos administrativos */
     .aviso-badge { display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:99px; letter-spacing:.02em; }
@@ -938,7 +945,14 @@
     .avisos-dest:hover { background:#f8fafc; }
     .avisos-dest input { width:14px; height:14px; flex:none; accent-color:#1e40af; }
     .avisos-dest small { display:block; color:#64748b; font-size:10px; }
+  
+    /* Perfis de Acesso: seletor do tipo de usuário */
+    .perfil-tipo-opt { display:inline-flex; align-items:center; gap:.375rem; font-size:12px; font-weight:700; padding:.25rem .75rem; border-radius:99px; border:2px solid #64748b; color:#334155; background:#fff; cursor:pointer; }
+    .perfil-tipo-opt input { display:none; }
+    .perfil-tipo-opt:has(input:checked) { background:#1e40af; border-color:#1e40af; color:#fff; }
+    .perfil-tipo-opt:has(input:disabled) { opacity:.6; cursor:default; }
   </style>
+  <script>try{var C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform())document.documentElement.classList.add('app-nativo');}catch(e){}</script>
 </head>
 <body class="min-h-screen">
   <!-- PEDIDO DO USUÁRIO: tela de login 20% menor no navegador, e 15% MAIOR
@@ -1774,8 +1788,9 @@
               <div class="col-span-2 sm:col-span-3 flex flex-wrap gap-2">
                 <!-- PEDIDO DO USUÁRIO: botão "HOJE" pra filtrar rápido pela
                      data de viagem de hoje, sem precisar abrir o calendário. -->
-                <button type="button" class="btn-outline text-sm" onclick="filtrarMinhasSolicitacoesHoje()">Hoje</button>
-                <button type="button" class="btn-outline btn-limpar text-sm w-full sm:w-auto" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
+                <button type="button" class="btn-outline btn-filtro-g text-sm" onclick="filtrarMinhasSolicitacoesHoje()">Hoje</button>
+                <button type="button" class="btn-outline btn-limpar btn-filtro-g text-sm w-full sm:w-auto" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
+                <label id="wrap-ocultar-passadas" class="solic-so-pc items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none"><input type="checkbox" id="chk-ocultar-passadas" onchange="aplicarFiltroMinhasSolicitacoes()"> Ocultar solicitações passadas</label>
               </div>
             </div>
 
@@ -2247,7 +2262,6 @@
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
                   Excel
                 </button>
-                <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Painel</button>
               </div>
             </div>
 
@@ -2341,7 +2355,6 @@
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
                   Relatório PDF
                 </button>
-                <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Painel</button>
               </div>
             </div>
 
@@ -2416,7 +2429,6 @@
                 <!-- Era "d-print-none" (Bootstrap, não existe aqui) - o botão
                      aparecia também na versão impressa da Agenda. Trocado
                      pelo utilitário real do Tailwind. -->
-                <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm print:hidden">← Voltar ao Painel</button>
               </div>
             </div>
 
@@ -2430,7 +2442,7 @@
                 <div class="flex gap-1">
                   <input type="date" id="agenda-data-fim" class="input-field text-sm" onchange="carregarTelaAgenda()">
                   <!-- PEDIDO DO USUÁRIO: botão "Hoje" logo após Data Final, filtra pelas corridas de hoje. -->
-                  <button type="button" onclick="filtrarAgendaHoje()" class="btn-outline text-sm px-2 shrink-0">Hoje</button>
+                  <button type="button" onclick="filtrarAgendaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button>
                 </div>
               </div>
               <div class="lg:col-span-2">
@@ -2446,7 +2458,7 @@
                 </select>
               </div>
               <div class="flex items-end">
-                <button onclick="limparFiltrosAgenda()" class="btn-outline btn-limpar text-sm w-full">Limpar filtros</button>
+                <button onclick="limparFiltrosAgenda()" class="btn-outline btn-limpar btn-filtro-g text-sm w-full">Limpar filtros</button>
               </div>
             </div>
 
@@ -2488,7 +2500,6 @@
           <div class="card p-6">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🚐</span> Agenda Combinada (MarkCarro + Bora Lá)</h2>
-              <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
             </div>
 
             <p class="text-sm text-slate-500 mb-4">
@@ -2507,7 +2518,7 @@
                 <div class="flex gap-1">
                   <input type="date" id="agenda-comb-data-inicio" class="input-field text-sm" onchange="carregarAgendaCombinada()">
                   <!-- PEDIDO DO USUÁRIO: botão "Hoje", mesmo padrão da Agenda de Corridas. -->
-                  <button type="button" onclick="filtrarAgendaCombinadaHoje()" class="btn-outline text-sm px-2 shrink-0">Hoje</button>
+                  <button type="button" onclick="filtrarAgendaCombinadaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button>
                 </div>
               </div>
               <div>
@@ -2529,7 +2540,7 @@
                 </select>
               </div>
               <div class="flex items-end">
-                <button onclick="limparFiltrosAgendaCombinada()" class="btn-outline btn-limpar text-sm w-full">Limpar filtros</button>
+                <button onclick="limparFiltrosAgendaCombinada()" class="btn-outline btn-limpar btn-filtro-g text-sm w-full">Limpar filtros</button>
               </div>
             </div>
 
@@ -2822,7 +2833,6 @@
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">👥</span> Gerenciar Condutores</h2>
             <div class="flex items-center gap-2">
               <button onclick="exportarCondutoresXlsxUI()" class="btn-outline text-sm">Exportar Excel</button>
-              <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
             </div>
           </div>
           <div id="aviso-cnh-condutores" class="mb-4"></div>
@@ -2894,6 +2904,10 @@
                   <label class="block text-sm font-medium text-slate-700 mb-1">Validade CNH</label>
                   <input type="date" id="cond-validade-cnh" class="input-field">
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Perfil de acesso</label>
+                  <select id="cond-perfil-acesso" class="input-field"><option value="">Acesso total (sem restrição)</option></select>
+                </div>
                 <div class="flex items-end">
                   <button type="submit" class="btn-primary w-full">Salvar</button>
                 </div>
@@ -2907,6 +2921,7 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <select id="filtro-cond-cooperativa" class="input-field text-sm" style="width:12rem;max-width:100%;" onchange="aplicarFiltroCondutores()"><option value="">Todas as Cooperativas</option></select>
                 <select id="filtro-cond-categoria" class="input-field text-sm" style="width:10rem;max-width:100%;" onchange="aplicarFiltroCondutores()"><option value="">Todas as Categorias</option></select>
+                <button type="button" class="btn-outline btn-limpar btn-filtro-g text-sm" onclick="limparFiltrosCondutores()">Limpar filtros</button>
               </div>
             </div>
             <div class="table-container" style="overflow-x:auto;">
@@ -2918,6 +2933,7 @@
                     <th class="table-th">Telefone</th>
                     <th class="table-th">Categoria</th>
                     <th class="table-th">Cooperativa</th>
+                    <th class="table-th">Perfil de acesso</th>
                     <th class="table-th">Placa</th>
                     <th class="table-th">Modelo</th>
                     <th class="table-th">Capacidade</th>
@@ -2942,7 +2958,6 @@
         <div id="tela-gerenciar-km" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📊</span> Gerenciar KM</h2>
-            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="card p-4 sm:p-6 lg:col-span-1">
@@ -3047,7 +3062,6 @@
         <div id="tela-gerenciar-usuarios" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📁</span> Gerenciar Usuários (Solicitantes)</h2>
-            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="card p-4 sm:p-6 lg:col-span-1">
@@ -3111,6 +3125,10 @@
                     <span class="block text-xs text-slate-400">Vê, edita e cancela as solicitações de todo o setor (só no navegador/computador, não no app instalado).</span>
                   </label>
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Perfil de acesso</label>
+                  <select id="usuario-perfil-acesso" class="input-field"><option value="">Acesso total (sem restrição)</option></select>
+                </div>
                 <button type="submit" class="btn-primary w-full">Salvar</button>
               </form>
             </div>
@@ -3121,6 +3139,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <select id="filtro-usu-unidade" class="input-field text-sm" style="width:14rem;max-width:100%;" onchange="aplicarFiltroUsuarios(true)"><option value="">Todas as Unidades</option></select>
                   <select id="filtro-usu-setor" class="input-field text-sm" style="width:12rem;max-width:100%;" onchange="aplicarFiltroUsuarios()"><option value="">Todos os Setores</option></select>
+                  <button type="button" class="btn-outline btn-limpar btn-filtro-g text-sm" onclick="limparFiltrosUsuarios()">Limpar filtros</button>
                 </div>
               </div>
               <div class="table-container" style="overflow-x:auto;">
@@ -3133,6 +3152,7 @@
                       <th class="table-th">Unidade</th>
                       <th class="table-th">Setor</th>
                       <th class="table-th">Responsável</th>
+                      <th class="table-th">Perfil de acesso</th>
                       <th class="table-th">Status</th>
                       <th class="table-th">Ações</th>
                       <th class="table-th">Acesso</th>
@@ -3268,7 +3288,6 @@
         <div id="tela-gerenciar-unidades" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🏢</span> Gerenciar Unidades</h2>
-            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
 
           <!-- CORREÇÃO (item 3 do lote do admin - "dividir a tela entre
@@ -3445,7 +3464,6 @@
         <div id="tela-gerenciar-cooperativas" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🤝</span> Gerenciar Cooperativas</h2>
-            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="card p-4 sm:p-6 lg:col-span-1">
@@ -3499,7 +3517,6 @@
         <div id="tela-gerenciar-perfis-acesso" class="hidden animate-fade-in">
           <div class="flex items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">🛡️</span> Gerenciar Perfis de Acesso</h2>
-            <button onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Voltar ao Painel</button>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="card p-4 sm:p-6 lg:col-span-1">
@@ -3512,6 +3529,14 @@
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">Nome do Perfil *</label>
                   <input type="text" id="perfil-acesso-nome" class="input-field" placeholder="Ex: Coordenador de Setor" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Para quem é este perfil</label>
+                  <div class="flex flex-wrap gap-2">
+                    <label class="perfil-tipo-opt"><input type="radio" name="perfil-acesso-tipo" value="admin" checked onchange="trocarTipoPerfilAcesso()"> Administrador</label>
+                    <label class="perfil-tipo-opt"><input type="radio" name="perfil-acesso-tipo" value="solicitante" onchange="trocarTipoPerfilAcesso()"> Solicitante</label>
+                    <label class="perfil-tipo-opt"><input type="radio" name="perfil-acesso-tipo" value="condutor" onchange="trocarTipoPerfilAcesso()"> Condutor</label>
+                  </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <div>
@@ -3629,12 +3654,6 @@
             <button type="button" class="rel-tab" data-relatorio="motoboy" onclick="selecionarRelatorio('motoboy')"><span aria-hidden="true">🏍️</span> Motoboy</button>
           </div>
 
-          <div id="rel-acoes">
-            <button type="button" onclick="exportarRelatorioXlsxUI()" class="btn-outline text-sm">Excel</button>
-            <button type="button" onclick="exportarRelatorioPDF()" class="btn-outline text-sm">PDF</button>
-            <button type="button" onclick="voltarParaPainelGestor()" class="btn-secondary text-sm">← Painel</button>
-          </div>
-
           <div class="card p-4 sm:p-5 mb-4">
             <div id="rel-cab" class="flex items-center justify-between gap-3 mb-3">
               <div>
@@ -3644,6 +3663,7 @@
             </div>
 
             <div id="rel-barra">
+            <div id="rel-barra-esq">
             <div id="rel-filtros" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div id="rel-filtro-wrap-periodo">
                 <label class="block text-xs font-medium text-slate-600 mb-1">Período</label>
@@ -3734,12 +3754,15 @@
             <div id="rel-botoes" class="flex flex-wrap items-center gap-2 mt-4">
               <button type="button" onclick="limparFiltrosRelatorio()" class="btn-outline btn-limpar text-sm">Limpar</button>
               <button type="button" onclick="carregarRelatorios(true)" class="btn-outline text-sm">Atualizar</button>
+              <button type="button" onclick="exportarRelatorioXlsxUI()" class="btn-outline text-sm">Excel</button>
+              <button type="button" onclick="exportarRelatorioPDF()" class="btn-outline text-sm">PDF</button>
             </div>
+            </div>
+            <div id="rel-kpis" class="grid grid-cols-2 gap-3"></div>
             </div>
           </div>
 
-          <div id="rel-kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"></div>
-
+          
           <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div class="card p-4 sm:p-6 lg:col-span-3">
               <div class="flex items-center justify-between mb-3">
@@ -3899,41 +3922,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005u"></script>
-  <script src="Supabase/supabase-client.js?v=20261005u"></script>
-  <script src="api.js?v=20261005u"></script>
-  <script src="utils.js?v=20261005u"></script>
-  <script src="components.js?v=20261005u"></script>
-  <script src="pages/login.js?v=20261005u"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005u"></script>
-  <script src="pages/cadastro.js?v=20261005u"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005u"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005u"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005u"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005u"></script>
-  <script src="pages/notificacoes.js?v=20261005u"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005u"></script>
-  <script src="pages/painel-dia.js?v=20261005u"></script>
-  <script src="pages/proximas-agendas.js?v=20261005u"></script>
-  <script src="pages/agenda.js?v=20261005u"></script>
-  <script src="pages/agenda-combinada.js?v=20261005u"></script>
-  <script src="pages/agenda-condutor.js?v=20261005u"></script>
-  <script src="pages/registro-km.js?v=20261005u"></script>
-  <script src="pages/gestor.js?v=20261005u"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005u"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005u"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005u"></script>
-  <script src="pages/gerenciar-km.js?v=20261005u"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005u"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005u"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005u"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005u"></script>
-  <script src="pages/relatorios.js?v=20261005u"></script>
-  <script src="pages/avisos.js?v=20261005u"></script>
-  <script src="pages/atualizacao-apk.js?v=20261005u"></script>
-  <script src="pages/alterar-senha.js?v=20261005u"></script>
-  <script src="ui-layout.js?v=20261005u"></script>
-  <script src="app.js?v=20261005u"></script>
+  <script src="config.js?v=20261005w"></script>
+  <script src="Supabase/supabase-client.js?v=20261005w"></script>
+  <script src="api.js?v=20261005w"></script>
+  <script src="utils.js?v=20261005w"></script>
+  <script src="components.js?v=20261005w"></script>
+  <script src="pages/login.js?v=20261005w"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005w"></script>
+  <script src="pages/cadastro.js?v=20261005w"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005w"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005w"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005w"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005w"></script>
+  <script src="pages/notificacoes.js?v=20261005w"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005w"></script>
+  <script src="pages/painel-dia.js?v=20261005w"></script>
+  <script src="pages/proximas-agendas.js?v=20261005w"></script>
+  <script src="pages/agenda.js?v=20261005w"></script>
+  <script src="pages/agenda-combinada.js?v=20261005w"></script>
+  <script src="pages/agenda-condutor.js?v=20261005w"></script>
+  <script src="pages/registro-km.js?v=20261005w"></script>
+  <script src="pages/gestor.js?v=20261005w"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005w"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005w"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005w"></script>
+  <script src="pages/gerenciar-km.js?v=20261005w"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005w"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005w"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005w"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005w"></script>
+  <script src="pages/relatorios.js?v=20261005w"></script>
+  <script src="pages/avisos.js?v=20261005w"></script>
+  <script src="pages/atualizacao-apk.js?v=20261005w"></script>
+  <script src="pages/alterar-senha.js?v=20261005w"></script>
+  <script src="ui-layout.js?v=20261005w"></script>
+  <script src="app.js?v=20261005w"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
@@ -4076,7 +4099,7 @@
   <div id="aviso-overlay" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.55);align-items:center;justify-content:center;padding:16px;">
     <div style="background:#fff;border-radius:18px;max-width:26rem;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden;">
       <div style="display:flex;gap:12px;align-items:center;padding:16px;background:linear-gradient(#f0f9ff,#fff);border-bottom:1px solid #e2e8f0;">
-        <div id="aviso-overlay-icone" style="width:44px;height:44px;border-radius:12px;background:#1e40af;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;" aria-hidden="true">📣</div>
+        <div id="aviso-overlay-icone" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:32px;flex:none;" aria-hidden="true">📣</div>
         <div style="min-width:0;"><span id="aviso-overlay-badge" class="aviso-badge norm">AVISO ADMINISTRATIVO</span>
           <div id="aviso-overlay-titulo" style="font-weight:800;font-size:16px;color:#0f172a;margin-top:4px;word-break:break-word;"></div></div>
       </div>

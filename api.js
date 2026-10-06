@@ -847,6 +847,17 @@ async function listarPerfisAcesso() {
   return data;
 }
 
+async function buscarPerfilAcessoPorId(id) {
+  _checarClient();
+  const { data, error } = await _sb
+    .from('perfis_acesso')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 async function criarPerfilAcesso(dados) {
   _checarClient();
   const { data, error } = await _sb
