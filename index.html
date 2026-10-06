@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261006b">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261006b">
-  <link rel="icon" href="favicon.png?v=20261006b">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261006e">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261006e">
+  <link rel="icon" href="favicon.png?v=20261006e">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -2510,11 +2510,11 @@
               Não consegui buscar a agenda do Bora Lá agora (sistema fora do ar ou sem conexão) - mostrando só o que já tem do MarkCarro.
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(15rem,1.4fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)_auto] gap-3 mb-4">
               <div>
                 <label for="agenda-comb-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">Data Inicial</label>
                 <div class="flex gap-1">
-                  <input type="date" id="agenda-comb-data-inicio" class="input-field text-sm" onchange="carregarAgendaCombinada()">
+                  <input type="date" id="agenda-comb-data-inicio" class="input-field text-sm min-w-0" onchange="carregarAgendaCombinada()">
                   <!-- PEDIDO DO USUÁRIO: botão "Hoje", mesmo padrão da Agenda de Corridas. -->
                   <button type="button" onclick="filtrarAgendaCombinadaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button>
                 </div>
@@ -2522,6 +2522,14 @@
               <div>
                 <label for="agenda-comb-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Data Final</label>
                 <input type="date" id="agenda-comb-data-fim" class="input-field text-sm" onchange="carregarAgendaCombinada()">
+              </div>
+              <div>
+                <label for="agenda-comb-filtro-sistema" class="block text-xs font-medium text-slate-500 mb-1">Sistema</label>
+                <select id="agenda-comb-filtro-sistema" class="input-field text-sm" onchange="aplicarFiltrosAgendaCombinada()">
+                  <option value="">Todos</option>
+                  <option value="markcarro">MarkCarro</option>
+                  <option value="borala">Bora Lá</option>
+                </select>
               </div>
               <div>
                 <label for="agenda-comb-filtro-placa" class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Placa</label>
@@ -3924,41 +3932,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261006b"></script>
-  <script src="Supabase/supabase-client.js?v=20261006b"></script>
-  <script src="api.js?v=20261006b"></script>
-  <script src="utils.js?v=20261006b"></script>
-  <script src="components.js?v=20261006b"></script>
-  <script src="pages/login.js?v=20261006b"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261006b"></script>
-  <script src="pages/cadastro.js?v=20261006b"></script>
-  <script src="pages/nova-solicitacao.js?v=20261006b"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261006b"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261006b"></script>
-  <script src="pages/viagens-do-dia.js?v=20261006b"></script>
-  <script src="pages/notificacoes.js?v=20261006b"></script>
-  <script src="pages/dashboard-condutor.js?v=20261006b"></script>
-  <script src="pages/painel-dia.js?v=20261006b"></script>
-  <script src="pages/proximas-agendas.js?v=20261006b"></script>
-  <script src="pages/agenda.js?v=20261006b"></script>
-  <script src="pages/agenda-combinada.js?v=20261006b"></script>
-  <script src="pages/agenda-condutor.js?v=20261006b"></script>
-  <script src="pages/registro-km.js?v=20261006b"></script>
-  <script src="pages/gestor.js?v=20261006b"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261006b"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261006b"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261006b"></script>
-  <script src="pages/gerenciar-km.js?v=20261006b"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261006b"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261006b"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261006b"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261006b"></script>
-  <script src="pages/relatorios.js?v=20261006b"></script>
-  <script src="pages/avisos.js?v=20261006b"></script>
-  <script src="pages/atualizacao-apk.js?v=20261006b"></script>
-  <script src="pages/alterar-senha.js?v=20261006b"></script>
-  <script src="ui-layout.js?v=20261006b"></script>
-  <script src="app.js?v=20261006b"></script>
+  <script src="config.js?v=20261006e"></script>
+  <script src="Supabase/supabase-client.js?v=20261006e"></script>
+  <script src="api.js?v=20261006e"></script>
+  <script src="utils.js?v=20261006e"></script>
+  <script src="components.js?v=20261006e"></script>
+  <script src="pages/login.js?v=20261006e"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261006e"></script>
+  <script src="pages/cadastro.js?v=20261006e"></script>
+  <script src="pages/nova-solicitacao.js?v=20261006e"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261006e"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261006e"></script>
+  <script src="pages/viagens-do-dia.js?v=20261006e"></script>
+  <script src="pages/notificacoes.js?v=20261006e"></script>
+  <script src="pages/dashboard-condutor.js?v=20261006e"></script>
+  <script src="pages/painel-dia.js?v=20261006e"></script>
+  <script src="pages/proximas-agendas.js?v=20261006e"></script>
+  <script src="pages/agenda.js?v=20261006e"></script>
+  <script src="pages/agenda-combinada.js?v=20261006e"></script>
+  <script src="pages/agenda-condutor.js?v=20261006e"></script>
+  <script src="pages/registro-km.js?v=20261006e"></script>
+  <script src="pages/gestor.js?v=20261006e"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261006e"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261006e"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261006e"></script>
+  <script src="pages/gerenciar-km.js?v=20261006e"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261006e"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261006e"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261006e"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261006e"></script>
+  <script src="pages/relatorios.js?v=20261006e"></script>
+  <script src="pages/avisos.js?v=20261006e"></script>
+  <script src="pages/atualizacao-apk.js?v=20261006e"></script>
+  <script src="pages/alterar-senha.js?v=20261006e"></script>
+  <script src="ui-layout.js?v=20261006e"></script>
+  <script src="app.js?v=20261006e"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
