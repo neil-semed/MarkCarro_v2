@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005y">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005y">
-  <link rel="icon" href="favicon.png?v=20261005y">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005z">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005z">
+  <link rel="icon" href="favicon.png?v=20261005z">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -901,6 +901,7 @@
     @media (min-width: 1340px) { #agenda-barra, #agenda-barra .agenda-botoes { flex-wrap: nowrap; } #agenda-barra { gap: 0.375rem; } #agenda-barra .agenda-botoes { gap: 0.375rem; } #agenda-barra .agenda-botoes svg { display: none; } #agenda-barra .agenda-botoes { flex: none; } }
     /* botões Hoje / Limpar filtros maiores */
     .btn-filtro-g { height: 2.25rem !important; min-height: 2.25rem !important; font-size: 12px !important; padding: 0 0.875rem !important; line-height: 1 !important; }
+    .btn-filtro-g.btn-filtro-alt { height: 2.625rem !important; min-height: 2.625rem !important; }
     /* checkbox "Ocultar solicitações passadas": só no navegador do PC */
     .solic-so-pc { display: none; }
     @media (min-width: 1024px) { html:not(.app-nativo) .solic-so-pc { display: inline-flex; } }
@@ -3027,7 +3028,7 @@
                   </select>
                 </div>
                 <div class="col-span-2 sm:col-span-1 flex items-end">
-                  <button type="button" class="btn-outline btn-limpar text-sm w-full" onclick="limparFiltrosKmGestor()">Limpar filtros</button>
+                  <button type="button" class="btn-outline btn-limpar btn-filtro-g btn-filtro-alt text-sm w-full" onclick="limparFiltrosKmGestor()">Limpar filtros</button>
                 </div>
               </div>
               <div id="aviso-km-bridge" class="hidden mb-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"></div>
@@ -3488,6 +3489,10 @@
 
             <div class="card p-4 sm:p-6 lg:col-span-2">
               <h3 class="text-base font-semibold text-slate-900 mb-4">Cooperativas cadastradas</h3>
+              <div class="flex flex-wrap items-center gap-2 mb-4">
+                <select id="filtro-cooperativa-lista" class="input-field text-sm" style="width:15rem;max-width:100%;" onchange="aplicarFiltroCooperativas()"><option value="">Todas as Cooperativas</option></select>
+                <button type="button" class="btn-outline btn-limpar btn-filtro-g btn-filtro-alt text-sm" onclick="limparFiltrosCooperativas()">Limpar filtros</button>
+              </div>
               <div class="table-container" style="overflow-x:auto;">
                 <table class="w-full text-sm" style="border-collapse:collapse;">
                   <thead>
@@ -3919,41 +3924,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005y"></script>
-  <script src="Supabase/supabase-client.js?v=20261005y"></script>
-  <script src="api.js?v=20261005y"></script>
-  <script src="utils.js?v=20261005y"></script>
-  <script src="components.js?v=20261005y"></script>
-  <script src="pages/login.js?v=20261005y"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005y"></script>
-  <script src="pages/cadastro.js?v=20261005y"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005y"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005y"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005y"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005y"></script>
-  <script src="pages/notificacoes.js?v=20261005y"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005y"></script>
-  <script src="pages/painel-dia.js?v=20261005y"></script>
-  <script src="pages/proximas-agendas.js?v=20261005y"></script>
-  <script src="pages/agenda.js?v=20261005y"></script>
-  <script src="pages/agenda-combinada.js?v=20261005y"></script>
-  <script src="pages/agenda-condutor.js?v=20261005y"></script>
-  <script src="pages/registro-km.js?v=20261005y"></script>
-  <script src="pages/gestor.js?v=20261005y"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005y"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005y"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005y"></script>
-  <script src="pages/gerenciar-km.js?v=20261005y"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005y"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005y"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005y"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005y"></script>
-  <script src="pages/relatorios.js?v=20261005y"></script>
-  <script src="pages/avisos.js?v=20261005y"></script>
-  <script src="pages/atualizacao-apk.js?v=20261005y"></script>
-  <script src="pages/alterar-senha.js?v=20261005y"></script>
-  <script src="ui-layout.js?v=20261005y"></script>
-  <script src="app.js?v=20261005y"></script>
+  <script src="config.js?v=20261005z"></script>
+  <script src="Supabase/supabase-client.js?v=20261005z"></script>
+  <script src="api.js?v=20261005z"></script>
+  <script src="utils.js?v=20261005z"></script>
+  <script src="components.js?v=20261005z"></script>
+  <script src="pages/login.js?v=20261005z"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005z"></script>
+  <script src="pages/cadastro.js?v=20261005z"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005z"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005z"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005z"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005z"></script>
+  <script src="pages/notificacoes.js?v=20261005z"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005z"></script>
+  <script src="pages/painel-dia.js?v=20261005z"></script>
+  <script src="pages/proximas-agendas.js?v=20261005z"></script>
+  <script src="pages/agenda.js?v=20261005z"></script>
+  <script src="pages/agenda-combinada.js?v=20261005z"></script>
+  <script src="pages/agenda-condutor.js?v=20261005z"></script>
+  <script src="pages/registro-km.js?v=20261005z"></script>
+  <script src="pages/gestor.js?v=20261005z"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005z"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005z"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005z"></script>
+  <script src="pages/gerenciar-km.js?v=20261005z"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005z"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005z"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005z"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005z"></script>
+  <script src="pages/relatorios.js?v=20261005z"></script>
+  <script src="pages/avisos.js?v=20261005z"></script>
+  <script src="pages/atualizacao-apk.js?v=20261005z"></script>
+  <script src="pages/alterar-senha.js?v=20261005z"></script>
+  <script src="ui-layout.js?v=20261005z"></script>
+  <script src="app.js?v=20261005z"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
