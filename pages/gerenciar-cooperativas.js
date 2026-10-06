@@ -15,7 +15,8 @@ async function carregarGerenciarCooperativas() {
   try {
     const cooperativas = await listarTodasCooperativas();
     cacheCooperativasGerenciar = cooperativas || [];
-    renderizarTabelaCooperativas(cacheCooperativasGerenciar);
+    preencherFiltroCooperativas();
+    aplicarFiltroCooperativas();
     aplicarModoConsultaTela('gerenciar-cooperativas', 'form-cooperativa');
   } catch (e) {
     // Antes, um erro aqui (ex: a tabela "cooperativas" ainda não criada no
@@ -28,6 +29,29 @@ async function carregarGerenciarCooperativas() {
     Components.Toast.error('Erro ao carregar cooperativas');
   }
 }
+
+function preencherFiltroCooperativas() {
+  const sel = document.getElementById('filtro-cooperativa-lista');
+  if (!sel) return;
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todas as Cooperativas</option>' + cacheCooperativasGerenciar
+    .slice().sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'))
+    .map(c => `<option value="${c.id}">${String(c.nome || '').replace(/</g, '&lt;')}</option>`).join('');
+  sel.value = cacheCooperativasGerenciar.some(c => String(c.id) === atual) ? atual : '';
+}
+
+function aplicarFiltroCooperativas() {
+  const id = document.getElementById('filtro-cooperativa-lista')?.value || '';
+  renderizarTabelaCooperativas(id ? cacheCooperativasGerenciar.filter(c => String(c.id) === id) : cacheCooperativasGerenciar);
+}
+
+function limparFiltrosCooperativas() {
+  const sel = document.getElementById('filtro-cooperativa-lista');
+  if (sel) sel.value = '';
+  aplicarFiltroCooperativas();
+}
+window.aplicarFiltroCooperativas = aplicarFiltroCooperativas;
+window.limparFiltrosCooperativas = limparFiltrosCooperativas;
 
 function renderizarTabelaCooperativas(cooperativas) {
   const tbody = document.getElementById('tb-cooperativas');
