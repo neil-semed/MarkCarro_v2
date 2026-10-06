@@ -77,6 +77,9 @@ function selecionarTodosAviso() {
 
 function limparSelecaoAviso() {
   _avisosSelecionados.clear();
+  document.getElementById('avisos-filtro-publico').value = '';
+  document.getElementById('avisos-filtro-unidade').value = '';
+  document.getElementById('avisos-busca').value = '';
   renderizarDestinatariosAviso();
 }
 
@@ -172,7 +175,6 @@ async function verificarAvisoSobreTela() {
     const badge = document.getElementById('aviso-overlay-badge');
     badge.textContent = imp ? 'AVISO IMPORTANTE' : 'AVISO ADMINISTRATIVO';
     badge.className = 'aviso-badge ' + (imp ? 'imp' : 'norm');
-    document.getElementById('aviso-overlay-icone').style.background = imp ? '#d97706' : '#1e40af';
     document.getElementById('aviso-overlay-titulo').textContent = n.titulo || 'Aviso';
     document.getElementById('aviso-overlay-mensagem').textContent = n.mensagem || '';
     document.getElementById('aviso-overlay').style.display = 'flex';

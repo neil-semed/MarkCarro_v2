@@ -49,7 +49,9 @@ async function carregarGerenciarUsuarios() {
       cacheResponsaveisSetor = [];
     }
     cacheUsuarios = (usuarios || []).filter(u => u.tipo === 'solicitante');
-    renderizarTabelaUsuarios(cacheUsuarios);
+    await preencherSelectPerfilAcessoTipo('usuario-perfil-acesso', 'solicitante');
+    preencherFiltrosUsuarios();
+    aplicarFiltroUsuarios();
 
     cacheUsuariosAdmin = (usuarios || []).filter(u => u.tipo === 'admin');
     await _preencherDropdownPerfisAcessoUsuarios();
@@ -85,10 +87,45 @@ function _ehResponsavelPeloSetor(u) {
   );
 }
 
+function preencherFiltrosUsuarios() {
+  const selU = document.getElementById('filtro-usu-unidade');
+  if (!selU) return;
+  const vU = selU.value;
+  const unidades = [...new Set(cacheUsuarios.map(u => u.unidade).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  selU.innerHTML = '<option value="">Todas as Unidades</option>' + unidades.map(n => `<option value="${n}">${n}</option>`).join('');
+  selU.value = unidades.includes(vU) ? vU : '';
+  preencherFiltroSetorUsuarios();
+}
+
+function preencherFiltroSetorUsuarios() {
+  const selS = document.getElementById('filtro-usu-setor');
+  if (!selS) return;
+  const unidade = document.getElementById('filtro-usu-unidade')?.value || '';
+  const vS = selS.value;
+  const setores = [...new Set(cacheUsuarios.filter(u => !unidade || u.unidade === unidade).map(u => u.setor).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  selS.innerHTML = '<option value="">Todos os Setores</option>' + setores.map(n => `<option value="${n}">${n}</option>`).join('');
+  selS.value = setores.includes(vS) ? vS : '';
+}
+
+function aplicarFiltroUsuarios(mudouUnidade) {
+  if (mudouUnidade) preencherFiltroSetorUsuarios();
+  const unidade = document.getElementById('filtro-usu-unidade')?.value || '';
+  const setor = document.getElementById('filtro-usu-setor')?.value || '';
+  renderizarTabelaUsuarios(cacheUsuarios.filter(u => (!unidade || u.unidade === unidade) && (!setor || u.setor === setor)));
+}
+
+function limparFiltrosUsuarios() {
+  const a = document.getElementById('filtro-usu-unidade'); if (a) a.value = '';
+  aplicarFiltroUsuarios(true);
+  const b = document.getElementById('filtro-usu-setor'); if (b) b.value = '';
+  aplicarFiltroUsuarios();
+}
+window.limparFiltrosUsuarios = limparFiltrosUsuarios;
+
 function renderizarTabelaUsuarios(usuarios) {
   const tbody = document.getElementById('tb-usuarios');
   if (!usuarios.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500">Nenhum solicitante</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-slate-500">Nenhum solicitante</td></tr>';
     return;
   }
 
@@ -100,6 +137,7 @@ function renderizarTabelaUsuarios(usuarios) {
       <td>${u.unidade || ''}</td>
       <td>${u.setor || ''}</td>
       <td>${_ehResponsavelPeloSetor(u) ? '<span class="badge badge-confirmada">Responsável</span>' : ''}</td>
+      <td class="text-xs">${nomePerfilAcessoPorId(u.perfil_acesso_id)}</td>
       <td><span class="badge ${u.ativo ? 'badge-confirmada' : 'badge-cancelada'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
       <td>
         <button class="btn-azul-claro text-xs py-1.5 px-2.5" onclick="editarUsuario('${u.email}')">Editar</button>
@@ -235,7 +273,8 @@ async function salvarUsuarioGestor() {
       nome: dados.nome,
       telefone: dados.telefone,
       unidade: dados.unidade,
-      setor: dados.setor
+      setor: dados.setor,
+      perfil_acesso_id: document.getElementById('usuario-perfil-acesso')?.value || null
     };
 
     if (emailOriginal) {
@@ -303,6 +342,8 @@ async function editarUsuario(email) {
   document.getElementById('uform-email').value = u.email;
   document.getElementById('usuario-senha').value = '';
   document.getElementById('usuario-telefone').value = u.telefone || '';
+  const selPerfil = document.getElementById('usuario-perfil-acesso');
+  if (selPerfil) selPerfil.value = u.perfil_acesso_id || '';
 
   preencherDropdownUnidadeUsuario();
   document.getElementById('usuario-unidade').value = u.unidade || '';
@@ -348,7 +389,7 @@ async function _preencherDropdownPerfisAcessoUsuarios() {
   const sel = document.getElementById('usuario-admin-perfil-acesso');
   if (!sel) return;
   try {
-    cachePerfisAcessoParaUsuarios = await listarPerfisAcesso() || [];
+    cachePerfisAcessoParaUsuarios = (await listarPerfisAcesso() || []).filter(p => (p.tipo_usuario || 'admin') === 'admin');
   } catch (e) {
     console.error('Erro ao carregar perfis de acesso para Usuários Administrativos:', e);
     cachePerfisAcessoParaUsuarios = [];
@@ -597,3 +638,5 @@ window.salvarDestinatarioRelatorio = salvarDestinatarioRelatorio;
 window.editarDestinatarioRelatorio = editarDestinatarioRelatorio;
 window.alternarAtivoDestinatarioRelatorio = alternarAtivoDestinatarioRelatorio;
 window.excluirDestinatarioRelatorioUI = excluirDestinatarioRelatorioUI;
+
+window.aplicarFiltroUsuarios = aplicarFiltroUsuarios;

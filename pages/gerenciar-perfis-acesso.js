@@ -25,27 +25,72 @@
 // fato aplica a restrição pro Admin logado é
 // aplicarRestricaoPerfilAcessoAdmin() (pages/login.js) +
 // usuarioPodeEditarTela()/aplicarModoConsultaTela() (app.js).
-const TELAS_DISPONIVEIS_PERFIL = [
-  { id: 'gestor', label: 'Dashboard', nivel: 'consulta' },
-  { id: 'gerenciamento-solicitacoes', label: 'Gerenciar Solicitações', nivel: 'editavel' },
-  { id: 'gerenciar-motoboy-documentos', label: 'Motoboy - Documentos', nivel: 'editavel' },
-  { id: 'agenda', label: 'Agenda de Corridas', nivel: 'consulta' },
-  { id: 'nova-solicitacao', label: 'Nova Solicitação', nivel: 'acao' },
-  { id: 'gerenciar-condutores', label: 'Condutores', nivel: 'editavel' },
-  { id: 'gerenciar-km', label: 'Gerenciar Km', nivel: 'editavel' },
-  { id: 'gerenciar-usuarios', label: 'Usuários', nivel: 'editavel' },
-  { id: 'gerenciar-unidades', label: 'Unidades', nivel: 'editavel' },
-  { id: 'gerenciar-cooperativas', label: 'Cooperativas', nivel: 'editavel' },
-  { id: 'gerenciar-perfis-acesso', label: 'Perfis de Acesso', nivel: 'editavel' },
-  { id: 'relatorios', label: 'Relatórios', nivel: 'consulta' },
-  { id: 'avisos', label: 'Avisos', nivel: 'editavel' },
-  { id: 'minhas-solicitacoes', label: 'Minhas Solicitações (Solicitante)', nivel: 'simples' },
-  { id: 'painel-dia', label: 'Painel do Dia (Condutor)', nivel: 'simples' },
-  { id: 'agenda-condutor', label: 'Agenda do Condutor', nivel: 'simples' },
-  { id: 'registro-km', label: 'Registro Km (Condutor)', nivel: 'simples' }
-];
+const TELAS_PERFIL_POR_TIPO = {
+  admin: [
+    { id: 'gestor', label: 'Dashboard', nivel: 'consulta' },
+    { id: 'gerenciamento-solicitacoes', label: 'Gerenciar Solicitações', nivel: 'editavel' },
+    { id: 'gerenciar-motoboy-documentos', label: 'Motoboy - Documentos', nivel: 'editavel' },
+    { id: 'agenda', label: 'Agenda de Corridas', nivel: 'consulta' },
+    { id: 'nova-solicitacao', label: 'Nova Solicitação', nivel: 'acao' },
+    { id: 'gerenciar-condutores', label: 'Condutores', nivel: 'editavel' },
+    { id: 'gerenciar-km', label: 'Gerenciar Km', nivel: 'editavel' },
+    { id: 'gerenciar-usuarios', label: 'Usuários', nivel: 'editavel' },
+    { id: 'gerenciar-unidades', label: 'Unidades', nivel: 'editavel' },
+    { id: 'gerenciar-cooperativas', label: 'Cooperativas', nivel: 'editavel' },
+    { id: 'gerenciar-perfis-acesso', label: 'Perfis de Acesso', nivel: 'editavel' },
+    { id: 'relatorios', label: 'Relatórios', nivel: 'consulta' },
+    { id: 'avisos', label: 'Avisos', nivel: 'editavel' }
+  ],
+  solicitante: [
+    { id: 'dashboard-solicitante', label: 'Dashboard', nivel: 'simples' },
+    { id: 'minhas-solicitacoes', label: 'Solicitações', nivel: 'simples' },
+    { id: 'nova-solicitacao', label: 'Nova Solicitação', nivel: 'simples' },
+    { id: 'viagens-do-dia', label: 'Viagens de Hoje', nivel: 'simples' },
+    { id: 'notificacoes', label: 'Alertas', nivel: 'simples' }
+  ],
+  condutor: [
+    { id: 'dashboard-condutor', label: 'Dashboard', nivel: 'simples' },
+    { id: 'painel-dia', label: 'Hoje', nivel: 'simples' },
+    { id: 'proximas-agendas', label: 'Próximas', nivel: 'simples' },
+    { id: 'agenda-condutor', label: 'Solicitações (Agenda)', nivel: 'simples' },
+    { id: 'registro-km', label: 'Registrar Km', nivel: 'simples' },
+    { id: 'notificacoes', label: 'Alertas', nivel: 'simples' }
+  ]
+};
+const ROTULO_TIPO_PERFIL = { admin: 'Administrador', solicitante: 'Solicitante', condutor: 'Condutor' };
+
+function _tipoPerfilSelecionado() {
+  return document.querySelector('input[name="perfil-acesso-tipo"]:checked')?.value || 'admin';
+}
+function _telasDoTipo(tipo) {
+  return TELAS_PERFIL_POR_TIPO[tipo] || TELAS_PERFIL_POR_TIPO.admin;
+}
+function trocarTipoPerfilAcesso() {
+  preencherCheckboxesTelasPerfil();
+}
 
 let cachePerfisAcesso = [];
+let _cachePerfisAcessoTodos = [];
+
+// Usados pelas telas de Solicitantes e Condutores cadastrados (escolher e mostrar o perfil de acesso).
+async function carregarPerfisAcessoTodos() {
+  try { _cachePerfisAcessoTodos = (await listarPerfisAcesso()) || []; } catch (e) { _cachePerfisAcessoTodos = []; }
+  return _cachePerfisAcessoTodos;
+}
+function nomePerfilAcessoPorId(id) {
+  if (!id) return '—';
+  const p = _cachePerfisAcessoTodos.find(x => String(x.id) === String(id));
+  return p ? p.nome + (p.bloqueado ? ' (bloqueado)' : '') : 'Perfil removido';
+}
+async function preencherSelectPerfilAcessoTipo(selectId, tipo) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  await carregarPerfisAcessoTodos();
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Acesso total (sem restrição)</option>' +
+    _cachePerfisAcessoTodos.filter(p => p.tipo_usuario === tipo).map(p => `<option value="${p.id}">${p.nome}${p.bloqueado ? ' (bloqueado)' : ''}</option>`).join('');
+  if (atual) sel.value = atual;
+}
 
 async function carregarGerenciarPerfisAcesso() {
   preencherCheckboxesTelasPerfil();
@@ -119,8 +164,8 @@ async function carregarSetoresPerfilAcesso(setorSelecionado) {
 
 function preencherCheckboxesTelasPerfil() {
   const container = document.getElementById('perfil-acesso-telas');
-  if (!container || container.dataset.preenchido) return;
-  container.innerHTML = TELAS_DISPONIVEIS_PERFIL.map(t => {
+  if (!container) return;
+  container.innerHTML = _telasDoTipo(_tipoPerfilSelecionado()).map(t => {
     let direita = '';
     if (t.nivel === 'consulta') {
       direita = `<span class="tela-perm-badge-consulta">Consulta</span>`;
@@ -140,7 +185,6 @@ function preencherCheckboxesTelasPerfil() {
         ${direita}
       </div>`;
   }).join('');
-  container.dataset.preenchido = '1';
 }
 
 // Reflete visualmente (fundo azulado + libera "Pode editar") o checkbox
@@ -167,7 +211,7 @@ function renderizarTabelaPerfisAcesso(perfis) {
     const telas = Array.isArray(p.telas_permitidas) ? p.telas_permitidas : [];
     const edicao = Array.isArray(p.telas_edicao) ? p.telas_edicao : [];
     const labelsTelas = telas.map(id => {
-      const t = TELAS_DISPONIVEIS_PERFIL.find(x => x.id === id);
+      const t = _telasDoTipo(p.tipo_usuario || 'admin').find(x => x.id === id);
       const label = t?.label || id;
       if (t?.nivel === 'editavel') {
         return edicao.includes(id)
@@ -179,7 +223,7 @@ function renderizarTabelaPerfisAcesso(perfis) {
     const vinculo = [p.unidade, p.setor].filter(Boolean).join(' / ') || '—';
     return `
     <tr>
-      <td class="table-td">${p.nome}</td>
+      <td class="table-td">${p.nome}<div class="text-xs text-slate-500">${ROTULO_TIPO_PERFIL[p.tipo_usuario || 'admin'] || 'Administrador'}</div></td>
       <td class="table-td">${vinculo}</td>
       <td class="table-td text-xs">${labelsTelas}</td>
       <td class="table-td"><span class="badge ${p.bloqueado ? 'badge-cancelada' : 'badge-confirmada'}">${p.bloqueado ? 'Bloqueado' : 'Ativo'}</span></td>
@@ -198,6 +242,8 @@ function renderizarTabelaPerfisAcesso(perfis) {
 function limparFormPerfilAcesso() {
   document.getElementById('form-perfil-acesso').reset();
   document.getElementById('perfil-acesso-id-edicao').value = '';
+  document.querySelectorAll('input[name="perfil-acesso-tipo"]').forEach(r => { r.disabled = false; r.checked = r.value === 'admin'; });
+  preencherCheckboxesTelasPerfil();
   document.getElementById('titulo-form-perfil-acesso').textContent = 'Novo Perfil de Acesso';
   document.getElementById('btn-cancelar-edicao-perfil-acesso').classList.add('hidden');
   document.querySelectorAll('#perfil-acesso-telas [data-tela-perfil]').forEach(cb => {
@@ -217,6 +263,8 @@ async function editarPerfilAcesso(id) {
 
   document.getElementById('perfil-acesso-id-edicao').value = p.id;
   document.getElementById('perfil-acesso-nome').value = p.nome || '';
+  document.querySelectorAll('input[name="perfil-acesso-tipo"]').forEach(r => { r.checked = r.value === (p.tipo_usuario || 'admin'); r.disabled = true; });
+  preencherCheckboxesTelasPerfil();
   preencherDropdownUnidadePerfilAcesso();
 
   const selUnidade = document.getElementById('perfil-acesso-unidade');
@@ -269,7 +317,8 @@ async function salvarPerfilAcesso() {
     unidade: document.getElementById('perfil-acesso-unidade').value.trim() || null,
     setor: document.getElementById('perfil-acesso-setor').value.trim() || null,
     telas_permitidas: telasMarcadas,
-    telas_edicao: telasEdicaoMarcadas
+    telas_edicao: telasEdicaoMarcadas,
+    tipo_usuario: _tipoPerfilSelecionado()
   };
 
   if (!dados.nome) return Components.Toast.error('Informe o nome do Perfil de Acesso');
@@ -318,6 +367,7 @@ async function excluirPerfilAcessoUI(id) {
 }
 
 // Expor globalmente
+window.trocarTipoPerfilAcesso = trocarTipoPerfilAcesso;
 window.carregarGerenciarPerfisAcesso = carregarGerenciarPerfisAcesso;
 window.salvarPerfilAcesso = salvarPerfilAcesso;
 window.limparFormPerfilAcesso = limparFormPerfilAcesso;
@@ -326,3 +376,7 @@ window.alternarBloqueioPerfilAcesso = alternarBloqueioPerfilAcesso;
 window.excluirPerfilAcessoUI = excluirPerfilAcessoUI;
 window.carregarSetoresPerfilAcesso = carregarSetoresPerfilAcesso;
 window._alternarCardTelaPerfil = _alternarCardTelaPerfil;
+
+window.carregarPerfisAcessoTodos = carregarPerfisAcessoTodos;
+window.nomePerfilAcessoPorId = nomePerfilAcessoPorId;
+window.preencherSelectPerfilAcessoTipo = preencherSelectPerfilAcessoTipo;

@@ -224,10 +224,20 @@ function aplicarFiltroMinhasSolicitacoes() {
   if (dataViagem) filtradas = filtradas.filter(s => s.data_viagem === dataViagem);
   if (trajeto) filtradas = filtradas.filter(s => `${s.origem || ''} ${s.destino || ''}`.toLowerCase().includes(trajeto));
 
+  // "Ocultar solicitações passadas": só vale quando o checkbox está visível (navegador no PC)
+  const chk = document.getElementById('chk-ocultar-passadas');
+  if (chk && chk.checked && chk.offsetParent !== null) {
+    const d = new Date();
+    const hojeLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    filtradas = filtradas.filter(s => (s.data_viagem || '') >= hojeLocal);
+  }
+
   renderizarMinhasSolicitacoes(filtradas);
 }
 
 function limparFiltrosMinhasSolicitacoes() {
+  const chk = document.getElementById('chk-ocultar-passadas');
+  if (chk) chk.checked = false;
   document.getElementById('filtro-minhas-solic-data-solic').value = '';
   document.getElementById('filtro-minhas-solic-data-viagem').value = '';
   document.getElementById('filtro-minhas-solic-trajeto').value = '';

@@ -262,6 +262,47 @@ async function aplicarRestricaoPerfilAcessoAdmin() {
   }
 }
 
+// Perfis de Acesso para Solicitante e Condutor: some com as pílulas/botões das telas
+// que o perfil não libera (CSS por data-aba, vale para topo, rodapé e gaveta) e devolve
+// a função da tela inicial (a padrão, se liberada; senão a primeira liberada).
+// Sem perfil atribuído (ou perfil não encontrado) = acesso total, como sempre foi.
+const _ABRIR_TELA_POR_TIPO = {
+  solicitante: {
+    'dashboard-solicitante': 'abrirDashboardSolicitante', 'minhas-solicitacoes': 'abrirMinhasSolicitacoes',
+    'nova-solicitacao': 'abrirNovaSolicitacao', 'viagens-do-dia': 'abrirViagensDoDia', 'notificacoes': 'abrirTelaNotificacoes'
+  },
+  condutor: {
+    'dashboard-condutor': 'abrirDashboardCondutor', 'painel-dia': 'abrirPainelDoDia', 'proximas-agendas': 'abrirProximasAgendas',
+    'agenda-condutor': 'abrirAgendaCondutor', 'registro-km': 'abrirRegistroKm', 'notificacoes': 'abrirTelaNotificacoes'
+  }
+};
+const _TELA_INICIAL_POR_TIPO = { solicitante: 'dashboard-solicitante', condutor: 'painel-dia' };
+
+async function aplicarRestricaoPerfilAcessoUsuario(tipo) {
+  document.getElementById('restricao-perfil-usuario')?.remove();
+  if (!usuarioAtual?.perfil_acesso_id) return null;
+  try {
+    const perfil = await buscarPerfilAcessoPorId(usuarioAtual.perfil_acesso_id);
+    if (!perfil || (perfil.tipo_usuario || 'admin') !== tipo) return null;
+    const mapa = _ABRIR_TELA_POR_TIPO[tipo];
+    const permitidas = perfil.bloqueado ? [] : (Array.isArray(perfil.telas_permitidas) ? perfil.telas_permitidas : []);
+    const bloqueadas = Object.keys(mapa).filter(t => !permitidas.includes(t));
+    if (bloqueadas.length) {
+      const st = document.createElement('style');
+      st.id = 'restricao-perfil-usuario';
+      st.textContent = bloqueadas.map(t => `#app-principal [data-aba="${t}"]{display:none !important;}`).join('\n');
+      document.head.appendChild(st);
+    }
+    if (perfil.bloqueado) Components.Toast.error(`Seu perfil de acesso "${perfil.nome}" está bloqueado. Fale com o administrador.`);
+    const inicial = _TELA_INICIAL_POR_TIPO[tipo];
+    const escolhida = permitidas.includes(inicial) ? inicial : Object.keys(mapa).find(t => permitidas.includes(t));
+    return escolhida ? mapa[escolhida] : null;
+  } catch (e) {
+    console.error('Erro ao aplicar Perfil de Acesso do usuário:', e);
+    return null;
+  }
+}
+
 // Abre a tela inicial do Admin - Dashboard, como sempre, exceto quando o
 // perfil dele restringe exatamente essa tela (aí abre a primeira tela
 // que o perfil libera).
@@ -277,6 +318,7 @@ function abrirTelaInicialAdmin() {
 }
 
 async function carregarPainelPorPerfil() {
+  document.getElementById('restricao-perfil-usuario')?.remove();
   document.getElementById('tela-login').classList.add('hidden');
   document.getElementById('app-principal').classList.remove('hidden');
 
@@ -475,7 +517,10 @@ async function carregarPainelPorPerfil() {
       if (elBnav) elBnav.textContent = rotuloCurto;
       if (elSide) elSide.textContent = rotulo;
     }
-    abrirPainelDoDia();
+    {
+      const abrirInicial = await aplicarRestricaoPerfilAcessoUsuario('condutor');
+      (abrirInicial && typeof window[abrirInicial] === 'function' ? window[abrirInicial] : abrirPainelDoDia)();
+    }
   } else {
     // PC: barra de pílulas fixa no topo.
     document.getElementById('topo-dashboard-solicitante')?.classList.remove('hidden');
@@ -528,7 +573,10 @@ async function carregarPainelPorPerfil() {
     }
     // Tela inicial agora é o Dashboard do Solicitante (dados próprios +
     // resumo do setor) - antes caía direto em Minhas Solicitações.
-    abrirDashboardSolicitante();
+    {
+      const abrirInicial = await aplicarRestricaoPerfilAcessoUsuario('solicitante');
+      (abrirInicial && typeof window[abrirInicial] === 'function' ? window[abrirInicial] : abrirDashboardSolicitante)();
+    }
     // Avisos automáticos (10 min antes da viagem/retorno, aprovada/
     // rejeitada no mesmo dia) - só faz sentido pro Solicitante, e só
     // roda enquanto ele está logado com o app aberto (ver

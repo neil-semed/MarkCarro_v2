@@ -18,7 +18,9 @@ async function carregarGerenciarCondutores() {
     cacheCondutores = condutores || [];
     cacheCooperativasCondutor = cooperativas || [];
     preencherSelectCooperativas();
-    renderizarTabelaCondutores(cacheCondutores);
+    await preencherSelectPerfilAcessoTipo('cond-perfil-acesso', 'condutor');
+    preencherFiltrosCondutores();
+    aplicarFiltroCondutores();
     renderizarAvisoCnh('aviso-cnh-condutores', cacheCondutores);
     preencherSelectCondutoresKm();
     aplicarModoConsultaTela('gerenciar-condutores', 'form-condutor');
@@ -48,10 +50,41 @@ function descreverCooperativa(cooperativaId) {
   return c ? c.nome : '';
 }
 
+function preencherFiltrosCondutores() {
+  const selCoop = document.getElementById('filtro-cond-cooperativa');
+  const selCat = document.getElementById('filtro-cond-categoria');
+  if (!selCoop || !selCat) return;
+  const vCoop = selCoop.value, vCat = selCat.value;
+  selCoop.innerHTML = '<option value="">Todas as Cooperativas</option><option value="__nenhuma">Sem cooperativa</option>' +
+    cacheCooperativasCondutor.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+  const cats = [...new Set(cacheCondutores.map(c => c.categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  selCat.innerHTML = '<option value="">Todas as Categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  selCoop.value = [...selCoop.options].some(o => o.value === vCoop) ? vCoop : '';
+  selCat.value = cats.includes(vCat) ? vCat : '';
+}
+
+function aplicarFiltroCondutores() {
+  const coop = document.getElementById('filtro-cond-cooperativa')?.value || '';
+  const cat = document.getElementById('filtro-cond-categoria')?.value || '';
+  const filtrados = cacheCondutores.filter(c => {
+    if (coop === '__nenhuma' ? c.cooperativa_id : (coop && String(c.cooperativa_id) !== coop)) return false;
+    if (cat && c.categoria !== cat) return false;
+    return true;
+  });
+  renderizarTabelaCondutores(filtrados);
+}
+
+function limparFiltrosCondutores() {
+  const a = document.getElementById('filtro-cond-cooperativa'); if (a) a.value = '';
+  const b = document.getElementById('filtro-cond-categoria'); if (b) b.value = '';
+  aplicarFiltroCondutores();
+}
+window.limparFiltrosCondutores = limparFiltrosCondutores;
+
 function renderizarTabelaCondutores(condutores) {
   const tbody = document.getElementById('tb-condutores');
   if (!condutores.length) {
-    tbody.innerHTML = '<tr><td colspan="13" class="text-center text-slate-500">Nenhum condutor</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14" class="text-center text-slate-500">Nenhum condutor</td></tr>';
     return;
   }
 
@@ -62,6 +95,7 @@ function renderizarTabelaCondutores(condutores) {
       <td>${c.telefone || ''}</td>
       <td>${c.categoria || ''}</td>
       <td>${descreverCooperativa(c.cooperativa_id)}</td>
+      <td class="text-xs">${nomePerfilAcessoPorId(c.perfil_acesso_id)}</td>
       <td>${c.placa || ''}</td>
       <td>${c.modelo || ''}</td>
       <td>${c.capacidade || ''}</td>
@@ -135,6 +169,7 @@ async function salvarCondutorGestor() {
       capacidade: dados.capacidade ? parseInt(dados.capacidade) : null,
       categoria: dados.categoria,
       cooperativa_id: dados.cooperativaId ? parseInt(dados.cooperativaId) : null,
+      perfil_acesso_id: document.getElementById('cond-perfil-acesso')?.value || null,
       cnh: dados.cnh,
       validade_cnh: dados.validadeCnh
     };
@@ -204,6 +239,8 @@ function editarCondutor(email) {
   document.getElementById('cond-telefone').value = c.telefone || '';
   document.getElementById('cond-categoria').value = c.categoria || 'Motorista';
   document.getElementById('cond-cooperativa').value = c.cooperativa_id || '';
+  const selPerfilCond = document.getElementById('cond-perfil-acesso');
+  if (selPerfilCond) selPerfilCond.value = c.perfil_acesso_id || '';
   document.getElementById('cond-placa').value = c.placa || '';
   document.getElementById('cond-modelo').value = c.modelo || '';
   document.getElementById('cond-capacidade').value = c.capacidade || '';
@@ -267,3 +304,5 @@ window.limparFormCondutor = limparFormCondutor;
 window.editarCondutor = editarCondutor;
 window.alternarAgendaGeral = alternarAgendaGeral;
 window.alternarAtivoCondutor = alternarAtivoCondutor;
+
+window.aplicarFiltroCondutores = aplicarFiltroCondutores;
