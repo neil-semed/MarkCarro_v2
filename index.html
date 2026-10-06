@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005r">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005r">
-  <link rel="icon" href="favicon.png?v=20261005r">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005t">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005t">
+  <link rel="icon" href="favicon.png?v=20261005t">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -1026,7 +1026,7 @@
            no apk instalado (+15% em cima desse tamanho) - ver script no
            fim do body que ajusta "--escala-login" conforme a plataforma. -->
       <div id="cartao-login" class="w-full max-w-md" style="transform: scale(var(--escala-login, 0.8)); transform-origin: center;">
-        <div class="bg-white rounded-[22px] border border-slate-200 shadow-xl overflow-hidden relative">
+        <div class="bg-white rounded-[22px] border border-slate-200 shadow-xl overflow-hidden relative" style="border:3px solid #d4a017;box-shadow:0 0 0 4px rgba(212,160,23,.18),0 10px 25px rgba(0,0,0,.15);">
           <!-- Faixa colorida no topo (cores da marca: vermelho → laranja → verde) -->
           <div class="absolute top-0 left-0 w-full h-[5px] bg-gradient-to-r from-red-600 via-orange-500 to-green-600"></div>
 
@@ -2904,8 +2904,8 @@
             <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
               <h3 class="text-base font-semibold text-slate-900">Condutores cadastrados</h3>
               <div class="flex items-center gap-2 flex-wrap">
-                <select id="filtro-cond-cooperativa" class="input-field text-sm max-w-[12rem]" onchange="aplicarFiltroCondutores()"><option value="">Todas as Cooperativas</option></select>
-                <select id="filtro-cond-categoria" class="input-field text-sm max-w-[10rem]" onchange="aplicarFiltroCondutores()"><option value="">Todas as Categorias</option></select>
+                <select id="filtro-cond-cooperativa" class="input-field text-sm" style="width:12rem;max-width:100%;" onchange="aplicarFiltroCondutores()"><option value="">Todas as Cooperativas</option></select>
+                <select id="filtro-cond-categoria" class="input-field text-sm" style="width:10rem;max-width:100%;" onchange="aplicarFiltroCondutores()"><option value="">Todas as Categorias</option></select>
               </div>
             </div>
             <div class="table-container" style="overflow-x:auto;">
@@ -3118,8 +3118,8 @@
               <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
                 <h3 class="text-base font-semibold text-slate-900">Solicitantes cadastrados</h3>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <select id="filtro-usu-unidade" class="input-field text-sm max-w-[14rem]" onchange="aplicarFiltroUsuarios(true)"><option value="">Todas as Unidades</option></select>
-                  <select id="filtro-usu-setor" class="input-field text-sm max-w-[12rem]" onchange="aplicarFiltroUsuarios()"><option value="">Todos os Setores</option></select>
+                  <select id="filtro-usu-unidade" class="input-field text-sm" style="width:14rem;max-width:100%;" onchange="aplicarFiltroUsuarios(true)"><option value="">Todas as Unidades</option></select>
+                  <select id="filtro-usu-setor" class="input-field text-sm" style="width:12rem;max-width:100%;" onchange="aplicarFiltroUsuarios()"><option value="">Todos os Setores</option></select>
                 </div>
               </div>
               <div class="table-container" style="overflow-x:auto;">
@@ -3898,40 +3898,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005r"></script>
-  <script src="Supabase/supabase-client.js?v=20261005r"></script>
-  <script src="api.js?v=20261005r"></script>
-  <script src="utils.js?v=20261005r"></script>
-  <script src="components.js?v=20261005r"></script>
-  <script src="pages/login.js?v=20261005r"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005r"></script>
-  <script src="pages/cadastro.js?v=20261005r"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005r"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005r"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005r"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005r"></script>
-  <script src="pages/notificacoes.js?v=20261005r"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005r"></script>
-  <script src="pages/painel-dia.js?v=20261005r"></script>
-  <script src="pages/proximas-agendas.js?v=20261005r"></script>
-  <script src="pages/agenda.js?v=20261005r"></script>
-  <script src="pages/agenda-combinada.js?v=20261005r"></script>
-  <script src="pages/agenda-condutor.js?v=20261005r"></script>
-  <script src="pages/registro-km.js?v=20261005r"></script>
-  <script src="pages/gestor.js?v=20261005r"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005r"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005r"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005r"></script>
-  <script src="pages/gerenciar-km.js?v=20261005r"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005r"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005r"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005r"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005r"></script>
-  <script src="pages/relatorios.js?v=20261005r"></script>
-  <script src="pages/avisos.js?v=20261005r"></script>
-  <script src="pages/alterar-senha.js?v=20261005r"></script>
-  <script src="ui-layout.js?v=20261005r"></script>
-  <script src="app.js?v=20261005r"></script>
+  <script src="config.js?v=20261005t"></script>
+  <script src="Supabase/supabase-client.js?v=20261005t"></script>
+  <script src="api.js?v=20261005t"></script>
+  <script src="utils.js?v=20261005t"></script>
+  <script src="components.js?v=20261005t"></script>
+  <script src="pages/login.js?v=20261005t"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005t"></script>
+  <script src="pages/cadastro.js?v=20261005t"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005t"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005t"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005t"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005t"></script>
+  <script src="pages/notificacoes.js?v=20261005t"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005t"></script>
+  <script src="pages/painel-dia.js?v=20261005t"></script>
+  <script src="pages/proximas-agendas.js?v=20261005t"></script>
+  <script src="pages/agenda.js?v=20261005t"></script>
+  <script src="pages/agenda-combinada.js?v=20261005t"></script>
+  <script src="pages/agenda-condutor.js?v=20261005t"></script>
+  <script src="pages/registro-km.js?v=20261005t"></script>
+  <script src="pages/gestor.js?v=20261005t"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005t"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005t"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005t"></script>
+  <script src="pages/gerenciar-km.js?v=20261005t"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005t"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005t"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005t"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005t"></script>
+  <script src="pages/relatorios.js?v=20261005t"></script>
+  <script src="pages/avisos.js?v=20261005t"></script>
+  <script src="pages/atualizacao-apk.js?v=20261005t"></script>
+  <script src="pages/alterar-senha.js?v=20261005t"></script>
+  <script src="ui-layout.js?v=20261005t"></script>
+  <script src="app.js?v=20261005t"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
@@ -4083,6 +4084,17 @@
         <p style="margin:14px 0 12px;font-size:11px;color:#94a3b8;">O aviso continuará disponível no sino de notificações até ser marcado como lido.</p>
         <button type="button" class="btn-primary w-full" onclick="fecharAvisoSobreTela()" style="height:2.25rem;font-size:13px;">Entendi</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Nova versão do APK (só aparece dentro do app instalado) -->
+  <div id="apk-update-overlay" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;z-index:100001;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:18px;max-width:24rem;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);padding:20px;text-align:center;">
+      <div style="font-size:34px;" aria-hidden="true">⬇️</div>
+      <div style="font-weight:800;font-size:17px;color:#0f172a;margin-top:6px;">Nova versão do aplicativo</div>
+      <p style="font-size:13px;line-height:1.5;color:#475569;margin:8px 0 16px;">Há uma versão mais recente do MarkCarro. Baixe e instale para receber os avisos e as novidades.</p>
+      <button type="button" class="btn-primary w-full" onclick="baixarAtualizacaoApk()" style="height:2.5rem;font-size:13px;">Baixar atualização</button>
+      <button type="button" class="btn-outline w-full" onclick="dispensarAtualizacaoApk()" style="height:2.25rem;font-size:12px;margin-top:8px;">Agora não</button>
     </div>
   </div>
 
