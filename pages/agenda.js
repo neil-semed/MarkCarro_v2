@@ -407,9 +407,10 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
     styles: { fontSize: FS, cellPadding: PAD, valign: 'middle', textColor: [0, 0, 0], lineColor: [148, 163, 184], lineWidth: 0.15, overflow: 'linebreak' },
     headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'left', fontSize: FS },
     columnStyles,
+    rowPageBreak: 'avoid',
     didDrawCell: (d) => {
       const c = cols[d.column.index];
-      if (d.section === 'body' && c.t === 'par') desenharPar(d.cell, ...c.d[d.row.index]);
+      if (d.section === 'body' && c.t === 'par' && d.row.index >= 0 && c.d[d.row.index]) desenharPar(d.cell, ...c.d[d.row.index]);
     },
   });
 
