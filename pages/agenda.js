@@ -63,6 +63,7 @@ async function carregarTelaAgenda() {
       ? await buscarSolicitacoesPorData(inicio, fim)
       : await buscarTodasSolicitacoes();
     cacheAgenda = dados || [];
+    popularFiltroSetorAgenda();
     aplicarFiltrosAgenda();
   } catch (e) {
     // Sem isso, um erro aqui deixava a tabela travada no spinner de
@@ -75,11 +76,25 @@ async function carregarTelaAgenda() {
 
 // Filtro de Status - aplicado no cliente sobre o período já carregado (o
 // filtro de datas continua sendo feito na consulta ao Supabase).
-function aplicarFiltrosAgenda() {
+// Status + Setor aplicados sobre o período carregado (usado na tabela, PDF, Escala e Excel).
+function _agendaFiltrada() {
   const status = document.getElementById('agenda-filtro-status')?.value || 'TODOS';
-  let filtrados = status === 'TODOS'
-    ? cacheAgenda.slice()
-    : cacheAgenda.filter(s => (s.status || 'Pendente') === status);
+  const setor = document.getElementById('agenda-filtro-setor')?.value || '';
+  return cacheAgenda.filter(s => (status === 'TODOS' || (s.status || 'Pendente') === status) && (!setor || (s.setor || '') === setor));
+}
+
+// Lista os setores presentes no período carregado, mantendo a seleção atual.
+function popularFiltroSetorAgenda() {
+  const sel = document.getElementById('agenda-filtro-setor');
+  if (!sel) return;
+  const atual = sel.value;
+  const setores = [...new Set(cacheAgenda.map(s => s.setor).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Todos os setores</option>' + setores.map(x => `<option value="${String(x).replace(/"/g, '&quot;')}">${x}</option>`).join('');
+  sel.value = setores.includes(atual) ? atual : '';
+}
+
+function aplicarFiltrosAgenda() {
+  let filtrados = _agendaFiltrada();
   // PEDIDO DO USUÁRIO: ordem crescente, 1º por Data da Viagem, 2º por
   // Horário de Saída (mesma regra e mesma função de Gerenciar Solicitações,
   // ver pages/gerenciamento-solicitacoes.js).
@@ -104,6 +119,7 @@ function filtrarAgendaHoje() {
 
 function limparFiltrosAgenda() {
   document.getElementById('agenda-filtro-status').value = 'TODOS';
+  const _fs = document.getElementById('agenda-filtro-setor'); if (_fs) _fs.value = '';
   document.getElementById('agenda-data-inicio').value = '';
   document.getElementById('agenda-data-fim').value = '';
   carregarTelaAgenda();
@@ -250,8 +266,7 @@ async function enviarAgendaEmailUI() {
 // novo, não substituída.
 function exportarAgendaXlsxUI() {
   if (typeof XLSX === 'undefined') return Components.Toast.error('Biblioteca de exportação não carregada');
-  const status = document.getElementById('agenda-filtro-status')?.value || 'TODOS';
-  const dados = status === 'TODOS' ? cacheAgenda : cacheAgenda.filter(s => (s.status || 'Pendente') === status);
+  const dados = _agendaFiltrada();
   if (!dados.length) return Components.Toast.warning('Não há corridas no período para exportar');
 
   const linhas = dados.map(s => ({
@@ -431,9 +446,8 @@ window._gerarRelatorioTabelaPDF = _gerarRelatorioTabelaPDF;
 // exportarAgendaXlsxUI).
 function exportarAgendaPDF() {
   if (typeof window.jspdf === 'undefined') return Components.Toast.error('Biblioteca de geração de PDF não carregada');
-  const status = document.getElementById('agenda-filtro-status')?.value || 'TODOS';
   const dados = ordenarPorDataEHoraSaida(
-    (status === 'TODOS' ? cacheAgenda.slice() : cacheAgenda.filter(s => (s.status || 'Pendente') === status))
+    _agendaFiltrada()
       .filter(s => s.tipo_viagem !== 'Motoboy')
   );
   if (!dados.length) return Components.Toast.warning('Não há corridas no período para gerar o relatório');
@@ -451,9 +465,8 @@ function exportarAgendaPDF() {
 // e/ou volta) - sem coluna Data, com coluna Celular do solicitante.
 function exportarEscalaPDF() {
   if (typeof window.jspdf === 'undefined') return Components.Toast.error('Biblioteca de geração de PDF não carregada');
-  const status = document.getElementById('agenda-filtro-status')?.value || 'TODOS';
   const dados = ordenarPorDataEHoraSaida(
-    (status === 'TODOS' ? cacheAgenda.slice() : cacheAgenda.filter(s => (s.status || 'Pendente') === status))
+    _agendaFiltrada()
       .filter(s => s.condutor_ida || s.condutor_volta)
   );
   if (!dados.length) return Components.Toast.warning('Não há corridas com condutor atribuído no período para gerar a escala');
