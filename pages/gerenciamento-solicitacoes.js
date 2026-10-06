@@ -349,7 +349,7 @@ function renderizarTabelaGestorCompleta(dados) {
         <textarea rows="2" class="input-field text-sm py-1.5 px-2" style="min-width:150px" onchange="marcarCampoAlteradoGestor('${s.id}', 'justificativa', this.value)">${escGestor(v.justificativa)}</textarea>
       </td>
       <td>${s.tipo_viagem}</td>
-      <td style="min-width:80px"><input type="number" value="${v.qtd_pessoas}" class="input-field text-sm py-1.5 px-2" min="1" onchange="marcarCampoAlteradoGestor('${s.id}', 'qtd_pessoas', this.value)"></td>
+      <td style="min-width:96px"><input type="number" value="${v.qtd_pessoas}" class="input-field text-sm py-1.5 px-2" min="1" onchange="marcarCampoAlteradoGestor('${s.id}', 'qtd_pessoas', this.value)"></td>
       <td><span class="badge ${classeStatus(status)}">${status}</span></td>
       <!-- PEDIDO DO USUÁRIO ("colocar os botões abaixo de condutor ida e
            condutor volta - como se fossem células mescladas -, nessa
