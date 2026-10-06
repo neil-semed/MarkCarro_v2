@@ -151,7 +151,8 @@ function renderizarPainelDoDia(lista) {
       : (mesmoEmail(s.condutor_ida, usuarioAtual.email) && mesmoEmail(s.condutor_volta, usuarioAtual.email)
         ? 'Ida e Volta'
         : mesmoEmail(s.condutor_ida, usuarioAtual.email) ? 'Ida' : 'Volta');
-    const statusExibido = doBoraLa ? 'Confirmada' : s.status;
+    // Para o motorista, cancelamento pelo solicitante ("Desprezado") também aparece como "Cancelada".
+    const statusExibido = doBoraLa ? 'Confirmada' : (s.status === 'Desprezado' ? 'Cancelada' : s.status);
     // origem/destino/qtd_pessoas já vêm com os mesmos nomes de campo dos 2
     // lados (solicitacoes do MarkCarro e agenda-veiculos do Bora Lá).
     const solicitante = doBoraLa ? (s.nome_solicitante || '') : (s.nome_ext || s.email_solicitante || '');
