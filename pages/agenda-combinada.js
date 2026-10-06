@@ -132,6 +132,9 @@ function renderizarAgendaCombinada(dados, erroBoraLa) {
   let filtrados = dados.slice();
   if (filtroPlaca) filtrados = filtrados.filter(l => (l.placa || '').toUpperCase().includes(filtroPlaca));
   if (filtroMotorista) filtrados = filtrados.filter(l => l.motorista === filtroMotorista);
+  const filtroSistema = document.getElementById('agenda-comb-filtro-sistema')?.value || '';
+  if (filtroSistema === 'markcarro') filtrados = filtrados.filter(l => l.sistema === 'markcarro');
+  if (filtroSistema === 'borala') filtrados = filtrados.filter(l => l.sistema !== 'markcarro');
 
   if (!filtrados.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-8">Nenhuma van escalada no período</td></tr>';
@@ -174,6 +177,8 @@ function limparFiltrosAgendaCombinada() {
   document.getElementById('agenda-comb-filtro-placa').value = '';
   const selMotorista = document.getElementById('agenda-comb-filtro-motorista');
   if (selMotorista) selMotorista.value = '';
+  const selSistema = document.getElementById('agenda-comb-filtro-sistema');
+  if (selSistema) selSistema.value = '';
   carregarAgendaCombinada();
 }
 
