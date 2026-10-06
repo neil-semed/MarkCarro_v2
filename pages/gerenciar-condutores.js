@@ -202,6 +202,9 @@ async function salvarCondutorGestor() {
       // numa tacada só, exista ou não a linha do gatilho ainda.
       const { user } = await criarUsuarioComoAdmin(dados.email, dados.senha, { tipo: 'condutor', nome: dados.nome });
       await adminUpsertPerfil(user.id, Object.assign({ tipo: 'condutor', email: dados.email }, perfil));
+      if (perfil.perfil_acesso_id) {
+        try { await atualizarPerfilPorEmailComVerificacao(dados.email, { perfil_acesso_id: perfil.perfil_acesso_id }); } catch (e) { console.error(e); Components.Toast.warning('Condutor criado, mas o Perfil de acesso não foi gravado. Edite o condutor e salve de novo.'); }
+      }
       // CORREÇÃO (6ª tentativa - "continua sem criar usuário"): confirma o
       // e-mail numa chamada separada, depois que a conta e o perfil já
       // existem de verdade - ver comentário completo em api.js

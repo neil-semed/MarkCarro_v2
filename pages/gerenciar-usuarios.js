@@ -300,6 +300,9 @@ async function salvarUsuarioGestor() {
       // novo por e-mail.
       const { user } = await criarUsuarioComoAdmin(dados.email, dados.senha, { tipo: 'solicitante', nome: dados.nome });
       await adminUpsertPerfil(user.id, Object.assign({ tipo: 'solicitante', email: dados.email }, perfil));
+      if (perfil.perfil_acesso_id) {
+        try { await atualizarPerfilPorEmailComVerificacao(dados.email, { perfil_acesso_id: perfil.perfil_acesso_id }); } catch (e) { console.error(e); Components.Toast.warning('Usuário criado, mas o Perfil de acesso não foi gravado. Edite o usuário e salve de novo.'); }
+      }
       // CORREÇÃO (6ª tentativa - "continua sem criar usuário"): ver
       // comentário completo em gerenciar-condutores.js/api.js
       // (adminConfirmarEmail) e supabase_fix_signup_definitivo.sql.
