@@ -6,6 +6,9 @@ const CONFIG = {
   SUPABASE_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dGd0ZGhmY2lxZWduanFjcWxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTMyNDcsImV4cCI6MjEwNDEyOTI0N30.9E3-rFSagbTmz5cUcCBER0RMvlwi0oLSy6LwxWazWcs',
   APP_NAME: 'MarkCarro',
+  // Endereço público do app (GitHub Pages) - usado como destino do link de
+  // confirmação de cadastro enviado por e-mail (emailRedirectTo).
+  APP_URL: 'https://neil-semed.github.io/MarkCarro_v2/',
   ORGAO: 'SEMED Nova Lima',
   // Agenda combinada (só LEITURA) com o Bora Lá - outro projeto Supabase,
   // usado pelas excursões escolares. As mesmas vans atendem os 2 sistemas,

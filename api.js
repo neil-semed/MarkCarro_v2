@@ -39,7 +39,9 @@ async function supabaseCadastro(email, senha, metaDados) {
   const { data, error } = await _sb.auth.signUp({
     email,
     password: senha,
-    options: { data: metaDados || {} }
+    // emailRedirectTo: o link de confirmação do e-mail abre o app no endereço
+    // certo (sem isso cai no "Site URL" do Supabase - se estiver errado, 404).
+    options: { data: metaDados || {}, emailRedirectTo: (window.CONFIG && window.CONFIG.APP_URL) || undefined }
   });
   if (error) throw error;
 
