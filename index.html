@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005x">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005x">
-  <link rel="icon" href="favicon.png?v=20261005x">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261005y">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261005y">
+  <link rel="icon" href="favicon.png?v=20261005y">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -893,6 +893,12 @@
     body.ui-compacta #tela-gerenciar-km .table-container table td:last-child { width: 1%; white-space: nowrap; }
     body.ui-compacta #tela-gerenciar-km .table-container table td:last-child > div { gap: 0.25rem; }
 
+    /* Agenda de Corridas: filtros e botões na mesma linha */
+    #agenda-barra { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem; margin-bottom: 0.75rem; }
+    #agenda-barra .agenda-f { flex: none; }
+    #agenda-barra .agenda-botoes { display: flex; flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-left: auto; min-width: 0; }
+    #agenda-barra .agenda-botoes .btn-filtro-g { padding: 0 0.5rem !important; }
+    @media (min-width: 1340px) { #agenda-barra, #agenda-barra .agenda-botoes { flex-wrap: nowrap; } #agenda-barra { gap: 0.375rem; } #agenda-barra .agenda-botoes { gap: 0.375rem; } #agenda-barra .agenda-botoes svg { display: none; } #agenda-barra .agenda-botoes { flex: none; } }
     /* botões Hoje / Limpar filtros maiores */
     .btn-filtro-g { height: 2.25rem !important; min-height: 2.25rem !important; font-size: 12px !important; padding: 0 0.875rem !important; line-height: 1 !important; }
     /* checkbox "Ocultar solicitações passadas": só no navegador do PC */
@@ -2388,9 +2394,30 @@
         <!-- Tela Agenda de Corridas (Gestor) -->
         <div id="tela-agenda" class="hidden animate-fade-in">
           <div class="card p-6">
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
               <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📅</span> Agenda de Corridas</h2>
-              <div class="flex flex-wrap items-center gap-2">
+            </div>
+
+            <div id="agenda-barra" class="print:hidden">
+              <div class="agenda-f"><label for="agenda-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">Data Inicial</label>
+                <input type="date" id="agenda-data-inicio" class="input-field text-sm" style="width:9rem" onchange="carregarTelaAgenda()"></div>
+              <div class="agenda-f"><label for="agenda-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Data Final</label>
+                <input type="date" id="agenda-data-fim" class="input-field text-sm" style="width:9rem" onchange="carregarTelaAgenda()"></div>
+              <div class="agenda-f"><button type="button" onclick="filtrarAgendaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button></div>
+              <div class="agenda-f"><label for="agenda-filtro-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                <select id="agenda-filtro-status" class="input-field text-sm" style="width:7.5rem" onchange="aplicarFiltrosAgenda()">
+                  <option value="TODOS">Todos</option>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Em Análise">Em Análise</option>
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Ocupado">Ocupado</option>
+                  <option value="Cancelada">Cancelada</option>
+                  <option value="Desprezado">Desprezado</option>
+                </select></div>
+              <div class="agenda-f"><label for="agenda-filtro-setor" class="block text-xs font-medium text-slate-500 mb-1">Setor</label>
+                <select id="agenda-filtro-setor" class="input-field text-sm" style="width:10.5rem" onchange="aplicarFiltrosAgenda()"><option value="">Todos os setores</option></select></div>
+              <div class="agenda-f"><button onclick="limparFiltrosAgenda()" class="btn-outline btn-limpar btn-filtro-g text-sm">Limpar filtros</button></div>
+              <div class="agenda-f agenda-botoes">
                 <!-- CORREÇÃO (pedido do usuário: "criar um relatório de
                      verdade, pois está exibindo a página ao clicar no
                      botão imprimir"): antes chamava window.print() na
@@ -2400,7 +2427,7 @@
                      "Escala" do Bora Lá (faixa colorida no topo, caixa de
                      Período/Total, tabela própria) - ver
                      exportarAgendaPDF() em pages/agenda.js. -->
-                <button onclick="exportarAgendaPDF()" class="btn-outline text-sm">
+                <button onclick="exportarAgendaPDF()" class="btn-outline btn-filtro-g text-sm">
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                   Gerar Relatório PDF
                 </button>
@@ -2409,11 +2436,11 @@
                      atribuído, sem coluna Data, com coluna Celular do
                      solicitante - ver exportarEscalaPDF() em
                      pages/agenda.js. -->
-                <button onclick="exportarEscalaPDF()" class="btn-outline text-sm">
+                <button onclick="exportarEscalaPDF()" class="btn-outline btn-filtro-g text-sm">
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                   Escala
                 </button>
-                <button id="btn-exportar-agenda" onclick="exportarAgendaXlsxUI()" class="btn-primary text-sm">
+                <button id="btn-exportar-agenda" onclick="exportarAgendaXlsxUI()" class="btn-primary btn-filtro-g text-sm">
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
                   Exportar Excel
                 </button>
@@ -2422,43 +2449,13 @@
                      lista de Destinatários cadastrada em Gerenciar
                      Usuários (ver enviarAgendaEmailUI() em
                      pages/agenda.js e a Edge Function enviar-agenda-email). -->
-                <button id="btn-enviar-agenda-email" onclick="enviarAgendaEmailUI()" class="btn-outline text-sm">
+                <button id="btn-enviar-agenda-email" onclick="enviarAgendaEmailUI()" class="btn-outline btn-filtro-g text-sm">
                   <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                   Enviar por E-mail
                 </button>
                 <!-- Era "d-print-none" (Bootstrap, não existe aqui) - o botão
                      aparecia também na versão impressa da Agenda. Trocado
                      pelo utilitário real do Tailwind. -->
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 print:hidden">
-              <div>
-                <label for="agenda-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">Data Inicial</label>
-                <input type="date" id="agenda-data-inicio" class="input-field text-sm" onchange="carregarTelaAgenda()">
-              </div>
-              <div>
-                <label for="agenda-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Data Final</label>
-                <div class="flex gap-1">
-                  <input type="date" id="agenda-data-fim" class="input-field text-sm" onchange="carregarTelaAgenda()">
-                  <!-- PEDIDO DO USUÁRIO: botão "Hoje" logo após Data Final, filtra pelas corridas de hoje. -->
-                  <button type="button" onclick="filtrarAgendaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button>
-                </div>
-              </div>
-              <div class="lg:col-span-2">
-                <label for="agenda-filtro-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                <select id="agenda-filtro-status" class="input-field text-sm" onchange="aplicarFiltrosAgenda()">
-                  <option value="TODOS">Todos</option>
-                  <option value="Pendente">Pendente</option>
-                  <option value="Em Análise">Em Análise</option>
-                  <option value="Confirmada">Confirmada</option>
-                  <option value="Ocupado">Ocupado</option>
-                  <option value="Cancelada">Cancelada</option>
-                  <option value="Desprezado">Desprezado</option>
-                </select>
-              </div>
-              <div class="flex items-end">
-                <button onclick="limparFiltrosAgenda()" class="btn-outline btn-limpar btn-filtro-g text-sm w-full">Limpar filtros</button>
               </div>
             </div>
 
@@ -3922,41 +3919,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261005x"></script>
-  <script src="Supabase/supabase-client.js?v=20261005x"></script>
-  <script src="api.js?v=20261005x"></script>
-  <script src="utils.js?v=20261005x"></script>
-  <script src="components.js?v=20261005x"></script>
-  <script src="pages/login.js?v=20261005x"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261005x"></script>
-  <script src="pages/cadastro.js?v=20261005x"></script>
-  <script src="pages/nova-solicitacao.js?v=20261005x"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261005x"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261005x"></script>
-  <script src="pages/viagens-do-dia.js?v=20261005x"></script>
-  <script src="pages/notificacoes.js?v=20261005x"></script>
-  <script src="pages/dashboard-condutor.js?v=20261005x"></script>
-  <script src="pages/painel-dia.js?v=20261005x"></script>
-  <script src="pages/proximas-agendas.js?v=20261005x"></script>
-  <script src="pages/agenda.js?v=20261005x"></script>
-  <script src="pages/agenda-combinada.js?v=20261005x"></script>
-  <script src="pages/agenda-condutor.js?v=20261005x"></script>
-  <script src="pages/registro-km.js?v=20261005x"></script>
-  <script src="pages/gestor.js?v=20261005x"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261005x"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005x"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261005x"></script>
-  <script src="pages/gerenciar-km.js?v=20261005x"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261005x"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261005x"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261005x"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261005x"></script>
-  <script src="pages/relatorios.js?v=20261005x"></script>
-  <script src="pages/avisos.js?v=20261005x"></script>
-  <script src="pages/atualizacao-apk.js?v=20261005x"></script>
-  <script src="pages/alterar-senha.js?v=20261005x"></script>
-  <script src="ui-layout.js?v=20261005x"></script>
-  <script src="app.js?v=20261005x"></script>
+  <script src="config.js?v=20261005y"></script>
+  <script src="Supabase/supabase-client.js?v=20261005y"></script>
+  <script src="api.js?v=20261005y"></script>
+  <script src="utils.js?v=20261005y"></script>
+  <script src="components.js?v=20261005y"></script>
+  <script src="pages/login.js?v=20261005y"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261005y"></script>
+  <script src="pages/cadastro.js?v=20261005y"></script>
+  <script src="pages/nova-solicitacao.js?v=20261005y"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261005y"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261005y"></script>
+  <script src="pages/viagens-do-dia.js?v=20261005y"></script>
+  <script src="pages/notificacoes.js?v=20261005y"></script>
+  <script src="pages/dashboard-condutor.js?v=20261005y"></script>
+  <script src="pages/painel-dia.js?v=20261005y"></script>
+  <script src="pages/proximas-agendas.js?v=20261005y"></script>
+  <script src="pages/agenda.js?v=20261005y"></script>
+  <script src="pages/agenda-combinada.js?v=20261005y"></script>
+  <script src="pages/agenda-condutor.js?v=20261005y"></script>
+  <script src="pages/registro-km.js?v=20261005y"></script>
+  <script src="pages/gestor.js?v=20261005y"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261005y"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261005y"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261005y"></script>
+  <script src="pages/gerenciar-km.js?v=20261005y"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261005y"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261005y"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261005y"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261005y"></script>
+  <script src="pages/relatorios.js?v=20261005y"></script>
+  <script src="pages/avisos.js?v=20261005y"></script>
+  <script src="pages/atualizacao-apk.js?v=20261005y"></script>
+  <script src="pages/alterar-senha.js?v=20261005y"></script>
+  <script src="ui-layout.js?v=20261005y"></script>
+  <script src="app.js?v=20261005y"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
