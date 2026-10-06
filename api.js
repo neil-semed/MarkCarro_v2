@@ -75,6 +75,36 @@ async function supabaseCadastro(email, senha, metaDados) {
 // chamar signUp() e a restauramos logo em seguida.
 async function criarUsuarioComoAdmin(email, senha, metaDados) {
   _checarClient();
+
+  // Caminho principal: Edge Function admin-criar-usuario (cria a conta já
+  // confirmada, sem enviar e-mail - não esbarra no limite de envios do
+  // Supabase). Se a função ainda não foi publicada, cai no caminho antigo
+  // (signUp) logo abaixo.
+  try {
+    const { data: resp, error: errFn } = await _sb.functions.invoke('admin-criar-usuario', {
+      body: { email, senha, metaDados: metaDados || {} }
+    });
+    if (!errFn && resp && resp.user && resp.user.id) {
+      return { user: { id: resp.user.id }, session: null };
+    }
+    if (errFn) {
+      const status = errFn.context && errFn.context.status;
+      let corpo = null;
+      try { corpo = errFn.context && await errFn.context.json(); } catch (e) { /* sem corpo */ }
+      if (status === 409) {
+        const idExistente = await adminBuscarIdPorEmail(email);
+        if (!idExistente) { const e1 = new Error('Este e-mail já está cadastrado no sistema de login, mas não foi possível localizar a conta para completá-la. Tente novamente ou cadastre com outro e-mail.'); e1.__final = true; throw e1; }
+        return { user: { id: idExistente }, session: null, contaAdotada: true };
+      }
+      if (status && status !== 404 && status < 500) {
+        const e2 = new Error((corpo && corpo.error) || 'Não foi possível criar o usuário.'); e2.__final = true; throw e2;
+      }
+      // 404 / 5xx / função não publicada: segue para o caminho antigo
+    }
+  } catch (eFn) {
+    if (eFn && eFn.__final) throw eFn;
+  }
+
   const { data: { session: sessaoAntes } } = await _sb.auth.getSession();
 
   const { data, error } = await _sb.auth.signUp({
