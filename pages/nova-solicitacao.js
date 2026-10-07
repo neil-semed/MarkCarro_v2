@@ -50,11 +50,38 @@ async function prepararFormSolicitacao() {
     console.warn('Erro ao carregar locais/unidades/condutores:', e);
   }
 
+  // PEDIDO DO USUÁRIO ("não carrega unidade criada hoje - dropdown dinâmico
+  // em unidade"): as Unidades criadas em Gerenciar Unidades ficam na tabela
+  // "unidades", mas este dropdown só lia as que já têm Setor cadastrado
+  // (tabelas_apoio) - uma Unidade nova, ainda sem setor, nunca aparecia.
+  // Agora a lista é a união das duas, buscada de novo a cada abertura da tela.
+  await atualizarDropdownUnidadesSolicitacao();
+
   // Item 7: "acrescente listagem dos últimos agendamentos registrados pelo
   // admin" - só faz sentido no modo Gestor (o Solicitante comum já tem a
   // tela "Minhas Solicitações" pra isso).
   document.getElementById('bloco-ultimos-agendamentos-admin')?.classList.toggle('hidden', !modoExterno);
   if (modoExterno) carregarUltimosAgendamentosAdmin();
+}
+
+async function atualizarDropdownUnidadesSolicitacao() {
+  const sel = document.getElementById('sol-unidade');
+  if (!sel) return;
+  const valorAtual = sel.value;
+  let doCadastro = [];
+  try {
+    const todas = await listarTodasUnidades();
+    doCadastro = (todas || []).filter(u => u && u.nome && u.ativo !== false).map(u => String(u.nome).trim());
+  } catch (e) {
+    console.warn('Erro ao carregar o cadastro de Unidades:', e);
+  }
+  const nomes = Array.from(new Set([...(cacheUnidades || []), ...doCadastro].filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  sel.innerHTML = '<option value="">Selecione a Unidade...</option>' +
+    nomes.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('') +
+    '<option value="Outro">Outra Unidade</option>';
+  if (valorAtual && [...sel.options].some(o => o.value === valorAtual)) sel.value = valorAtual;
 }
 
 // Mostra os últimos agendamentos que o próprio Gestor logado registrou
@@ -346,6 +373,7 @@ async function enviarSolicitacao() {
 }
 
 window.prepararFormSolicitacao = prepararFormSolicitacao;
+window.atualizarDropdownUnidadesSolicitacao = atualizarDropdownUnidadesSolicitacao;
 window.alternarLabelTipoViagem = alternarLabelTipoViagem;
 window.alternarCampoOutroLocal = alternarCampoOutroLocal;
 window.carregarSetoresSolicitacaoExterna = carregarSetoresSolicitacaoExterna;
