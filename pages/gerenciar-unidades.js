@@ -33,7 +33,8 @@ async function carregarGerenciarUnidades() {
     preencherFiltroUnidades();
     aplicarFiltroUnidades();
     preencherDropdownsSetor();
-    renderizarTabelaSetores(cacheSetoresGerenciar);
+    preencherFiltrosSetores();
+    aplicarFiltroSetores();
     aplicarModoConsultaTela('gerenciar-unidades', ['form-unidade', 'form-setor']);
   } catch (e) {
     // Sem isso, um erro aqui deixava as duas tabelas travadas no spinner
@@ -296,6 +297,8 @@ async function excluirSetor(id) {
 }
 
 function renderizarTabelaSetores(lista) {
+  // garante que os filtros de Unidade/Setor estejam sempre preenchidos com os setores cadastrados
+  try { preencherFiltrosSetores(); } catch (e) { console.warn('Filtros de setores:', e); }
   const tbody = document.getElementById('tb-setores');
   if (!lista.length) {
     tbody.innerHTML = '<tr><td colspan="4" class="text-center text-slate-500 py-8">Nenhum setor cadastrado</td></tr>';
@@ -317,13 +320,57 @@ function renderizarTabelaSetores(lista) {
   `).join('');
 }
 
+// PEDIDO DO USUÁRIO ("setores cadastrados - filtro de unidade e setor, botão
+// limpar filtros; unidades cadastradas - botão limpar filtros").
+function preencherFiltrosSetores() {
+  const selU = document.getElementById('filtro-setores-unidade');
+  const selS = document.getElementById('filtro-setores-setor');
+  if (!selU || !selS) return;
+  const unidadeAtual = selU.value;
+  const setorAtual = selS.value;
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const unidades = [...new Set(cacheSetoresGerenciar.map(s => s.unidade).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  selU.innerHTML = '<option value="">Todas as Unidades</option>' + unidades.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if (unidades.includes(unidadeAtual)) selU.value = unidadeAtual;
+  const base = selU.value ? cacheSetoresGerenciar.filter(s => s.unidade === selU.value) : cacheSetoresGerenciar;
+  const setores = [...new Set(base.map(s => s.setor).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  selS.innerHTML = '<option value="">Todos os Setores</option>' + setores.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if (setores.includes(setorAtual)) selS.value = setorAtual;
+}
+
+function aoMudarFiltroUnidadeSetores() {
+  const selS = document.getElementById('filtro-setores-setor');
+  if (selS) selS.value = '';
+  preencherFiltrosSetores();
+  aplicarFiltroSetores();
+}
+
 function aplicarFiltroSetores() {
-  const termo = (document.getElementById('filtro-setores').value || '').trim().toLowerCase();
-  if (!termo) return renderizarTabelaSetores(cacheSetoresGerenciar);
-  const filtrados = cacheSetoresGerenciar.filter(s =>
-    (s.unidade || '').toLowerCase().includes(termo) || (s.setor || '').toLowerCase().includes(termo)
-  );
-  renderizarTabelaSetores(filtrados);
+  const unidade = document.getElementById('filtro-setores-unidade')?.value || '';
+  const setor = document.getElementById('filtro-setores-setor')?.value || '';
+  const termo = (document.getElementById('filtro-setores')?.value || '').trim().toLowerCase();
+  let lista = cacheSetoresGerenciar;
+  if (unidade) lista = lista.filter(s => s.unidade === unidade);
+  if (setor) lista = lista.filter(s => s.setor === setor);
+  if (termo) lista = lista.filter(s => (s.unidade || '').toLowerCase().includes(termo) || (s.setor || '').toLowerCase().includes(termo));
+  renderizarTabelaSetores(lista);
+}
+
+function limparFiltrosSetores() {
+  const selU = document.getElementById('filtro-setores-unidade');
+  const selS = document.getElementById('filtro-setores-setor');
+  const txt = document.getElementById('filtro-setores');
+  if (selU) selU.value = '';
+  if (selS) selS.value = '';
+  if (txt) txt.value = '';
+  preencherFiltrosSetores();
+  aplicarFiltroSetores();
+}
+
+function limparFiltrosUnidades() {
+  const sel = document.getElementById('filtro-unidades');
+  if (sel) sel.value = '';
+  aplicarFiltroUnidades();
 }
 
 // Expor globalmente
@@ -340,3 +387,7 @@ window.editarSetor = editarSetor;
 window.salvarSetor = salvarSetor;
 window.excluirSetor = excluirSetor;
 window.aplicarFiltroSetores = aplicarFiltroSetores;
+window.aoMudarFiltroUnidadeSetores = aoMudarFiltroUnidadeSetores;
+window.limparFiltrosSetores = limparFiltrosSetores;
+window.limparFiltrosUnidades = limparFiltrosUnidades;
+window.preencherFiltrosSetores = preencherFiltrosSetores;
