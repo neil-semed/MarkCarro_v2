@@ -85,7 +85,7 @@ async function carregarGerenciamentoSolicitacoes(forcarAtualizacao = false) {
     // Sem isso, um erro aqui deixava a tabela travada no spinner de
     // "Carregando..." pra sempre (nada reescrevia o tbody depois do catch).
     console.error('Erro ao carregar gerenciamento de solicitações:', e);
-    tbody.innerHTML = `<tr><td colspan="15" class="text-center text-red-500 p-4">Erro ao carregar. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciamentoSolicitacoes(true)">Tentar de novo</button></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" class="text-center text-red-500 p-4">Erro ao carregar. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciamentoSolicitacoes(true)">Tentar de novo</button></td></tr>`;
     Components.Toast.error('Erro ao carregar solicitações');
   }
 }
@@ -292,7 +292,7 @@ async function salvarEdicoesLinhaGestor(id) {
 function renderizarTabelaGestorCompleta(dados) {
   const tbody = document.getElementById('tb-gestor-geral');
   if (!dados.length) {
-    tbody.innerHTML = '<tr><td colspan="15" class="text-center text-slate-500 p-4">Nenhuma solicitação</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14" class="text-center text-slate-500 p-4">Nenhuma solicitação</td></tr>';
     return;
   }
 
@@ -340,7 +340,6 @@ function renderizarTabelaGestorCompleta(dados) {
         <input type="text" value="${escGestor(v.destino)}" placeholder="Digite o local" class="input-field text-sm py-1.5 px-2 mt-1 hidden" onchange="marcarCampoAlteradoGestor('${s.id}', 'destino', this.value)">
       </td>
       <td style="max-width:90px; white-space:normal; overflow-wrap:break-word;" title="${escGestor(s.nome_ext || s.email_solicitante)}">${nomeCurto}</td>
-      <td>${s.unidade || ''}</td>
       <td>${s.setor || ''}</td>
       <!-- PEDIDO DO USUÁRIO: dar permissão pra editar a Justificativa aqui
            (antes era só texto fixo, sem como alterar) - segue o mesmo
