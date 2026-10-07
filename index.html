@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007b">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007b">
-  <link rel="icon" href="favicon.png?v=20261007b">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007c">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007c">
+  <link rel="icon" href="favicon.png?v=20261007c">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -786,9 +786,14 @@
     body.ui-compacta #tabela-gestor-solicitacoes th:nth-child(10), body.ui-compacta #tabela-gestor-solicitacoes th:nth-child(11),
     body.ui-compacta #tabela-motoboy-documentos th:nth-child(1), body.ui-compacta #tabela-motoboy-documentos th:nth-child(2),
     body.ui-compacta #tabela-motoboy-documentos th:nth-child(3), body.ui-compacta #tabela-motoboy-documentos th:nth-child(4),
-    body.ui-compacta #tabela-motoboy-documentos th:nth-child(11) { width: 1%; white-space: nowrap; }
+    body.ui-compacta #tabela-motoboy-documentos th:nth-child(10) { width: 1%; white-space: nowrap; }
+    body.ui-compacta #tabela-motoboy-documentos th:nth-child(8), body.ui-compacta #tabela-motoboy-documentos td:nth-child(8) { width: 49px; overflow-wrap: normal; }
+    body.ui-compacta #tabela-motoboy-documentos input[type="number"].input-field { width: 4.5rem; min-width: 4.5rem; padding-left: 0.5rem; padding-right: 0.25rem; }
+    /* coluna Motoboy / Ações fixa à direita: botões sempre visíveis */
+    #tabela-motoboy-documentos thead th:last-child { position: sticky; right: 0; z-index: 6; background: #f1f5f9; box-shadow: -6px 0 8px -6px rgba(15,23,42,.35); }
+    #tabela-motoboy-documentos tbody td:last-child:not([colspan]) { position: sticky; right: 0; z-index: 2; background: inherit; box-shadow: -6px 0 8px -6px rgba(15,23,42,.35); }
     body.ui-compacta #tabela-motoboy-documentos th[style*="min-width:240px"],
-    body.ui-compacta #tabela-motoboy-documentos td[style*="min-width:240px"] { min-width: 170px !important; }
+    body.ui-compacta #tabela-motoboy-documentos td[style*="min-width:240px"] { min-width: 153px !important; }
     body.ui-compacta #tabela-motoboy-documentos th, body.ui-compacta #tabela-motoboy-documentos td { padding-top: 0.1875rem; padding-bottom: 0.1875rem; }
     body.ui-compacta #tabela-motoboy-documentos .btn-acao-claro { font-size: 9.9px; padding: 4.4px 6.6px; }
     body.ui-compacta #tabela-motoboy-documentos .btn-acao-verde { border: 2px solid #047857; }
@@ -908,6 +913,11 @@
     .btn-filtro-g { height: 2.25rem !important; min-height: 2.25rem !important; font-size: 12px !important; padding: 0 0.875rem !important; line-height: 1 !important; }
     .btn-filtro-g.btn-filtro-alt { height: 2.625rem !important; min-height: 2.625rem !important; }
     @media (min-width: 1024px) { #tela-minhas-solicitacoes .grid.grid-cols-2 { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.75rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > div:not(.col-span-2) { width: 9rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > div:nth-child(3) { width: 15rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > .col-span-2 { align-items: center; flex-basis: 100%; } }
+
+    @media (min-width: 640px) { #tela-agenda-condutor .ag-limpar { flex: none !important; } }
+    /* Agenda Geral do motorista (celular/app): campos dos filtros com texto completo, seta azul e altura de toque */
+    @media (max-width: 1023px) { #tela-agenda-condutor select.input-field { -webkit-appearance: none; appearance: none; height: 2.75rem; padding-right: 1.75rem; text-overflow: ellipsis; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%231e40af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.625rem center; } }
+    html.app-nativo #tela-agenda-condutor select.input-field { -webkit-appearance: none; appearance: none; height: 2.75rem; padding-right: 1.75rem; text-overflow: ellipsis; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%231e40af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.625rem center; }
 
     /* Central de Relatórios compacta (igual Gerenciar Solicitações) */
     body.ui-compacta #tela-relatorios #rel-botoes button { width: auto; flex: none; }
@@ -2377,16 +2387,15 @@
                     <th class="table-th" style="min-width:240px">Origem</th>
                     <th class="table-th" style="min-width:240px">Destino</th>
                     <th class="table-th" style="max-width:90px">Solicitante</th>
-                    <th class="table-th">Unidade</th>
                     <th class="table-th">Setor</th>
                     <th class="table-th">Justificativa</th>
-                    <th class="table-th" style="min-width:80px">Nº Documentos</th>
+                    <th class="table-th" style="min-width:80px">Nº<br>Documentos</th>
                     <th class="table-th">Status</th>
                     <th class="table-th" style="min-width:330px">Motoboy / Ações</th>
                   </tr>
                 </thead>
                 <tbody id="tb-motoboy-geral">
-                  <tr><td colspan="13" class="text-center text-slate-500 p-4">Carregando...</td></tr>
+                  <tr><td colspan="12" class="text-center text-slate-500 p-4">Carregando...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2738,10 +2747,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
               <div>
                 <label for="agenda-condutor-data" class="block text-xs font-medium text-slate-500 mb-1">Data</label>
-                <div class="flex gap-2 items-center">
-                  <input type="date" id="agenda-condutor-data" class="input-field text-sm flex-1 min-w-0" onchange="carregarAgendaCondutor()">
-                  <button type="button" class="btn-outline btn-filtro-g text-sm shrink-0" onclick="filtrarAgendaCondutorHoje()">Hoje</button>
-                </div>
+                <input type="date" id="agenda-condutor-data" class="input-field text-sm" onchange="carregarAgendaCondutor()">
               </div>
               <div>
                 <label for="agenda-condutor-filtro-motorista" class="block text-xs font-medium text-slate-500 mb-1">Motorista</label>
@@ -2762,7 +2768,10 @@
                 </select>
               </div>
             </div>
-            <button onclick="limparFiltroAgendaCondutor()" class="btn-outline text-sm mb-1">Limpar filtro</button>
+            <div class="flex gap-2 mb-1">
+              <button type="button" class="btn-outline text-sm shrink-0" onclick="filtrarAgendaCondutorHoje()">Hoje</button>
+              <button type="button" onclick="limparFiltroAgendaCondutor()" class="btn-outline text-sm ag-limpar" style="flex:1 1 auto">Limpar filtro</button>
+            </div>
             <p class="text-xs text-slate-500 mb-4">Mostrando de hoje em diante. Escolha uma data para ver outro dia.</p>
 
             <!-- Mobile: cards -->
@@ -3939,41 +3948,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261007b"></script>
-  <script src="Supabase/supabase-client.js?v=20261007b"></script>
-  <script src="api.js?v=20261007b"></script>
-  <script src="utils.js?v=20261007b"></script>
-  <script src="components.js?v=20261007b"></script>
-  <script src="pages/login.js?v=20261007b"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261007b"></script>
-  <script src="pages/cadastro.js?v=20261007b"></script>
-  <script src="pages/nova-solicitacao.js?v=20261007b"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261007b"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261007b"></script>
-  <script src="pages/viagens-do-dia.js?v=20261007b"></script>
-  <script src="pages/notificacoes.js?v=20261007b"></script>
-  <script src="pages/dashboard-condutor.js?v=20261007b"></script>
-  <script src="pages/painel-dia.js?v=20261007b"></script>
-  <script src="pages/proximas-agendas.js?v=20261007b"></script>
-  <script src="pages/agenda.js?v=20261007b"></script>
-  <script src="pages/agenda-combinada.js?v=20261007b"></script>
-  <script src="pages/agenda-condutor.js?v=20261007b"></script>
-  <script src="pages/registro-km.js?v=20261007b"></script>
-  <script src="pages/gestor.js?v=20261007b"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261007b"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007b"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261007b"></script>
-  <script src="pages/gerenciar-km.js?v=20261007b"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261007b"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261007b"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261007b"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261007b"></script>
-  <script src="pages/relatorios.js?v=20261007b"></script>
-  <script src="pages/avisos.js?v=20261007b"></script>
-  <script src="pages/atualizacao-apk.js?v=20261007b"></script>
-  <script src="pages/alterar-senha.js?v=20261007b"></script>
-  <script src="ui-layout.js?v=20261007b"></script>
-  <script src="app.js?v=20261007b"></script>
+  <script src="config.js?v=20261007c"></script>
+  <script src="Supabase/supabase-client.js?v=20261007c"></script>
+  <script src="api.js?v=20261007c"></script>
+  <script src="utils.js?v=20261007c"></script>
+  <script src="components.js?v=20261007c"></script>
+  <script src="pages/login.js?v=20261007c"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261007c"></script>
+  <script src="pages/cadastro.js?v=20261007c"></script>
+  <script src="pages/nova-solicitacao.js?v=20261007c"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261007c"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261007c"></script>
+  <script src="pages/viagens-do-dia.js?v=20261007c"></script>
+  <script src="pages/notificacoes.js?v=20261007c"></script>
+  <script src="pages/dashboard-condutor.js?v=20261007c"></script>
+  <script src="pages/painel-dia.js?v=20261007c"></script>
+  <script src="pages/proximas-agendas.js?v=20261007c"></script>
+  <script src="pages/agenda.js?v=20261007c"></script>
+  <script src="pages/agenda-combinada.js?v=20261007c"></script>
+  <script src="pages/agenda-condutor.js?v=20261007c"></script>
+  <script src="pages/registro-km.js?v=20261007c"></script>
+  <script src="pages/gestor.js?v=20261007c"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261007c"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007c"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261007c"></script>
+  <script src="pages/gerenciar-km.js?v=20261007c"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261007c"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261007c"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261007c"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261007c"></script>
+  <script src="pages/relatorios.js?v=20261007c"></script>
+  <script src="pages/avisos.js?v=20261007c"></script>
+  <script src="pages/atualizacao-apk.js?v=20261007c"></script>
+  <script src="pages/alterar-senha.js?v=20261007c"></script>
+  <script src="ui-layout.js?v=20261007c"></script>
+  <script src="app.js?v=20261007c"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
