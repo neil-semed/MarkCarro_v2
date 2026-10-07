@@ -4,11 +4,67 @@
 
 let usuarioAtual = null;
 
+// PEDIDO DO USUÁRIO ("deixar login gravado"): "Manter conectado neste
+// aparelho" - guarda o PERFIL (nunca a senha) em localStorage por até 30
+// dias; a sessão segura do Supabase já fica no próprio aparelho.
+const MANTER_CONECTADO_DIAS = 30;
+const CHAVE_LOGIN_GRAVADO = 'markcarro_login_gravado';
+const CHAVE_MANTER_PREF = 'markcarro_manter_pref';
+
+function _manterPadrao() {
+  let pref = null;
+  try { pref = localStorage.getItem(CHAVE_MANTER_PREF); } catch (e) {}
+  if (pref === '1') return true;
+  if (pref === '0') return false;
+  return !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+}
+
+function definirPadraoManterConectado() {
+  const chk = document.getElementById('login-manter');
+  if (chk) chk.checked = _manterPadrao();
+}
+
 function salvarSessao() {
   try {
     sessionStorage.setItem('markcarro_usuario', JSON.stringify(usuarioAtual));
   } catch (e) {}
+  try {
+    if (localStorage.getItem(CHAVE_MANTER_PREF) === '1') {
+      localStorage.setItem(CHAVE_LOGIN_GRAVADO, JSON.stringify({
+        usuario: usuarioAtual,
+        expira: Date.now() + MANTER_CONECTADO_DIAS * 24 * 60 * 60 * 1000
+      }));
+    } else {
+      localStorage.removeItem(CHAVE_LOGIN_GRAVADO);
+    }
+  } catch (e) {}
 }
+
+function apagarLoginGravado() {
+  try { localStorage.removeItem(CHAVE_LOGIN_GRAVADO); } catch (e) {}
+}
+
+// Reabre o app com o login gravado (se válido e ainda com sessão no Supabase).
+async function restaurarLoginGravado() {
+  let dados = null;
+  try {
+    const bruto = localStorage.getItem(CHAVE_LOGIN_GRAVADO);
+    if (!bruto) return false;
+    dados = JSON.parse(bruto);
+  } catch (e) { apagarLoginGravado(); return false; }
+  if (!dados || !dados.usuario || !dados.expira || dados.expira < Date.now()) { apagarLoginGravado(); return false; }
+  try {
+    const { data } = await window.supabase.auth.getSession();
+    if (!data || !data.session) { apagarLoginGravado(); return false; }
+  } catch (e) { apagarLoginGravado(); return false; }
+  usuarioAtual = dados.usuario;
+  try { sessionStorage.setItem('markcarro_usuario', JSON.stringify(usuarioAtual)); } catch (e) {}
+  carregarSaudacao();
+  carregarPainelPorPerfil();
+  return true;
+}
+
+document.addEventListener('DOMContentLoaded', definirPadraoManterConectado);
 
 function restaurarSessao() {
   // Só limpa a sessão se os dados salvos estiverem corrompidos (JSON
@@ -18,7 +74,7 @@ function restaurarSessao() {
   let salvo;
   try {
     salvo = sessionStorage.getItem('markcarro_usuario');
-    if (!salvo) return;
+    if (!salvo) { restaurarLoginGravado(); return; }
     usuarioAtual = JSON.parse(salvo);
   } catch (e) {
     sessionStorage.removeItem('markcarro_usuario');
@@ -87,6 +143,7 @@ async function processarLogin() {
           perfil_acesso_id: perfil.perfil_acesso_id || null
         };
 
+        try { localStorage.setItem(CHAVE_MANTER_PREF, document.getElementById('login-manter')?.checked ? '1' : '0'); } catch (e) {}
         salvarSessao();
         Components.Toast.success(`Bem-vindo, ${usuarioAtual.nome}!`);
         carregarSaudacao();
@@ -116,11 +173,13 @@ async function fazerLogout() {
   pararAvisosTempoReal();
   usuarioAtual = null;
   sessionStorage.removeItem('markcarro_usuario');
+  apagarLoginGravado();
 
   document.body.classList.remove('ui-compacta', 'ui-admin', 'ui-sol', 'ui-titulo-topo');
   document.getElementById('app-principal').classList.add('hidden');
   document.getElementById('tela-login').classList.remove('hidden');
   document.getElementById('form-login')?.reset();
+  definirPadraoManterConectado();
   Components.Toast.info('Você saiu do sistema.');
 
   try {
