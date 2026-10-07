@@ -25,10 +25,14 @@ function nomeCondutorAgenda(email) {
 // mesmo condutor nas duas pernas, "Fulano (ida) / Beltrano (volta)" quando
 // são diferentes.
 function combinarCondutoresAgenda(s) {
+  // PEDIDO DO USUÁRIO ("relatório gerado - condutor: motorista de ida em uma
+  // linha, motorista de volta em outra linha"): uma linha por perna.
   const ida = s.condutor_ida ? nomeCondutorAgenda(s.condutor_ida) : '';
   const volta = s.condutor_volta ? nomeCondutorAgenda(s.condutor_volta) : '';
-  if (ida && volta) return ida === volta ? ida : `${ida} (ida) / ${volta} (volta)`;
-  return ida || volta || '-';
+  const linhas = [];
+  if (ida) linhas.push(`Ida: ${ida}`);
+  if (volta) linhas.push(`Volta: ${volta}`);
+  return linhas.join('\n') || '-';
 }
 
 // CORREÇÃO (item 1 do novo lote do admin - "continua com data inicial e
@@ -320,11 +324,12 @@ function _gerarRelatorioAgendaPDF(dados, opcoes) {
     destino: s.destino,
     solicitante: s.nome_ext || s.email_solicitante,
     celular: s.telefone_ext,
+    justificativa: s.justificativa,
     extra: s.qtd_pessoas,
     condutor: combinarCondutoresAgenda(s),
     status: s.status,
   })), {
-    titulo: 'MarkCarro | Agenda de Corridas', rotulo, periodo, comData, nomeArquivo, mensagemSucesso,
+    titulo: 'MarkCarro | Agenda de Corridas', rotulo, periodo, comData, comJustificativa: !!opcoes.comJustificativa, nomeArquivo, mensagemSucesso,
     rotuloQtd: 'CORRIDAS', rotuloExtra: 'PASS', rotuloCondutor: 'CONDUTOR',
   });
 }
@@ -372,6 +377,8 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
   cols.push({ h: 'DESTINO', t: 'txt', flex: true, d: v(r => r.destino || '-') });
   cols.push({ h: 'SOLICITANTE', t: 'txt', flex: true, d: v(r => r.solicitante || '-') });
   cols.push({ h: 'CELULAR', t: 'txt', d: v(r => r.celular || '-') });
+  // PEDIDO DO USUÁRIO ("em gerar relatório pdf, acrescente a coluna justificativa"): só quando o chamador pede.
+  if (opc.comJustificativa) cols.push({ h: 'JUSTIFICATIVA', t: 'txt', flex: true, d: v(r => r.justificativa || '-') });
   cols.push({ h: opc.rotuloExtra, t: 'txt', center: true, d: v(r => String(r.extra ?? '')) });
   cols.push({ h: opc.rotuloCondutor, t: 'txt', flex: true, d: v(r => r.condutor || '-') });
   cols.push({ h: 'STATUS', t: 'txt', d: v(r => r.status || 'Pendente') });
@@ -382,7 +389,7 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
       c.w = Math.max(2 * m + ARW + 2 * GAP + 2 * PAD + 0.4, larg(c.h, true) + 2 * PAD + 0.6);
       c.min = c.w;
     } else {
-      const m = Math.max(...c.d.map(x => larg(x)), larg(c.h, true));
+      const m = Math.max(...c.d.map(x => Math.max(...String(x).split('\n').map(l => larg(l)))), larg(c.h, true));
       c.w = Math.min(m, c.flex ? 70 : m) + 2 * PAD + 0.6;
       c.min = c.flex ? Math.min(c.w, 26) : c.w;
     }
@@ -454,6 +461,7 @@ function exportarAgendaPDF() {
 
   _gerarRelatorioAgendaPDF(dados, {
     comData: true,
+    comJustificativa: true,
     rotulo: 'Relatório Geral',
     nomeArquivo: `markcarro-agenda-${Date.now()}.pdf`,
     mensagemSucesso: 'Relatório em PDF gerado com sucesso!',
