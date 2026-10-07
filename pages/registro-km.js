@@ -116,44 +116,123 @@ async function carregarHistoricoKm() {
 // gráfico (só a tabela acima) - km rodado por dia, só os registros já com
 // KM final lançado, mesmo padrão do gráfico de Km do Dashboard do Condutor
 // (pages/dashboard-condutor.js: _renderizarGraficoKmDashCond).
+let _kmPeriodoGrafico = 30;      // 7, 30 ou 0 (= tudo)
+let _kmRegistrosGrafico = [];
+
+function definirPeriodoGraficoKm(n) {
+  _kmPeriodoGrafico = n;
+  _renderizarGraficoHistoricoKm(_kmRegistrosGrafico);
+}
+
 function _renderizarGraficoHistoricoKm(registros) {
+  _kmRegistrosGrafico = registros || [];
   const canvas = document.getElementById('km-historico-canvas');
+  const elChips = document.getElementById('km-chips');
+  const elTiles = document.getElementById('km-tiles');
+  if (elChips) {
+    elChips.innerHTML = [[7, '7 dias'], [30, '30 dias'], [0, 'Tudo']].map(([n, t]) =>
+      `<button type="button" onclick="definirPeriodoGraficoKm(${n})" style="padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid ${n === _kmPeriodoGrafico ? '#1e40af' : '#cbd5e1'};background:${n === _kmPeriodoGrafico ? '#1e40af' : '#fff'};color:${n === _kmPeriodoGrafico ? '#fff' : '#475569'}">${t}</button>`
+    ).join('');
+  }
   if (!canvas || typeof Chart === 'undefined') return;
 
   // PEDIDO DO USUÁRIO ("gráficos devem respeitar datas cronologicamente e
-  // não momento de registro"): a API pode devolver os registros na ordem em
-  // que foram lançados (ex: um KM de um dia esquecido, lançado só depois) -
-  // sem este sort, a linha do gráfico ficava em "zig-zag" em vez de seguir a
-  // ordem real das datas.
-  const comKmFinal = (registros || [])
+  // não momento de registro"): ordena por data.
+  const mapa = {};
+  (registros || [])
     .filter(r => r.km_final != null && r.km_final !== '')
-    .sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+    .forEach(r => { mapa[r.data] = (mapa[r.data] || 0) + Math.round(r.km_final - r.km_inicial); });
+  const datas = Object.keys(mapa).sort();
+
+  // 7 / 30 dias: eixo contínuo (dias sem rodagem aparecem vazios); Tudo: só os dias com registro
+  let eixo;
+  if (_kmPeriodoGrafico > 0) {
+    eixo = [];
+    const fim = new Date(); fim.setHours(12, 0, 0, 0);
+    for (let k = _kmPeriodoGrafico - 1; k >= 0; k--) {
+      const d = new Date(fim); d.setDate(d.getDate() - k);
+      eixo.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+    }
+  } else {
+    eixo = datas;
+  }
+  const valores = eixo.map(d => mapa[d] != null ? mapa[d] : null);
+  const comValor = valores.filter(v => v != null && v > 0);
+  const total = comValor.reduce((a, b) => a + b, 0);
+  const media = comValor.length ? Math.round(total / comValor.length) : 0;
+  const maior = comValor.length ? Math.max(...comValor) : 0;
+
+  if (elTiles) {
+    elTiles.innerHTML = [[total, 'Total'], [media, 'Média/dia'], [maior, 'Maior dia']].map(([v, t]) =>
+      `<div class="rounded-lg border border-slate-200 bg-slate-50 text-center py-2"><div class="text-base font-bold text-slate-800">${v} km</div><div class="text-[11px] text-slate-500">${t}</div></div>`
+    ).join('');
+  }
+
   if (_chartHistoricoKm) { _chartHistoricoKm.destroy(); _chartHistoricoKm = null; }
-  if (!comKmFinal.length) return;
+  if (!eixo.length) return;
+
+  const rotularTodos = eixo.length <= 14;
+  const plugin = {
+    id: 'kmRotulosMedia',
+    afterDatasetsDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      const meta = chart.getDatasetMeta(0);
+      ctx.save();
+      if (media > 0) {
+        const y = scales.y.getPixelForValue(media);
+        ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = '#64748b'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText('média ' + media, chartArea.right, y - 3);
+      }
+      ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+      meta.data.forEach((bar, i) => {
+        const v = valores[i];
+        if (v == null || v <= 0) return;
+        if (rotularTodos || v === maior) ctx.fillText(String(v), bar.x, bar.y - 4);
+      });
+      ctx.restore();
+    }
+  };
 
   _chartHistoricoKm = new Chart(canvas.getContext('2d'), {
-    type: 'line',
+    type: 'bar',
+    plugins: [plugin],
     data: {
-      labels: comKmFinal.map(r => formatarDataBR(r.data)),
+      labels: eixo.map(d => d.slice(8, 10) + '/' + d.slice(5, 7)),
       datasets: [{
         label: 'Km rodado',
-        data: comKmFinal.map(r => Math.round(r.km_final - r.km_inicial)),
-        borderColor: '#044AAA',
-        backgroundColor: '#044AAA',
-        tension: 0.2,
-        fill: false
+        data: valores,
+        backgroundColor: valores.map(v => v === maior && v > 0 ? '#044AAA' : '#5b8ad6'),
+        borderRadius: { topLeft: 4, topRight: 4 },
+        borderSkipped: 'bottom',
+        categoryPercentage: 0.9,
+        barPercentage: 0.85
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
+      layout: { padding: { top: 16 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (it) => formatarDataBR(eixo[it[0].dataIndex]),
+            label: (it) => it.raw == null ? 'Sem rodagem' : `${it.raw} km`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: '#e2e8f0' }, ticks: { font: { size: 10 } } }
+      }
     }
   });
 }
 
 // Expor globalmente
 window.carregarRegistroKm = carregarRegistroKm;
+window.definirPeriodoGraficoKm = definirPeriodoGraficoKm;
 window.registrarKmInicialUI = registrarKmInicialUI;
 window.registrarKmFinalUI = registrarKmFinalUI;

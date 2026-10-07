@@ -352,3 +352,110 @@ window.carregarSetoresSolicitacaoExterna = carregarSetoresSolicitacaoExterna;
 window.carregarUltimosAgendamentosAdmin = carregarUltimosAgendamentosAdmin;
 window.enviarSolicitacao = enviarSolicitacao;
 window.alternarBlocoRecorrencia = alternarBlocoRecorrencia;
+
+// ============================================================
+// Seletor em "folha inferior" para os dropdowns da Nova Solicitação
+// (celular / app): linhas grandes, ✓ no item atual, busca nas listas
+// longas e "+ Outro (digitar)" no fim. No PC (tela larga, fora do app)
+// continua o dropdown nativo. Não altera o <select>: grava o valor nele e
+// dispara "change", então todos os onchange existentes continuam valendo.
+// ============================================================
+(function iniciarSeletorFolha() {
+  if (window.__mcSeletorFolha) return;
+  window.__mcSeletorFolha = true;
+
+  const css = document.createElement('style');
+  css.textContent = `
+    .mcp-fundo{position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.45);display:flex;align-items:flex-end;justify-content:center;animation:mcpFade .15s ease-out}
+    .mcp-folha{background:#fff;width:100%;max-width:520px;max-height:78vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(15,23,42,.25);animation:mcpSobe .2s ease-out;padding-bottom:env(safe-area-inset-bottom)}
+    .mcp-grip{width:40px;height:4px;border-radius:2px;background:#cbd5e1;margin:8px auto 4px}
+    .mcp-tit{font-size:15px;font-weight:700;color:#0f172a;padding:4px 18px 8px}
+    .mcp-busca{margin:0 14px 8px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;width:calc(100% - 28px);outline:none}
+    .mcp-busca:focus{border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.15)}
+    .mcp-lista{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 8px 10px}
+    .mcp-op{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #f1f5f9;padding:14px 12px;font-size:15px;color:#1e293b;border-radius:8px}
+    .mcp-op:active{background:#eff6ff}
+    .mcp-op.sel{background:#eff6ff;color:#1e40af;font-weight:700}
+    .mcp-op.outro{color:#1e40af;font-weight:700}
+    .mcp-vazio{padding:18px;text-align:center;color:#94a3b8;font-size:14px}
+    @keyframes mcpSobe{from{transform:translateY(100%)}to{transform:none}}
+    @keyframes mcpFade{from{opacity:0}to{opacity:1}}
+  `;
+  document.head.appendChild(css);
+
+  const ativo = () => document.documentElement.classList.contains('app-nativo') || window.matchMedia('(max-width: 1023px)').matches;
+  const alvo = (el) => { const s = el && el.closest ? el.closest('select') : null; return s && s.closest('#form-solicitacao') && !s.disabled && !s.multiple ? s : null; };
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function abrir(sel) {
+    if (document.querySelector('.mcp-fundo')) return;
+    const lbl = document.querySelector(`label[for="${sel.id}"]`);
+    const titulo = (lbl ? lbl.textContent : 'Selecione').replace(/\*/g, '').trim();
+    const ops = [...sel.options].filter((o) => o.value !== '' && !o.disabled);
+    const ehOutro = (o) => /^outr[oa]\b/i.test(o.textContent.trim());
+    const normais = ops.filter((o) => !ehOutro(o));
+    const outros = ops.filter(ehOutro);
+    const lista = [...normais, ...outros];
+
+    const fundo = document.createElement('div');
+    fundo.className = 'mcp-fundo';
+    fundo.innerHTML = `<div class="mcp-folha" role="dialog" aria-label="${esc(titulo)}"><div class="mcp-grip"></div><div class="mcp-tit">${esc(titulo)}</div>${lista.length > 8 ? '<input type="search" class="mcp-busca" placeholder="🔍 Buscar..." autocomplete="off">' : ''}<div class="mcp-lista"></div></div>`;
+    const ul = fundo.querySelector('.mcp-lista');
+    const busca = fundo.querySelector('.mcp-busca');
+
+    const fechar = () => { fundo.remove(); document.body.style.overflow = antes; document.removeEventListener('keydown', tecla); };
+    const antes = document.body.style.overflow;
+    const tecla = (e) => { if (e.key === 'Escape') fechar(); };
+
+    function desenhar(q) {
+      q = (q || '').trim().toLowerCase();
+      const itens = lista.filter((o) => ehOutro(o) || !q || o.textContent.toLowerCase().includes(q));
+      ul.innerHTML = itens.length ? '' : '<div class="mcp-vazio">Nada encontrado</div>';
+      itens.forEach((o) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const outro = ehOutro(o);
+        b.className = 'mcp-op' + (o.value === sel.value ? ' sel' : '') + (outro ? ' outro' : '');
+        const txt = o.textContent.trim();
+        b.innerHTML = `<span>${outro ? '+ ' + esc(txt) + ' (digitar)' : esc(txt)}</span>${o.value === sel.value ? '<span>✓</span>' : ''}`;
+        b.addEventListener('click', () => {
+          const mudou = sel.value !== o.value;
+          sel.value = o.value;
+          fechar();
+          if (mudou) sel.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        ul.appendChild(b);
+      });
+    }
+    desenhar('');
+    if (busca) busca.addEventListener('input', () => desenhar(busca.value));
+    fundo.addEventListener('click', (e) => { if (e.target === fundo) fechar(); });
+    document.addEventListener('keydown', tecla);
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(fundo);
+    const s = ul.querySelector('.sel'); if (s) s.scrollIntoView({ block: 'center' });
+  }
+
+  let toque = null;
+  document.addEventListener('touchstart', (e) => { const t = e.touches[0]; toque = { x: t.clientX, y: t.clientY }; }, { passive: true, capture: true });
+  document.addEventListener('touchend', (e) => {
+    if (!ativo() || !toque) return;
+    const sel = alvo(e.target); const t = e.changedTouches[0];
+    const moveu = Math.abs(t.clientX - toque.x) > 10 || Math.abs(t.clientY - toque.y) > 10;
+    toque = null;
+    if (!sel || moveu) return;
+    e.preventDefault(); sel.blur(); abrir(sel);
+  }, { passive: false, capture: true });
+  document.addEventListener('mousedown', (e) => {
+    if (!ativo()) return;
+    const sel = alvo(e.target);
+    if (!sel) return;
+    e.preventDefault(); abrir(sel);
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (!ativo() || (e.key !== 'Enter' && e.key !== ' ')) return;
+    const sel = alvo(e.target);
+    if (!sel || document.activeElement !== sel) return;
+    e.preventDefault(); abrir(sel);
+  }, true);
+})();

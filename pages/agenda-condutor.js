@@ -34,7 +34,7 @@ async function carregarAgendaCondutor() {
   const dataSelecionada = document.getElementById('agenda-condutor-data').value;
   const verTudo = !!usuarioAtual.ver_agenda_geral;
 
-  document.getElementById('agenda-condutor-badge-geral')?.classList.toggle('hidden', !verTudo);
+  // (título da tela agora é sempre "Agenda Geral" - o selo antigo ficou redundante)
   const thPapel = document.getElementById('th-agenda-condutor-papel');
   if (thPapel) thPapel.textContent = verTudo ? 'Condutor(es)' : 'Papel';
 
@@ -80,6 +80,14 @@ async function carregarAgendaCondutor() {
     // vazio numa Confirmada não deveria acontecer - isso aqui é só uma
     // trava de segurança extra, garantindo direto na tela também.
     dados = (dados || []).filter(s => (s.status || 'Pendente') === 'Confirmada' && !!s.condutor_ida);
+
+    // PEDIDO DO USUÁRIO ("Agenda Geral - não mostrar agendas passadas, salvo
+    // se definido em data"): sem data escolhida, só de hoje em diante.
+    if (!dataSelecionada) {
+      const d = new Date();
+      const hojeLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      dados = dados.filter(s => (s.data_viagem || '') >= hojeLocal);
+    }
 
     // PEDIDO DO USUÁRIO ("a Agenda Geral, quando vista por um Motoboy, deve
     // mostrar só as corridas de Motoboy"): quem tem Categoria = Motoboy
@@ -306,7 +314,15 @@ function limparFiltroAgendaCondutor() {
   carregarAgendaCondutor();
 }
 
+// PEDIDO DO USUÁRIO ("coloque o botão hoje para filtro de data")
+function filtrarAgendaCondutorHoje() {
+  const d = new Date();
+  document.getElementById('agenda-condutor-data').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  carregarAgendaCondutor();
+}
+
 // Expor globalmente
 window.carregarAgendaCondutor = carregarAgendaCondutor;
 window.limparFiltroAgendaCondutor = limparFiltroAgendaCondutor;
+window.filtrarAgendaCondutorHoje = filtrarAgendaCondutorHoje;
 window.aplicarFiltrosAgendaCondutor = aplicarFiltrosAgendaCondutor;
