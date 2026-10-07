@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007e">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007e">
-  <link rel="icon" href="favicon.png?v=20261007e">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007f">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007f">
+  <link rel="icon" href="favicon.png?v=20261007f">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -3389,6 +3389,7 @@
                   <select id="filtro-unidades" class="input-field text-sm max-w-[12rem]" onchange="aplicarFiltroUnidades()">
                     <option value="">Todas as Unidades</option>
                   </select>
+                  <button type="button" class="btn-outline btn-limpar btn-filtro-g btn-filtro-alt text-sm" onclick="limparFiltrosUnidades()">Limpar filtros</button>
                 </div>
                 <div class="table-container" style="overflow-x:auto;">
                   <table class="w-full text-sm" style="border-collapse:collapse;">
@@ -3461,7 +3462,14 @@
               <div class="card p-4 sm:p-6">
                 <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
                   <h3 class="text-base font-semibold text-slate-900">Setores cadastrados</h3>
+                  <select id="filtro-setores-unidade" class="input-field text-sm max-w-[12rem]" onchange="aoMudarFiltroUnidadeSetores()">
+                    <option value="">Todas as Unidades</option>
+                  </select>
+                  <select id="filtro-setores-setor" class="input-field text-sm max-w-[12rem]" onchange="aplicarFiltroSetores()">
+                    <option value="">Todos os Setores</option>
+                  </select>
                   <input type="text" id="filtro-setores" class="input-field text-sm max-w-[10rem]" placeholder="Filtrar..." oninput="aplicarFiltroSetores()">
+                  <button type="button" class="btn-outline btn-limpar btn-filtro-g btn-filtro-alt text-sm" onclick="limparFiltrosSetores()">Limpar filtros</button>
                 </div>
                 <div class="table-container table-container-sm" style="overflow-x:auto;">
                   <table class="w-full text-sm" style="border-collapse:collapse;">
@@ -3951,41 +3959,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261007e"></script>
-  <script src="Supabase/supabase-client.js?v=20261007e"></script>
-  <script src="api.js?v=20261007e"></script>
-  <script src="utils.js?v=20261007e"></script>
-  <script src="components.js?v=20261007e"></script>
-  <script src="pages/login.js?v=20261007e"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261007e"></script>
-  <script src="pages/cadastro.js?v=20261007e"></script>
-  <script src="pages/nova-solicitacao.js?v=20261007e"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261007e"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261007e"></script>
-  <script src="pages/viagens-do-dia.js?v=20261007e"></script>
-  <script src="pages/notificacoes.js?v=20261007e"></script>
-  <script src="pages/dashboard-condutor.js?v=20261007e"></script>
-  <script src="pages/painel-dia.js?v=20261007e"></script>
-  <script src="pages/proximas-agendas.js?v=20261007e"></script>
-  <script src="pages/agenda.js?v=20261007e"></script>
-  <script src="pages/agenda-combinada.js?v=20261007e"></script>
-  <script src="pages/agenda-condutor.js?v=20261007e"></script>
-  <script src="pages/registro-km.js?v=20261007e"></script>
-  <script src="pages/gestor.js?v=20261007e"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261007e"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007e"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261007e"></script>
-  <script src="pages/gerenciar-km.js?v=20261007e"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261007e"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261007e"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261007e"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261007e"></script>
-  <script src="pages/relatorios.js?v=20261007e"></script>
-  <script src="pages/avisos.js?v=20261007e"></script>
-  <script src="pages/atualizacao-apk.js?v=20261007e"></script>
-  <script src="pages/alterar-senha.js?v=20261007e"></script>
-  <script src="ui-layout.js?v=20261007e"></script>
-  <script src="app.js?v=20261007e"></script>
+  <script src="config.js?v=20261007f"></script>
+  <script src="Supabase/supabase-client.js?v=20261007f"></script>
+  <script src="api.js?v=20261007f"></script>
+  <script src="utils.js?v=20261007f"></script>
+  <script src="components.js?v=20261007f"></script>
+  <script src="pages/login.js?v=20261007f"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261007f"></script>
+  <script src="pages/cadastro.js?v=20261007f"></script>
+  <script src="pages/nova-solicitacao.js?v=20261007f"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261007f"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261007f"></script>
+  <script src="pages/viagens-do-dia.js?v=20261007f"></script>
+  <script src="pages/notificacoes.js?v=20261007f"></script>
+  <script src="pages/dashboard-condutor.js?v=20261007f"></script>
+  <script src="pages/painel-dia.js?v=20261007f"></script>
+  <script src="pages/proximas-agendas.js?v=20261007f"></script>
+  <script src="pages/agenda.js?v=20261007f"></script>
+  <script src="pages/agenda-combinada.js?v=20261007f"></script>
+  <script src="pages/agenda-condutor.js?v=20261007f"></script>
+  <script src="pages/registro-km.js?v=20261007f"></script>
+  <script src="pages/gestor.js?v=20261007f"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261007f"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007f"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261007f"></script>
+  <script src="pages/gerenciar-km.js?v=20261007f"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261007f"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261007f"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261007f"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261007f"></script>
+  <script src="pages/relatorios.js?v=20261007f"></script>
+  <script src="pages/avisos.js?v=20261007f"></script>
+  <script src="pages/atualizacao-apk.js?v=20261007f"></script>
+  <script src="pages/alterar-senha.js?v=20261007f"></script>
+  <script src="ui-layout.js?v=20261007f"></script>
+  <script src="app.js?v=20261007f"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
