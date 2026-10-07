@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007a">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007a">
-  <link rel="icon" href="favicon.png?v=20261007a">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007b">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007b">
+  <link rel="icon" href="favicon.png?v=20261007b">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -797,7 +797,12 @@
     body.ui-compacta #tabela-motoboy-documentos .btn-acao-azul { border: 2px solid #0369a1; }
     body.ui-compacta #tabela-gestor-solicitacoes th[style*="max-width"] { max-width: none !important; }
     body.ui-compacta #tabela-gestor-solicitacoes th[style*="min-width:240px"],
-    body.ui-compacta #tabela-gestor-solicitacoes td[style*="min-width:240px"] { min-width: 260px !important; }
+    body.ui-compacta #tabela-gestor-solicitacoes td[style*="min-width:240px"] { min-width: 220px !important; }
+    /* coluna Condutor Ida/Volta + botões de ação: fixa à direita, sempre visível */
+    #tabela-gestor-solicitacoes thead th:last-child,
+    #tabela-gestor-solicitacoes tbody td[colspan="2"] { position: sticky; right: 0; z-index: 6; box-shadow: -6px 0 8px -6px rgba(15,23,42,.35); }
+    #tabela-gestor-solicitacoes tbody td[colspan="2"] { background: inherit; z-index: 2; }
+    #tabela-gestor-solicitacoes thead th:last-child { background: #f1f5f9; }
     body.ui-compacta #tabela-gestor-solicitacoes th,
     body.ui-compacta #tabela-gestor-solicitacoes td { padding-left: 0.5rem; padding-right: 0.5rem; }
     body.ui-compacta #tabela-gestor-solicitacoes th { padding-top: 0.25rem; padding-bottom: 0.25rem; }
@@ -902,9 +907,6 @@
     /* botões Hoje / Limpar filtros maiores */
     .btn-filtro-g { height: 2.25rem !important; min-height: 2.25rem !important; font-size: 12px !important; padding: 0 0.875rem !important; line-height: 1 !important; }
     .btn-filtro-g.btn-filtro-alt { height: 2.625rem !important; min-height: 2.625rem !important; }
-    /* checkbox "Ocultar solicitações passadas": só no navegador do PC */
-    .solic-so-pc { display: none; }
-    @media (min-width: 1024px) { html:not(.app-nativo) .solic-so-pc { display: inline-flex; } }
     @media (min-width: 1024px) { #tela-minhas-solicitacoes .grid.grid-cols-2 { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.75rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > div:not(.col-span-2) { width: 9rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > div:nth-child(3) { width: 15rem; } #tela-minhas-solicitacoes .grid.grid-cols-2 > .col-span-2 { align-items: center; flex-basis: 100%; } }
 
     /* Central de Relatórios compacta (igual Gerenciar Solicitações) */
@@ -1792,12 +1794,12 @@
                 <label for="filtro-minhas-solic-trajeto" class="block text-xs font-medium text-slate-500 mb-1">Origem/Destino</label>
                 <input type="text" id="filtro-minhas-solic-trajeto" class="input-field text-sm" placeholder="Buscar..." oninput="aplicarFiltroMinhasSolicitacoes()">
               </div>
-              <div class="col-span-2 sm:col-span-3 flex flex-wrap gap-2">
+              <div class="col-span-2 sm:col-span-3 flex flex-wrap items-center gap-2">
                 <!-- PEDIDO DO USUÁRIO: botão "HOJE" pra filtrar rápido pela
                      data de viagem de hoje, sem precisar abrir o calendário. -->
                 <button type="button" class="btn-outline btn-filtro-g text-sm" onclick="filtrarMinhasSolicitacoesHoje()">Hoje</button>
-                <button type="button" class="btn-outline btn-limpar btn-filtro-g text-sm w-full sm:w-auto" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
-                <label id="wrap-ocultar-passadas" class="solic-so-pc items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none"><input type="checkbox" id="chk-ocultar-passadas" onchange="aplicarFiltroMinhasSolicitacoes()"> Ocultar solicitações passadas</label>
+                <button type="button" class="btn-outline btn-limpar btn-filtro-g text-sm" onclick="limparFiltrosMinhasSolicitacoes()">Limpar Filtros</button>
+                <label id="wrap-ocultar-passadas" class="flex sm:inline-flex w-full sm:w-auto items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none"><input type="checkbox" id="chk-ocultar-passadas" onchange="aplicarFiltroMinhasSolicitacoes()"> Ocultar solicitações passadas</label>
               </div>
             </div>
 
@@ -2721,7 +2723,7 @@
         <div id="tela-agenda-condutor" class="hidden animate-fade-in max-w-5xl mx-auto w-full">
           <div class="card p-4 sm:p-6">
             <div class="flex items-center gap-2 mb-4 flex-wrap">
-              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📅</span> Minha Agenda</h2>
+              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2"><span aria-hidden="true">📅</span> Agenda Geral</h2>
               <!-- Só aparece quando o gestor libera "Ver Agenda Geral" pro condutor
                    (Gerenciar Condutores) - deixa claro que ele está vendo TODAS as
                    corridas, não só as dele. -->
@@ -2736,7 +2738,10 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
               <div>
                 <label for="agenda-condutor-data" class="block text-xs font-medium text-slate-500 mb-1">Data</label>
-                <input type="date" id="agenda-condutor-data" class="input-field text-sm" onchange="carregarAgendaCondutor()">
+                <div class="flex gap-2 items-center">
+                  <input type="date" id="agenda-condutor-data" class="input-field text-sm flex-1 min-w-0" onchange="carregarAgendaCondutor()">
+                  <button type="button" class="btn-outline btn-filtro-g text-sm shrink-0" onclick="filtrarAgendaCondutorHoje()">Hoje</button>
+                </div>
               </div>
               <div>
                 <label for="agenda-condutor-filtro-motorista" class="block text-xs font-medium text-slate-500 mb-1">Motorista</label>
@@ -2757,7 +2762,8 @@
                 </select>
               </div>
             </div>
-            <button onclick="limparFiltroAgendaCondutor()" class="btn-outline text-sm mb-4">Limpar filtro (ver todas)</button>
+            <button onclick="limparFiltroAgendaCondutor()" class="btn-outline text-sm mb-1">Limpar filtro</button>
+            <p class="text-xs text-slate-500 mb-4">Mostrando de hoje em diante. Escolha uma data para ver outro dia.</p>
 
             <!-- Mobile: cards -->
             <div id="cards-agenda-condutor" class="mobile-cards"></div>
@@ -2812,6 +2818,8 @@
 
             <div class="border-t border-slate-200 mt-6 pt-4">
               <h3 class="text-sm font-semibold text-slate-700 mb-3">Histórico</h3>
+              <div id="km-chips" class="flex gap-2 mb-3"></div>
+              <div id="km-tiles" class="grid grid-cols-3 gap-2 mb-3"></div>
               <div style="position:relative; height:220px;" class="mb-4"><canvas id="km-historico-canvas"></canvas></div>
               <div class="table-container" style="overflow-x:auto;">
                 <table class="w-full text-sm" style="border-collapse:collapse;">
@@ -3931,41 +3939,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261007a"></script>
-  <script src="Supabase/supabase-client.js?v=20261007a"></script>
-  <script src="api.js?v=20261007a"></script>
-  <script src="utils.js?v=20261007a"></script>
-  <script src="components.js?v=20261007a"></script>
-  <script src="pages/login.js?v=20261007a"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261007a"></script>
-  <script src="pages/cadastro.js?v=20261007a"></script>
-  <script src="pages/nova-solicitacao.js?v=20261007a"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261007a"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261007a"></script>
-  <script src="pages/viagens-do-dia.js?v=20261007a"></script>
-  <script src="pages/notificacoes.js?v=20261007a"></script>
-  <script src="pages/dashboard-condutor.js?v=20261007a"></script>
-  <script src="pages/painel-dia.js?v=20261007a"></script>
-  <script src="pages/proximas-agendas.js?v=20261007a"></script>
-  <script src="pages/agenda.js?v=20261007a"></script>
-  <script src="pages/agenda-combinada.js?v=20261007a"></script>
-  <script src="pages/agenda-condutor.js?v=20261007a"></script>
-  <script src="pages/registro-km.js?v=20261007a"></script>
-  <script src="pages/gestor.js?v=20261007a"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261007a"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007a"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261007a"></script>
-  <script src="pages/gerenciar-km.js?v=20261007a"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261007a"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261007a"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261007a"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261007a"></script>
-  <script src="pages/relatorios.js?v=20261007a"></script>
-  <script src="pages/avisos.js?v=20261007a"></script>
-  <script src="pages/atualizacao-apk.js?v=20261007a"></script>
-  <script src="pages/alterar-senha.js?v=20261007a"></script>
-  <script src="ui-layout.js?v=20261007a"></script>
-  <script src="app.js?v=20261007a"></script>
+  <script src="config.js?v=20261007b"></script>
+  <script src="Supabase/supabase-client.js?v=20261007b"></script>
+  <script src="api.js?v=20261007b"></script>
+  <script src="utils.js?v=20261007b"></script>
+  <script src="components.js?v=20261007b"></script>
+  <script src="pages/login.js?v=20261007b"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261007b"></script>
+  <script src="pages/cadastro.js?v=20261007b"></script>
+  <script src="pages/nova-solicitacao.js?v=20261007b"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261007b"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261007b"></script>
+  <script src="pages/viagens-do-dia.js?v=20261007b"></script>
+  <script src="pages/notificacoes.js?v=20261007b"></script>
+  <script src="pages/dashboard-condutor.js?v=20261007b"></script>
+  <script src="pages/painel-dia.js?v=20261007b"></script>
+  <script src="pages/proximas-agendas.js?v=20261007b"></script>
+  <script src="pages/agenda.js?v=20261007b"></script>
+  <script src="pages/agenda-combinada.js?v=20261007b"></script>
+  <script src="pages/agenda-condutor.js?v=20261007b"></script>
+  <script src="pages/registro-km.js?v=20261007b"></script>
+  <script src="pages/gestor.js?v=20261007b"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261007b"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007b"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261007b"></script>
+  <script src="pages/gerenciar-km.js?v=20261007b"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261007b"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261007b"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261007b"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261007b"></script>
+  <script src="pages/relatorios.js?v=20261007b"></script>
+  <script src="pages/avisos.js?v=20261007b"></script>
+  <script src="pages/atualizacao-apk.js?v=20261007b"></script>
+  <script src="pages/alterar-senha.js?v=20261007b"></script>
+  <script src="ui-layout.js?v=20261007b"></script>
+  <script src="app.js?v=20261007b"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
