@@ -384,15 +384,18 @@ window.alternarBlocoRecorrencia = alternarBlocoRecorrencia;
   document.head.appendChild(css);
 
   const ativo = () => document.documentElement.classList.contains('app-nativo') || window.matchMedia('(max-width: 1023px)').matches;
-  const alvo = (el) => { const s = el && el.closest ? el.closest('select') : null; return s && s.closest('#form-solicitacao') && !s.disabled && !s.multiple ? s : null; };
+  const alvo = (el) => { const s = el && el.closest ? el.closest('select') : null; return s && s.closest('#form-solicitacao, #tela-agenda-condutor') && !s.disabled && !s.multiple ? s : null; };
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   function abrir(sel) {
     if (document.querySelector('.mcp-fundo')) return;
     const lbl = document.querySelector(`label[for="${sel.id}"]`);
     const titulo = (lbl ? lbl.textContent : 'Selecione').replace(/\*/g, '').trim();
-    const ops = [...sel.options].filter((o) => o.value !== '' && !o.disabled);
-    const ehOutro = (o) => /^outr[oa]\b/i.test(o.textContent.trim());
+    // Nos filtros da Agenda Geral a opção vazia ("Todos...") é uma escolha válida e fica no topo;
+    // na Nova Solicitação ela é só o "Selecione..." e não aparece na lista.
+    const ehFiltro = !!sel.closest('#tela-agenda-condutor');
+    const ops = [...sel.options].filter((o) => (ehFiltro || o.value !== '') && !o.disabled);
+    const ehOutro = (o) => !ehFiltro && /^outr[oa]\b/i.test(o.textContent.trim());
     const normais = ops.filter((o) => !ehOutro(o));
     const outros = ops.filter(ehOutro);
     const lista = [...normais, ...outros];

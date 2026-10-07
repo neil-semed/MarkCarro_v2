@@ -37,7 +37,7 @@ async function carregarGerenciarMotoboyDocumentos(forcarAtualizacao = false) {
     aplicarModoConsultaTela('gerenciar-motoboy-documentos', null);
   } catch (e) {
     console.error('Erro ao carregar Motoboy - Documentos:', e);
-    tbody.innerHTML = `<tr><td colspan="14" class="text-center text-red-500 p-4">Erro ao carregar. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciarMotoboyDocumentos(true)">Tentar de novo</button></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12" class="text-center text-red-500 p-4">Erro ao carregar. <button class="btn-outline text-xs py-1.5 px-2.5 ml-2" onclick="carregarGerenciarMotoboyDocumentos(true)">Tentar de novo</button></td></tr>`;
     Components.Toast.error('Erro ao carregar pedidos de Motoboy');
   }
 }
@@ -185,7 +185,7 @@ async function salvarEdicoesLinhaMotoboy(id) {
 function renderizarTabelaMotoboyCompleta(dados) {
   const tbody = document.getElementById('tb-motoboy-geral');
   if (!dados.length) {
-    tbody.innerHTML = '<tr><td colspan="13" class="text-center text-slate-500 p-4">Nenhum pedido de Motoboy</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" class="text-center text-slate-500 p-4">Nenhum pedido de Motoboy</td></tr>';
     return;
   }
 
@@ -224,7 +224,6 @@ function renderizarTabelaMotoboyCompleta(dados) {
         <input type="text" value="${escGestor(v.destino)}" placeholder="Digite o local" class="input-field text-sm py-1.5 px-2 mt-1 hidden" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'destino', this.value)">
       </td>
       <td style="max-width:90px; white-space:normal; overflow-wrap:break-word;" title="${escGestor(s.nome_ext || s.email_solicitante)}">${nomeCurto}</td>
-      <td>${s.unidade || ''}</td>
       <td>${s.setor || ''}</td>
       <td style="min-width:160px">
         <textarea rows="2" class="input-field text-sm py-1.5 px-2" style="min-width:150px" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'justificativa', this.value)">${escGestor(v.justificativa)}</textarea>
