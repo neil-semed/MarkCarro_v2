@@ -121,6 +121,13 @@ function filtrarAgendaHoje() {
   carregarTelaAgenda();
 }
 
+function filtrarAgendaAmanha() {
+  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.getElementById('agenda-data-inicio').value = amanhaISO;
+  document.getElementById('agenda-data-fim').value = amanhaISO;
+  carregarTelaAgenda();
+}
+
 function limparFiltrosAgenda() {
   document.getElementById('agenda-filtro-status').value = 'TODOS';
   const _fs = document.getElementById('agenda-filtro-setor'); if (_fs) _fs.value = '';
@@ -494,6 +501,7 @@ window.carregarTelaAgenda = carregarTelaAgenda;
 window.aplicarFiltrosAgenda = aplicarFiltrosAgenda;
 window.limparFiltrosAgenda = limparFiltrosAgenda;
 window.filtrarAgendaHoje = filtrarAgendaHoje;
+window.filtrarAgendaAmanha = filtrarAgendaAmanha;
 window.abrirNoDashboard = abrirNoDashboard;
 window.exportarAgendaXlsxUI = exportarAgendaXlsxUI;
 window.enviarAgendaEmailUI = enviarAgendaEmailUI;

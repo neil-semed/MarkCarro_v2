@@ -141,6 +141,15 @@ function filtrarGestorHoje() {
   aplicarFiltrosGestor();
 }
 
+// PEDIDO DO USUÁRIO: botão "Amanhã" após o "Hoje" - mesmo filtro, dia seguinte.
+function filtrarGestorAmanha() {
+  const campo = document.getElementById('filtro-gestor-data-viagem');
+  if (!campo) return;
+  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  campo.value = amanhaISO;
+  aplicarFiltrosGestor();
+}
+
 // Reaproveitada por Gerenciar Solicitações e Agenda de Corridas (pedido do
 // usuário: as duas telas devem ordenar de forma crescente, 1º pela Data da
 // Viagem, 2º pelo Horário de Saída). Sem data_viagem/hora_saida vai pro
@@ -714,3 +723,4 @@ window.limparFiltrosGestor = limparFiltrosGestor;
 window.handleSelectLocalGestor = handleSelectLocalGestor;
 window.ordenarPorDataEHoraSaida = ordenarPorDataEHoraSaida;
 window.filtrarGestorHoje = filtrarGestorHoje;
+window.filtrarGestorAmanha = filtrarGestorAmanha;

@@ -59,6 +59,14 @@ function preencherFiltrosDashboard() {
   const selCondutor = document.getElementById('dash-filtro-condutor');
   if (!selUnidade || !selSetor || !selCondutor) return;
 
+  const selAno = document.getElementById('dash-filtro-ano');
+  if (selAno) {
+    const anoAtual = selAno.value;
+    const anos = _anosDisponiveisDashboard();
+    selAno.innerHTML = '<option value="">Todos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+    if (anos.includes(anoAtual)) selAno.value = anoAtual;
+  }
+
   const valorAtualUnidade = selUnidade.value;
   const valorAtualSetor = selSetor.value;
   const valorAtualCondutor = selCondutor.value;
@@ -84,9 +92,31 @@ function preencherFiltrosDashboard() {
   if ([...selCondutor.options].some(o => o.value === valorAtualCondutor)) selCondutor.value = valorAtualCondutor;
 }
 
+// PEDIDO DO USUÁRIO: filtros Mês e Ano antes de Período. Quando Mês e/ou Ano
+// estão escolhidos, têm prioridade e o Período é ignorado (e desabilitado).
+// Só Mês (sem Ano) = mês do ano atual.
+let _dashMesAno = { mes: '', ano: '' };
+
+function _dentroDoMesAno(dataStr, mes, ano) {
+  const t = String(dataStr || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}/.test(t)) return false;
+  const anoEf = ano || (mes ? String(new Date().getFullYear()) : '');
+  if (anoEf && t.slice(0, 4) !== anoEf) return false;
+  if (mes && t.slice(5, 7) !== mes) return false;
+  return true;
+}
+
+function _anosDisponiveisDashboard() {
+  const anos = new Set();
+  cacheSolicitacoesDashboard.forEach(s => { const a = String(s.data_viagem || '').slice(0, 4); if (/^\d{4}$/.test(a)) anos.add(a); });
+  cacheRegistrosKmDashboard.forEach(r => { const a = String(r.data || '').slice(0, 4); if (/^\d{4}$/.test(a)) anos.add(a); });
+  return [...anos].sort().reverse();
+}
+
 // Aplica o filtro de Período (em dias, mesmo padrão de
 // pareto-solic-periodo: 0 = todo o período) sobre uma data-base.
 function _dentroDoPeriodo(dataStr, dias) {
+  if (_dashMesAno.mes || _dashMesAno.ano) return _dentroDoMesAno(dataStr, _dashMesAno.mes, _dashMesAno.ano);
   if (dias === 0) return true;
   if (!dataStr) return false;
   const hoje = new Date();
@@ -97,6 +127,12 @@ function _dentroDoPeriodo(dataStr, dias) {
 }
 
 function aplicarFiltrosDashboard() {
+  _dashMesAno = {
+    mes: document.getElementById('dash-filtro-mes')?.value || '',
+    ano: document.getElementById('dash-filtro-ano')?.value || ''
+  };
+  const _selPer = document.getElementById('dash-filtro-periodo');
+  if (_selPer) _selPer.disabled = !!(_dashMesAno.mes || _dashMesAno.ano);
   const dias = Number(document.getElementById('dash-filtro-periodo')?.value ?? 0);
   const unidade = document.getElementById('dash-filtro-unidade')?.value || '';
   const setor = document.getElementById('dash-filtro-setor')?.value || '';
@@ -118,6 +154,10 @@ function aplicarFiltrosDashboard() {
 
 function limparFiltrosDashboard() {
   const selPeriodo = document.getElementById('dash-filtro-periodo');
+  const _selMes = document.getElementById('dash-filtro-mes');
+  const _selAno = document.getElementById('dash-filtro-ano');
+  if (_selMes) _selMes.value = '';
+  if (_selAno) _selAno.value = '';
   const selUnidade = document.getElementById('dash-filtro-unidade');
   const selSetor = document.getElementById('dash-filtro-setor');
   const selCondutor = document.getElementById('dash-filtro-condutor');

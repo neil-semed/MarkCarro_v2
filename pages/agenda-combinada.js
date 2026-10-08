@@ -98,6 +98,13 @@ function filtrarAgendaCombinadaHoje() {
   carregarAgendaCombinada();
 }
 
+function filtrarAgendaCombinadaAmanha() {
+  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.getElementById('agenda-comb-data-inicio').value = amanhaISO;
+  document.getElementById('agenda-comb-data-fim').value = amanhaISO;
+  carregarAgendaCombinada();
+}
+
 // PEDIDO DO USUÁRIO ("colocar filtro por motorista"): opções vêm só dos
 // nomes realmente presentes no período carregado (mesmo padrão dos
 // dropdowns de Motorista/Origem/Destino da Agenda do Condutor).
@@ -186,3 +193,4 @@ window.carregarAgendaCombinada = carregarAgendaCombinada;
 window.aplicarFiltrosAgendaCombinada = aplicarFiltrosAgendaCombinada;
 window.limparFiltrosAgendaCombinada = limparFiltrosAgendaCombinada;
 window.filtrarAgendaCombinadaHoje = filtrarAgendaCombinadaHoje;
+window.filtrarAgendaCombinadaAmanha = filtrarAgendaCombinadaAmanha;

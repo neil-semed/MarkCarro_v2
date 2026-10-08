@@ -65,6 +65,14 @@ function filtrarMotoboyHoje() {
   aplicarFiltrosMotoboy();
 }
 
+function filtrarMotoboyAmanha() {
+  const campo = document.getElementById('filtro-motoboy-data-viagem');
+  if (!campo) return;
+  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  campo.value = amanhaISO;
+  aplicarFiltrosMotoboy();
+}
+
 function limparFiltrosMotoboy() {
   document.getElementById('filtro-motoboy-data-solic').value = '';
   document.getElementById('filtro-motoboy-data-viagem').value = '';
@@ -422,6 +430,7 @@ window.excluirMotoboy = excluirMotoboy;
 window.carregarGerenciarMotoboyDocumentos = carregarGerenciarMotoboyDocumentos;
 window.aplicarFiltrosMotoboy = aplicarFiltrosMotoboy;
 window.filtrarMotoboyHoje = filtrarMotoboyHoje;
+window.filtrarMotoboyAmanha = filtrarMotoboyAmanha;
 window.limparFiltrosMotoboy = limparFiltrosMotoboy;
 window.exportarMotoboyXlsxUI = exportarMotoboyXlsxUI;
 window.exportarMotoboyPDF = exportarMotoboyPDF;

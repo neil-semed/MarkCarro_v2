@@ -68,7 +68,21 @@ async function carregarRelatorios(forcarAtualizacao = false) {
 // ------------------------------------------------------------
 // Helpers de dados
 // ------------------------------------------------------------
+// PEDIDO DO USUÁRIO: filtros Mês e Ano antes de Período - têm prioridade
+// sobre o Período (que fica desabilitado). Só Mês = mês do ano atual.
+let _relMesAno = { mes: '', ano: '' };
+
+function _dentroDoMesAnoRel(dataStr, mes, ano) {
+  const t = String(dataStr || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}/.test(t)) return false;
+  const anoEf = ano || (mes ? String(new Date().getFullYear()) : '');
+  if (anoEf && t.slice(0, 4) !== anoEf) return false;
+  if (mes && t.slice(5, 7) !== mes) return false;
+  return true;
+}
+
 function _dentroDoPeriodoRel(dataStr, dias) {
+  if (_relMesAno.mes || _relMesAno.ano) return _dentroDoMesAnoRel(dataStr, _relMesAno.mes, _relMesAno.ano);
   if (dias === 0) return true;
   if (!dataStr) return false;
   const hoje = new Date();
@@ -118,7 +132,7 @@ const _CORES_SITUACAO_CNH_REL = { 'OK': '#46BE6B', 'Vence em breve': '#FF914D', 
 // recebe os valores atuais dos filtros e devolve { kpis, colunas, linhas,
 // grafico }.
 // ------------------------------------------------------------
-const _FILTROS_REL = ['periodo', 'unidade', 'setor', 'status', 'tipoViagem', 'condutor', 'veiculo', 'cooperativa', 'ajustado', 'categoria', 'situacaoCnh'];
+const _FILTROS_REL = ['mes', 'ano', 'periodo', 'unidade', 'setor', 'status', 'tipoViagem', 'condutor', 'veiculo', 'cooperativa', 'ajustado', 'categoria', 'situacaoCnh'];
 
 const RELATORIOS_REL = {
   viagens: {
@@ -172,10 +186,24 @@ const RELATORIOS_REL = {
   },
 };
 
+// Mês/Ano aparecem em todo relatório que tem Período.
+Object.values(RELATORIOS_REL).forEach(r => { if (r.filtros.includes('periodo')) r.filtros.unshift('mes', 'ano'); });
+
 // ------------------------------------------------------------
 // Filtros (preenchimento dos <select>)
 // ------------------------------------------------------------
 function _preencherFiltrosRel() {
+  const selAno = document.getElementById('rel-filtro-ano');
+  if (selAno) {
+    const anoAtual = selAno.value;
+    const anos = new Set();
+    cacheSolicitacoesRel.forEach(s => { const a = String(s.data_viagem || '').slice(0, 4); if (/^\d{4}$/.test(a)) anos.add(a); });
+    (typeof cacheKmRel !== 'undefined' ? cacheKmRel : []).forEach(r => { const a = String(r.data || '').slice(0, 4); if (/^\d{4}$/.test(a)) anos.add(a); });
+    const lista = [...anos].sort().reverse();
+    selAno.innerHTML = '<option value="">Todos</option>' + lista.map(a => `<option value="${a}">${a}</option>`).join('');
+    if (lista.includes(anoAtual)) selAno.value = anoAtual;
+  }
+
   const selUnidade = document.getElementById('rel-filtro-unidade');
   if (selUnidade) {
     const unidades = (cacheUnidadesRel && cacheUnidadesRel.length)
@@ -216,6 +244,12 @@ function _preencherFiltrosRel() {
 }
 
 function _lerFiltrosRel() {
+  _relMesAno = {
+    mes: document.getElementById('rel-filtro-mes')?.value || '',
+    ano: document.getElementById('rel-filtro-ano')?.value || ''
+  };
+  const _selPer = document.getElementById('rel-filtro-periodo');
+  if (_selPer) _selPer.disabled = !!(_relMesAno.mes || _relMesAno.ano);
   return {
     periodoDias: Number(document.getElementById('rel-filtro-periodo')?.value ?? 0),
     unidade: document.getElementById('rel-filtro-unidade')?.value || '',
@@ -261,6 +295,7 @@ function aplicarFiltrosRelatorio() {
 
 function limparFiltrosRelatorio() {
   ['rel-filtro-periodo'].forEach(id => { const el = document.getElementById(id); if (el) el.value = '0'; });
+  ['rel-filtro-mes', 'rel-filtro-ano'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   ['rel-filtro-unidade', 'rel-filtro-setor', 'rel-filtro-status', 'rel-filtro-tipo-viagem', 'rel-filtro-condutor', 'rel-filtro-veiculo', 'rel-filtro-cooperativa', 'rel-filtro-ajustado', 'rel-filtro-categoria', 'rel-filtro-situacao-cnh']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   aplicarFiltrosRelatorio();
