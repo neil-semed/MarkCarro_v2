@@ -33,7 +33,30 @@ function preencherFiltroCondutorKm() {
 
 // Mesmo princípio de _dentroDoPeriodo() (pages/gestor.js), aplicado aqui
 // à data do registro de KM em vez da data da viagem.
+// PEDIDO DO USUÁRIO: filtros Mês e Ano antes de Período (mesma regra do
+// Dashboard) - têm prioridade sobre o Período; só Mês = mês do ano atual.
+let _kmMesAno = { mes: '', ano: '' };
+
+function _dentroDoMesAnoKm(dataStr, mes, ano) {
+  const t = String(dataStr || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}/.test(t)) return false;
+  const anoEf = ano || (mes ? String(new Date().getFullYear()) : '');
+  if (anoEf && t.slice(0, 4) !== anoEf) return false;
+  if (mes && t.slice(5, 7) !== mes) return false;
+  return true;
+}
+
+function preencherAnosKmGestor() {
+  const sel = document.getElementById('km-filtro-ano');
+  if (!sel) return;
+  const atual = sel.value;
+  const anos = [...new Set(cacheRegistrosKmGestor.map(r => String(r.data || '').slice(0, 4)).filter(a => /^\d{4}$/.test(a)))].sort().reverse();
+  sel.innerHTML = '<option value="">Todos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+  if (anos.includes(atual)) sel.value = atual;
+}
+
 function _dentroDoPeriodoKm(dataStr, dias) {
+  if (_kmMesAno.mes || _kmMesAno.ano) return _dentroDoMesAnoKm(dataStr, _kmMesAno.mes, _kmMesAno.ano);
   if (dias === 0) return true;
   if (!dataStr) return false;
   const hoje = new Date();
@@ -51,6 +74,12 @@ function _escapeHtmlKm(v) {
 }
 
 function aplicarFiltrosKmGestor() {
+  _kmMesAno = {
+    mes: document.getElementById('km-filtro-mes')?.value || '',
+    ano: document.getElementById('km-filtro-ano')?.value || ''
+  };
+  const _selPer = document.getElementById('km-filtro-periodo');
+  if (_selPer) _selPer.disabled = !!(_kmMesAno.mes || _kmMesAno.ano);
   const condutor = document.getElementById('km-filtro-condutor')?.value || '';
   const ajustado = document.getElementById('km-filtro-ajustado')?.value || '';
   const dias = Number(document.getElementById('km-filtro-periodo')?.value ?? 0);
@@ -77,6 +106,10 @@ function limparFiltrosKmGestor() {
   if (selCondutor) selCondutor.value = '';
   if (selAjustado) selAjustado.value = '';
   if (selPeriodo) selPeriodo.value = '0';
+  const selMes = document.getElementById('km-filtro-mes');
+  const selAno = document.getElementById('km-filtro-ano');
+  if (selMes) selMes.value = '';
+  if (selAno) selAno.value = '';
   aplicarFiltrosKmGestor();
 }
 
@@ -87,6 +120,7 @@ async function carregarRegistrosKmGestor() {
   try {
     const dados = await listarTodosKM();
     cacheRegistrosKmGestor = dados || [];
+    preencherAnosKmGestor();
     // Mostra o motivo REAL quando a ponte com o Bora Lá falha, em vez de só
     // sumir os registros de lá sem explicação (é o que impedia de saber se o
     // problema era função não publicada, erro de permissão, etc.).

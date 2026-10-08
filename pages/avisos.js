@@ -121,6 +121,15 @@ async function enviarAviso() {
   }
 }
 
+let _avisosEnviadosCache = [];
+
+// Ano/mês no fuso do navegador (data_hora vem em UTC do banco).
+function _avisoAnoMes(dataHora) {
+  const d = new Date(dataHora);
+  if (isNaN(d.getTime())) return ['', ''];
+  return [String(d.getFullYear()), String(d.getMonth() + 1).padStart(2, '0')];
+}
+
 async function carregarAvisosEnviados() {
   const tb = document.getElementById('tb-avisos-enviados');
   try {
@@ -128,12 +137,74 @@ async function carregarAvisosEnviados() {
       .select('id,aviso_id,titulo,prioridade,data_hora,lida,email_destinatario')
       .eq('tipo', 'aviso_admin').order('data_hora', { ascending: false }).limit(5000);
     if (error) throw error;
-    if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-6">Nenhum aviso enviado</td></tr>'; return; }
-    const porEmail = new Map(_avisosUsuarios.map(u => [String(u.email).toLowerCase(), u]));
-    tb.innerHTML = data.map(r => {
-      const u = porEmail.get(String(r.email_destinatario || '').toLowerCase());
-      const imp = r.prioridade === 'importante';
-      return `
+    _avisosEnviadosCache = data || [];
+    _preencherFiltrosAvisosEnviados();
+    renderizarAvisosEnviados();
+  } catch (e) {
+    console.error('Erro ao carregar avisos enviados:', e);
+    tb.innerHTML = '<tr><td colspan="7" class="text-center text-red-500 py-6">Erro ao carregar avisos enviados.</td></tr>';
+  }
+}
+
+// PEDIDO DO USUÁRIO: filtros Mês, Ano, Perfil e Destinatário em "Avisos
+// enviados". Mês/Ano pela data de envio (só Mês = mês do ano atual).
+function _preencherFiltrosAvisosEnviados() {
+  const porEmail = new Map(_avisosUsuarios.map(u => [String(u.email).toLowerCase(), u]));
+  const selAno = document.getElementById('avenv-filtro-ano');
+  if (selAno) {
+    const atual = selAno.value;
+    const anos = [...new Set(_avisosEnviadosCache.map(r => _avisoAnoMes(r.data_hora)[0]).filter(Boolean))].sort().reverse();
+    selAno.innerHTML = '<option value="">Todos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+    if (anos.includes(atual)) selAno.value = atual;
+  }
+  const selDest = document.getElementById('avenv-filtro-dest');
+  if (selDest) {
+    const atual = selDest.value;
+    const mapa = new Map();
+    _avisosEnviadosCache.forEach(r => {
+      const em = String(r.email_destinatario || '').toLowerCase();
+      if (!em || mapa.has(em)) return;
+      const u = porEmail.get(em);
+      mapa.set(em, u ? (u.nome || u.email) : r.email_destinatario);
+    });
+    const lista = [...mapa.entries()].sort((x, y) => String(x[1]).localeCompare(String(y[1]), 'pt-BR'));
+    selDest.innerHTML = '<option value="">Todos os destinatários</option>' +
+      lista.map(([em, nome]) => `<option value="${escaparHtmlAviso(em)}">${escaparHtmlAviso(nome)}</option>`).join('');
+    if (mapa.has(atual)) selDest.value = atual;
+  }
+}
+
+function renderizarAvisosEnviados() {
+  const tb = document.getElementById('tb-avisos-enviados');
+  if (!tb) return;
+  const mes = document.getElementById('avenv-filtro-mes')?.value || '';
+  const ano = document.getElementById('avenv-filtro-ano')?.value || '';
+  const perfil = document.getElementById('avenv-filtro-perfil')?.value || '';
+  const dest = document.getElementById('avenv-filtro-dest')?.value || '';
+  const anoEf = ano || (mes ? String(new Date().getFullYear()) : '');
+  const porEmail = new Map(_avisosUsuarios.map(u => [String(u.email).toLowerCase(), u]));
+
+  const data = _avisosEnviadosCache.filter(r => {
+    const [ra, rm] = _avisoAnoMes(r.data_hora);
+    if (anoEf && ra !== anoEf) return false;
+    if (mes && rm !== mes) return false;
+    const em = String(r.email_destinatario || '').toLowerCase();
+    if (dest && em !== dest) return false;
+    if (perfil) {
+      const u = porEmail.get(em);
+      if (!u || _avisoPerfilRotulo(u) !== perfil) return false;
+    }
+    return true;
+  });
+
+  if (!data.length) {
+    tb.innerHTML = `<tr><td colspan="7" class="text-center text-slate-500 py-6">${_avisosEnviadosCache.length ? 'Nenhum aviso encontrado com esses filtros' : 'Nenhum aviso enviado'}</td></tr>`;
+    return;
+  }
+  tb.innerHTML = data.map(r => {
+    const u = porEmail.get(String(r.email_destinatario || '').toLowerCase());
+    const imp = r.prioridade === 'importante';
+    return `
       <tr>
         <td class="table-td whitespace-nowrap">${formatarDataHoraBR(r.data_hora)}</td>
         <td class="table-td">${escaparHtmlAviso(r.titulo || '-')}</td>
@@ -143,11 +214,14 @@ async function carregarAvisosEnviados() {
         <td class="table-td">${escaparHtmlAviso(u ? _avisoPerfilRotulo(u) : '-')}</td>
         <td class="table-td whitespace-nowrap">${r.lida ? 'Lido' : 'Não lido'}</td>
       </tr>`;
-    }).join('');
-  } catch (e) {
-    console.error('Erro ao carregar avisos enviados:', e);
-    tb.innerHTML = '<tr><td colspan="7" class="text-center text-red-500 py-6">Erro ao carregar avisos enviados.</td></tr>';
-  }
+  }).join('');
+}
+
+function limparFiltrosAvisosEnviados() {
+  ['avenv-filtro-mes', 'avenv-filtro-ano', 'avenv-filtro-perfil', 'avenv-filtro-dest'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  renderizarAvisosEnviados();
 }
 
 // ---------- Janela sobre a tela (todos os perfis) ----------
@@ -195,6 +269,8 @@ async function fecharAvisoSobreTela() {
 }
 
 window.carregarAvisos = carregarAvisos;
+window.renderizarAvisosEnviados = renderizarAvisosEnviados;
+window.limparFiltrosAvisosEnviados = limparFiltrosAvisosEnviados;
 window.renderizarDestinatariosAviso = renderizarDestinatariosAviso;
 window.alternarDestinatarioAviso = alternarDestinatarioAviso;
 window.selecionarTodosAviso = selecionarTodosAviso;
