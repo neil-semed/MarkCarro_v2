@@ -35,6 +35,26 @@ function combinarCondutoresAgenda(s) {
   return linhas.join('\n') || '-';
 }
 
+// PEDIDO DO USUÁRIO (Escala em PDF): motorista com o primeiro nome e a
+// capacidade do veículo - "Ida: Jorge (15)" / "Volta: Jorge (15)", cada
+// perna numa linha. Sem capacidade cadastrada, só o primeiro nome.
+function _primeiroNomeAgenda(nome) {
+  const p = String(nome || '').trim().split(/\s+/)[0] || '';
+  return p ? p.charAt(0).toUpperCase() + p.slice(1).toLowerCase() : '';
+}
+function _motoristaEscalaAgenda(email) {
+  if (!email) return '';
+  const c = (cacheCondutoresParaExibicao || []).find(x => x.email === email);
+  if (!c) return _primeiroNomeAgenda(String(email).split('@')[0]);
+  return c.capacidade ? `${_primeiroNomeAgenda(c.nome)} (${c.capacidade})` : _primeiroNomeAgenda(c.nome);
+}
+function combinarCondutoresEscala(s) {
+  const linhas = [];
+  if (s.condutor_ida) linhas.push(`Ida: ${_motoristaEscalaAgenda(s.condutor_ida)}`);
+  if (s.condutor_volta) linhas.push(`Volta: ${_motoristaEscalaAgenda(s.condutor_volta)}`);
+  return linhas.join('\n') || '-';
+}
+
 // CORREÇÃO (item 1 do novo lote do admin - "continua com data inicial e
 // final travadas, botão limpar datas não funciona"): a versão anterior,
 // quando as datas estavam vazias, sempre travava os campos no dia de HOJE
@@ -333,11 +353,11 @@ function _gerarRelatorioAgendaPDF(dados, opcoes) {
     celular: s.telefone_ext,
     justificativa: s.justificativa,
     extra: s.qtd_pessoas,
-    condutor: combinarCondutoresAgenda(s),
+    condutor: opcoes.compacta ? combinarCondutoresEscala(s) : combinarCondutoresAgenda(s),
     status: s.status,
   })), {
-    titulo: 'MarkCarro | Agenda de Corridas', rotulo, periodo, comData, comJustificativa: !!opcoes.comJustificativa, nomeArquivo, mensagemSucesso,
-    rotuloQtd: 'CORRIDAS', rotuloExtra: 'PASS', rotuloCondutor: 'CONDUTOR',
+    titulo: 'MarkCarro | Agenda de Corridas', rotulo, periodo, comData, comJustificativa: !!opcoes.comJustificativa, compacta: !!opcoes.compacta, nomeArquivo, mensagemSucesso,
+    rotuloQtd: 'CORRIDAS', rotuloExtra: 'PASS', rotuloCondutor: opcoes.compacta ? 'MOTORISTA' : 'CONDUTOR',
   });
 }
 
@@ -385,9 +405,11 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
   cols.push({ h: 'SOLICITANTE', t: 'txt', flex: true, d: v(r => r.solicitante || '-') });
   cols.push({ h: 'CELULAR', t: 'txt', d: v(r => r.celular || '-') });
   // PEDIDO DO USUÁRIO ("em gerar relatório pdf, acrescente a coluna justificativa"): só quando o chamador pede.
-  if (opc.comJustificativa) cols.push({ h: 'JUSTIFICATIVA', t: 'txt', flex: true, d: v(r => r.justificativa || '-') });
+  // Escala (opc.compacta): ordem ... Celular, Pass, Justificativa, Motorista, Status.
+  if (opc.comJustificativa && !opc.compacta) cols.push({ h: 'JUSTIFICATIVA', t: 'txt', flex: true, d: v(r => r.justificativa || '-') });
   cols.push({ h: opc.rotuloExtra, t: 'txt', center: true, d: v(r => String(r.extra ?? '')) });
-  cols.push({ h: opc.rotuloCondutor, t: 'txt', flex: true, d: v(r => r.condutor || '-') });
+  if (opc.comJustificativa && opc.compacta) cols.push({ h: 'JUSTIFICATIVA', t: 'txt', flex: true, d: v(r => r.justificativa || '-') });
+  cols.push({ h: opc.rotuloCondutor, t: 'txt', flex: !opc.compacta, d: v(r => r.condutor || '-') });
   cols.push({ h: 'STATUS', t: 'txt', d: v(r => r.status || 'Pendente') });
 
   cols.forEach(c => {
@@ -401,6 +423,21 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
       c.min = c.flex ? Math.min(c.w, 26) : c.w;
     }
   });
+  // Escala (compacta): colunas justas ao texto, tabela sem esticar até a
+  // margem. Origem/Destino/Justificativa com a mesma largura (~22 caracteres,
+  // quebram em linhas); Solicitante com a largura de Celular; as demais do
+  // tamanho do conteúdo.
+  if (opc.compacta) {
+    const W22 = larg('n'.repeat(22)) + 2 * PAD + 0.6;
+    const cel = cols.find(c => c.h === 'CELULAR');
+    cols.forEach(c => {
+      if (['ORIGEM', 'DESTINO', 'JUSTIFICATIVA'].includes(c.h)) c.w = Math.min(c.w, W22);
+      if (c.h === 'SOLICITANTE') c.w = cel.w;
+      c.flex = false;
+    });
+    const totC = cols.reduce((a, c) => a + c.w, 0);
+    if (totC > DISP) cols.forEach(c => { if (['ORIGEM', 'DESTINO', 'JUSTIFICATIVA', 'SOLICITANTE'].includes(c.h)) c.w *= (DISP - (totC - cols.filter(k => ['ORIGEM', 'DESTINO', 'JUSTIFICATIVA', 'SOLICITANTE'].includes(k.h)).reduce((a, k) => a + k.w, 0))) / cols.filter(k => ['ORIGEM', 'DESTINO', 'JUSTIFICATIVA', 'SOLICITANTE'].includes(k.h)).reduce((a, k) => a + k.w, 0); });
+  }
   let tot = cols.reduce((a, c) => a + c.w, 0);
   const flex = cols.filter(c => c.flex);
   if (tot > DISP) {
@@ -430,6 +467,7 @@ function _gerarRelatorioTabelaPDF(linhas, opc) {
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 4,
     margin: { left: 10, right: 10 },
+    tableWidth: opc.compacta ? 'wrap' : undefined,
     head: [cols.map(c => c.h)],
     body: linhas.map((r, i) => cols.map(c => (c.t === 'par' ? '' : c.d[i]))),
     theme: 'grid',
@@ -488,6 +526,8 @@ function exportarEscalaPDF() {
 
   _gerarRelatorioAgendaPDF(dados, {
     comData: false,
+    comJustificativa: true,
+    compacta: true,
     rotulo: 'Escala',
     nomeArquivo: `markcarro-escala-${Date.now()}.pdf`,
     mensagemSucesso: 'Escala em PDF gerada com sucesso!',
