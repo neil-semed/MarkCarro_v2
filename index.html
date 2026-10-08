@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261007i">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261007i">
-  <link rel="icon" href="favicon.png?v=20261007i">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261008a">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261008a">
+  <link rel="icon" href="favicon.png?v=20261008a">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -828,8 +828,8 @@
 
     /* Gerenciar Solicitações: título + filtros + ações numa única faixa */
     body.ui-compacta .barra-gestor .input-field { height: 1.75rem; padding: 0 0.375rem; font-size: 12px; }
-    body.ui-compacta .barra-gestor input[type="date"] { width: 7.25rem; }
-    body.ui-compacta .barra-gestor select.input-field { width: 6.5rem; }
+    body.ui-compacta .barra-gestor input[type="date"] { width: 6.9rem; }
+    body.ui-compacta .barra-gestor select.input-field { width: 6.1rem; }
     body.ui-compacta .barra-gestor .btn-outline,
     body.ui-compacta .barra-gestor .btn-success,
     body.ui-compacta .barra-gestor .btn-secondary { height: 1.75rem; min-height: 0; padding: 0 0.5rem; font-size: 11px; line-height: 1; white-space: nowrap; }
@@ -946,6 +946,9 @@
     body.ui-compacta #rel-filtros > div.hidden { display: none; }
     body.ui-compacta #rel-barra label { display: block; margin: 0; font-size: 10px; }
     body.ui-compacta #rel-barra select.input-field { height: 1.75rem; min-height: 0; padding: 0 0.375rem; font-size: 12px; width: auto; min-width: 6.5rem; max-width: 12rem; border: 1px solid #94a3b8; border-radius: 0.375rem; background-color: #fff; }
+    body.ui-compacta #rel-barra select#rel-filtro-mes { min-width: 5.5rem; max-width: 6.5rem; }
+    body.ui-compacta #rel-barra select#rel-filtro-ano { min-width: 4.5rem; max-width: 5.5rem; }
+    #dash-filtro-periodo:disabled, #rel-filtro-periodo:disabled { opacity: .5; cursor: not-allowed; }
     body.ui-compacta #rel-botoes { display: flex; flex-flow: row nowrap; align-items: center; gap: 0.25rem; margin: 0; }
     body.ui-compacta #rel-botoes .flex-1 { display: none; }
     body.ui-compacta #rel-kpis { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.375rem; margin: 0; align-content: stretch; }
@@ -2055,7 +2058,20 @@
 
             <!-- Filtros do Dashboard: afetam os KPIs e os gráficos abaixo (não afetam
                  a tabela "Gerenciamento de Solicitações", que tem seus próprios filtros) -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1.1fr)_minmax(0,1.3fr)_minmax(0,1fr)] gap-3 mb-4">
+              <div>
+                <label for="dash-filtro-mes" class="block text-xs font-medium text-slate-500 mb-1">Mês</label>
+                <select id="dash-filtro-mes" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
+                  <option value="">Todos</option>
+                  <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+              </div>
+              <div>
+                <label for="dash-filtro-ano" class="block text-xs font-medium text-slate-500 mb-1">Ano</label>
+                <select id="dash-filtro-ano" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
+                  <option value="">Todos</option>
+                </select>
+              </div>
               <div>
                 <label for="dash-filtro-periodo" class="block text-xs font-medium text-slate-500 mb-1">Período</label>
                 <select id="dash-filtro-periodo" class="input-field text-sm" onchange="aplicarFiltrosDashboard()">
@@ -2264,6 +2280,7 @@
                 <div class="flex gap-1">
                   <input type="date" id="filtro-gestor-data-viagem" class="input-field text-sm" onchange="aplicarFiltrosGestor()">
                   <button type="button" onclick="filtrarGestorHoje()" class="btn-outline text-sm px-2 shrink-0">Hoje</button>
+                  <button type="button" onclick="filtrarGestorAmanha()" class="btn-outline text-sm px-2 shrink-0">Amanhã</button>
                 </div>
               </div>
               <div>
@@ -2352,6 +2369,7 @@
                 <div class="flex gap-1">
                   <input type="date" id="filtro-motoboy-data-viagem" class="input-field text-sm" onchange="aplicarFiltrosMotoboy()">
                   <button type="button" onclick="filtrarMotoboyHoje()" class="btn-outline text-sm px-2 shrink-0">Hoje</button>
+                  <button type="button" onclick="filtrarMotoboyAmanha()" class="btn-outline text-sm px-2 shrink-0">Amanhã</button>
                 </div>
               </div>
               <div>
@@ -2419,12 +2437,13 @@
 
             <div id="agenda-barra" class="print:hidden">
               <div class="agenda-f"><label for="agenda-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">Data Inicial</label>
-                <input type="date" id="agenda-data-inicio" class="input-field text-sm" style="width:9rem" onchange="carregarTelaAgenda()"></div>
+                <input type="date" id="agenda-data-inicio" class="input-field text-sm" style="width:8.25rem" onchange="carregarTelaAgenda()"></div>
               <div class="agenda-f"><label for="agenda-data-fim" class="block text-xs font-medium text-slate-500 mb-1">Data Final</label>
-                <input type="date" id="agenda-data-fim" class="input-field text-sm" style="width:9rem" onchange="carregarTelaAgenda()"></div>
+                <input type="date" id="agenda-data-fim" class="input-field text-sm" style="width:8.25rem" onchange="carregarTelaAgenda()"></div>
               <div class="agenda-f"><button type="button" onclick="filtrarAgendaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button></div>
+              <div class="agenda-f"><button type="button" onclick="filtrarAgendaAmanha()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Amanhã</button></div>
               <div class="agenda-f"><label for="agenda-filtro-status" class="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                <select id="agenda-filtro-status" class="input-field text-sm" style="width:7.5rem" onchange="aplicarFiltrosAgenda()">
+                <select id="agenda-filtro-status" class="input-field text-sm" style="width:6.75rem" onchange="aplicarFiltrosAgenda()">
                   <option value="TODOS">Todos</option>
                   <option value="Pendente">Pendente</option>
                   <option value="Em Análise">Em Análise</option>
@@ -2528,13 +2547,14 @@
               Não consegui buscar a agenda do Bora Lá agora (sistema fora do ar ou sem conexão) - mostrando só o que já tem do MarkCarro.
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(15rem,1.4fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)_auto] gap-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(18rem,1.5fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)_auto] gap-3 mb-4">
               <div>
                 <label for="agenda-comb-data-inicio" class="block text-xs font-medium text-slate-500 mb-1">Data Inicial</label>
                 <div class="flex gap-1">
                   <input type="date" id="agenda-comb-data-inicio" class="input-field text-sm min-w-0" onchange="carregarAgendaCombinada()">
                   <!-- PEDIDO DO USUÁRIO: botão "Hoje", mesmo padrão da Agenda de Corridas. -->
                   <button type="button" onclick="filtrarAgendaCombinadaHoje()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Hoje</button>
+                  <button type="button" onclick="filtrarAgendaCombinadaAmanha()" class="btn-outline btn-filtro-g text-sm px-2 shrink-0">Amanhã</button>
                 </div>
               </div>
               <div>
@@ -3707,6 +3727,19 @@
             <div id="rel-barra">
             <div id="rel-barra-esq">
             <div id="rel-filtros" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div id="rel-filtro-wrap-mes">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Mês</label>
+                <select id="rel-filtro-mes" class="input-field" onchange="aplicarFiltrosRelatorio()">
+                  <option value="">Todos</option>
+                  <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+              </div>
+              <div id="rel-filtro-wrap-ano">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Ano</label>
+                <select id="rel-filtro-ano" class="input-field" onchange="aplicarFiltrosRelatorio()">
+                  <option value="">Todos</option>
+                </select>
+              </div>
               <div id="rel-filtro-wrap-periodo">
                 <label class="block text-xs font-medium text-slate-600 mb-1">Período</label>
                 <select id="rel-filtro-periodo" class="input-field" onchange="aplicarFiltrosRelatorio()">
@@ -3964,41 +3997,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261007i"></script>
-  <script src="Supabase/supabase-client.js?v=20261007i"></script>
-  <script src="api.js?v=20261007i"></script>
-  <script src="utils.js?v=20261007i"></script>
-  <script src="components.js?v=20261007i"></script>
-  <script src="pages/login.js?v=20261007i"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261007i"></script>
-  <script src="pages/cadastro.js?v=20261007i"></script>
-  <script src="pages/nova-solicitacao.js?v=20261007i"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261007i"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261007i"></script>
-  <script src="pages/viagens-do-dia.js?v=20261007i"></script>
-  <script src="pages/notificacoes.js?v=20261007i"></script>
-  <script src="pages/dashboard-condutor.js?v=20261007i"></script>
-  <script src="pages/painel-dia.js?v=20261007i"></script>
-  <script src="pages/proximas-agendas.js?v=20261007i"></script>
-  <script src="pages/agenda.js?v=20261007i"></script>
-  <script src="pages/agenda-combinada.js?v=20261007i"></script>
-  <script src="pages/agenda-condutor.js?v=20261007i"></script>
-  <script src="pages/registro-km.js?v=20261007i"></script>
-  <script src="pages/gestor.js?v=20261007i"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261007i"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261007i"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261007i"></script>
-  <script src="pages/gerenciar-km.js?v=20261007i"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261007i"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261007i"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261007i"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261007i"></script>
-  <script src="pages/relatorios.js?v=20261007i"></script>
-  <script src="pages/avisos.js?v=20261007i"></script>
-  <script src="pages/atualizacao-apk.js?v=20261007i"></script>
-  <script src="pages/alterar-senha.js?v=20261007i"></script>
-  <script src="ui-layout.js?v=20261007i"></script>
-  <script src="app.js?v=20261007i"></script>
+  <script src="config.js?v=20261008a"></script>
+  <script src="Supabase/supabase-client.js?v=20261008a"></script>
+  <script src="api.js?v=20261008a"></script>
+  <script src="utils.js?v=20261008a"></script>
+  <script src="components.js?v=20261008a"></script>
+  <script src="pages/login.js?v=20261008a"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261008a"></script>
+  <script src="pages/cadastro.js?v=20261008a"></script>
+  <script src="pages/nova-solicitacao.js?v=20261008a"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261008a"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261008a"></script>
+  <script src="pages/viagens-do-dia.js?v=20261008a"></script>
+  <script src="pages/notificacoes.js?v=20261008a"></script>
+  <script src="pages/dashboard-condutor.js?v=20261008a"></script>
+  <script src="pages/painel-dia.js?v=20261008a"></script>
+  <script src="pages/proximas-agendas.js?v=20261008a"></script>
+  <script src="pages/agenda.js?v=20261008a"></script>
+  <script src="pages/agenda-combinada.js?v=20261008a"></script>
+  <script src="pages/agenda-condutor.js?v=20261008a"></script>
+  <script src="pages/registro-km.js?v=20261008a"></script>
+  <script src="pages/gestor.js?v=20261008a"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261008a"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261008a"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261008a"></script>
+  <script src="pages/gerenciar-km.js?v=20261008a"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261008a"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261008a"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261008a"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261008a"></script>
+  <script src="pages/relatorios.js?v=20261008a"></script>
+  <script src="pages/avisos.js?v=20261008a"></script>
+  <script src="pages/atualizacao-apk.js?v=20261008a"></script>
+  <script src="pages/alterar-senha.js?v=20261008a"></script>
+  <script src="ui-layout.js?v=20261008a"></script>
+  <script src="app.js?v=20261008a"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->
