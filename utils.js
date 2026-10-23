@@ -39,6 +39,13 @@ function formatarDataHoraBR(valor) {
   return `${formatarDataBR(valor.split(" ")[0])} ${formatarHoraBR(valor.split(" ")[1])}`;
 }
 
+// Data de HOJE no fuso do aparelho (YYYY-MM-DD). new Date().toISOString() usa UTC:
+// no Brasil, depois das 21h ele já devolve o dia SEGUINTE.
+function dataLocalISO(d) {
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function dataBRparaISO(dataBR) {
   if (!dataBR) return "";
   const partes = dataBR.split("/");
