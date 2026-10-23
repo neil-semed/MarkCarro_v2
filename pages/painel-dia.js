@@ -18,7 +18,7 @@ let cachePainelDiaHoje = [];
 async function carregarPainelDoDia() {
   if (!usuarioAtual) return;
 
-  const hojeISO = new Date().toISOString().split('T')[0];
+  const hojeISO = dataLocalISO();
   const elData = document.getElementById('painel-dia-data');
   if (elData) {
     elData.textContent = new Date(hojeISO + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -151,8 +151,9 @@ function renderizarPainelDoDia(lista) {
       : (mesmoEmail(s.condutor_ida, usuarioAtual.email) && mesmoEmail(s.condutor_volta, usuarioAtual.email)
         ? 'Ida e Volta'
         : mesmoEmail(s.condutor_ida, usuarioAtual.email) ? 'Ida' : 'Volta');
-    // Para o motorista, cancelamento pelo solicitante ("Desprezado") também aparece como "Cancelada".
-    const statusExibido = doBoraLa ? 'Confirmada' : (s.status === 'Desprezado' ? 'Cancelada' : s.status);
+    // Para o motorista, cancelamento (pelo solicitante = "Desprezado", ou pela gestão = "Cancelada") aparece como "Cancelada".
+    const ehCancelado = !doBoraLa && (s.status === 'Desprezado' || s.status === 'Cancelada');
+    const statusExibido = doBoraLa ? 'Confirmada' : (ehCancelado ? 'Cancelada' : s.status);
     // origem/destino/qtd_pessoas já vêm com os mesmos nomes de campo dos 2
     // lados (solicitacoes do MarkCarro e agenda-veiculos do Bora Lá).
     const solicitante = doBoraLa ? (s.nome_solicitante || '') : (s.nome_ext || s.email_solicitante || '');

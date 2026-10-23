@@ -47,7 +47,7 @@ function abrirDashboardCondutor() {
 async function carregarDashboardCondutor() {
   if (!usuarioAtual) return;
   try {
-    const hojeISO = new Date().toISOString().split('T')[0];
+    const hojeISO = dataLocalISO();
     const [viagens, km, unidades] = await Promise.all([
       buscarSolicitacoesPorCondutor(usuarioAtual.email),
       buscarKM_porPeriodo(usuarioAtual.email, '2020-01-01', hojeISO).catch(() => []),

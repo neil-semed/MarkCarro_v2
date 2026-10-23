@@ -17,7 +17,7 @@ async function carregarRegistroKm() {
   conteudo.innerHTML = '<div class="p-4 text-center">Carregando status...</div>';
   
   try {
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = dataLocalISO();
     const registro = await buscarKM_porData(usuarioAtual.email, hoje);
     
     // Antes usava classes do Bootstrap (alert/form-control/form-label/
@@ -69,7 +69,7 @@ async function registrarKmInicialUI() {
   if (!km) return Components.Toast.error('Informe o KM inicial');
   
   try {
-    await registrarKM({ email_condutor: usuarioAtual.email, data: new Date().toISOString().split('T')[0], km_inicial: km });
+    await registrarKM({ email_condutor: usuarioAtual.email, data: dataLocalISO(), km_inicial: km });
     Components.Toast.success('KM Inicial registrado!');
     carregarRegistroKm();
   } catch (e) {
@@ -81,7 +81,7 @@ async function registrarKmFinalUI() {
   const km = parseInt(document.getElementById('km-final-input').value);
   if (!km) return Components.Toast.error('Informe o KM final');
   
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = dataLocalISO();
   const registro = await buscarKM_porData(usuarioAtual.email, hoje);
   
   if (!registro) return Components.Toast.error('Nenhum KM inicial hoje');
@@ -98,7 +98,7 @@ async function registrarKmFinalUI() {
 
 async function carregarHistoricoKm() {
   try {
-    const dados = await buscarKM_porPeriodo(usuarioAtual.email, '2020-01-01', new Date().toISOString().split('T')[0]);
+    const dados = await buscarKM_porPeriodo(usuarioAtual.email, '2020-01-01', dataLocalISO());
     const tbody = document.getElementById('tb-historico-km');
     tbody.innerHTML = (dados || []).map(r => `
       <tr>
