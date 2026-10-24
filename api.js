@@ -814,6 +814,47 @@ async function enviarEmailStatusSolicitacao(id, tipo) {
   }
 }
 
+// E-mail da solicitação para a Unidade (escola/creche) + solicitante, nos eventos
+// 'registrada' | 'confirmada' | 'cancelada'. A Edge Function decide se envia
+// (origem/destino igual a uma Unidade ativa) e devolve { ignorado: true } se não.
+// Nunca lança erro: falha de e-mail não pode atrapalhar a operação.
+async function enviarEmailSolicitacao(id, evento) {
+  try {
+    _checarClient();
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session || !id) return false;
+    const resp = await fetch(CONFIG.ENVIAR_EMAIL_SOLICITACAO_URL, {
+      method: 'POST',
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id, evento })
+    });
+    const corpo = await resp.json().catch(() => ({}));
+    if (!resp.ok) { console.warn('E-mail da solicitação não enviado:', corpo?.error || resp.status); return false; }
+    return !corpo.ignorado;
+  } catch (e) {
+    console.warn('E-mail da solicitação não enviado:', e);
+    return false;
+  }
+}
+
+// Configurações simples (chave/valor) - tabela config_sistema.
+async function buscarConfigSistema(chave) {
+  _checarClient();
+  const { data, error } = await _sb.from('config_sistema').select('valor').eq('chave', chave).maybeSingle();
+  if (error) throw error;
+  return data ? data.valor : null;
+}
+
+async function salvarConfigSistema(chave, valor) {
+  _checarClient();
+  const { error } = await _sb.from('config_sistema').upsert({ chave, valor, atualizado_em: new Date().toISOString() });
+  if (error) throw error;
+}
+
 // ============================================================
 // COOPERATIVAS (vínculo do Condutor - nome/e-mail/telefone, Editar/
 // Bloquear igual a Unidades)

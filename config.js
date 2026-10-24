@@ -33,7 +33,10 @@ const CONFIG = {
   ENVIAR_AGENDA_EMAIL_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-agenda-email',
   // E-mails de "Viagem confirmada" e "Sem veículo disponível" (só solicitações de escola)
   // - ver Supabase/functions/enviar-email-status-solicitacao/index.ts.
-  ENVIAR_EMAIL_STATUS_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-email-status-solicitacao'
+  ENVIAR_EMAIL_STATUS_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-email-status-solicitacao',
+  // E-mails de solicitação com escola/creche (registrada, confirmada, cancelada) - ver
+  // Supabase/functions/enviar-email-solicitacao/index.ts e enviarEmailSolicitacao() em api.js.
+  ENVIAR_EMAIL_SOLICITACAO_URL: 'https://gvtgtdhfciqegnjqcqlf.supabase.co/functions/v1/enviar-email-solicitacao'
 };
 
 window.CONFIG = CONFIG;
