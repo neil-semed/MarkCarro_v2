@@ -465,14 +465,15 @@ function _ehSolicitacaoEscola(s) {
 function _notificarConfirmacao(solicitacao, condutorIda, condutorVolta) {
   const trecho = `${solicitacao.origem} → ${solicitacao.destino}`;
   const quando = `${formatarDataBR(solicitacao.data_viagem)} às ${formatarHoraBR(solicitacao.hora_saida)}`;
-  const descIda = obterDescricaoCondutor(condutorIda);
+  const descIda = condutorIda ? obterDescricaoCondutor(condutorIda) : null;
   const descVolta = condutorVolta ? obterDescricaoCondutor(condutorVolta) : null;
 
   // Mensagens curtas (pedido do usuário) - os detalhes completos (com a
   // observação de tolerância de horário etc.) continuam disponíveis na
   // tela de Minhas Solicitações, a notificação é só o aviso rápido.
-  let msg = `Solicitação confirmada: ${quando} (${trecho}). Condutor: ${descIda || condutorIda}.`;
-  if (descVolta && condutorVolta !== condutorIda) msg += ` Volta: ${descVolta}.`;
+  let msg = `Solicitação confirmada: ${quando} (${trecho}).`;
+  if (condutorIda) msg += ` Condutor: ${descIda || condutorIda}.`;
+  if (descVolta && condutorVolta !== condutorIda) msg += condutorIda ? ` Volta: ${descVolta}.` : ` Condutor da volta: ${descVolta}.`;
 
   criarNotificacao({
     email_destinatario: solicitacao.email_solicitante,
@@ -483,7 +484,11 @@ function _notificarConfirmacao(solicitacao, condutorIda, condutorVolta) {
 
   // E-mail "Confirmação de Viagem" - só solicitações de escola (a Edge Function
   // confere o setor); falha de e-mail não atrapalha a confirmação.
-  if (_ehSolicitacaoEscola(solicitacao)) enviarEmailStatusSolicitacao(solicitacao.id, 'confirmada');
+  if (_ehSolicitacaoEscola(solicitacao) && !solicitacao.nome_ext) enviarEmailStatusSolicitacao(solicitacao.id, 'confirmada');
+
+  // E-mail "Confirmação de Viagem" (ADM Escolar / Ass-Psico registradas pelo admin) com motorista,
+  // celular e placa - a Edge Function confere a regra.
+  enviarEmailSolicitacao(solicitacao.id, 'confirmada');
 
   // Corrida "extra" (solicitada no mesmo dia da viagem) - avisa também
   // o(s) condutor(es) escalados, igual ao sistema antigo fazia.
@@ -508,14 +513,14 @@ async function confirmarSolicitacaoGestor(id) {
   const condutorIda = row.querySelector('.select-condutor-ida').value;
   const condutorVolta = row.querySelector('.select-condutor-volta').value;
 
-  if (!condutorIda) return Components.Toast.error('Selecione condutor de ida');
+  if (!condutorIda && !condutorVolta) return Components.Toast.error('Selecione o condutor de ida ou o de volta');
 
   const solicitacao = cacheTodasSolicitacoesGestor.find(s => String(s.id) === String(id));
 
   try {
     await atualizarSolicitacao(id, {
       status: 'Confirmada',
-      condutor_ida: condutorIda,
+      condutor_ida: condutorIda || null,
       condutor_volta: condutorVolta || null
     });
     Components.Toast.success('Solicitação confirmada!');
@@ -545,7 +550,7 @@ async function confirmarGeralGestor() {
   if (!usuarioPodeEditarTela('gerenciamento-solicitacoes')) return Components.Toast.error('Seu perfil de acesso só permite consulta nesta tela.');
   const alvos = cacheTodasSolicitacoesGestor.filter(s => {
     const status = s.status || 'Pendente';
-    return !!s.condutor_ida && (status === 'Pendente' || status === 'Em Análise');
+    return (!!s.condutor_ida || !!s.condutor_volta) && (status === 'Pendente' || status === 'Em Análise');
   });
 
   if (!alvos.length) {
@@ -561,7 +566,7 @@ async function confirmarGeralGestor() {
     try {
       await atualizarSolicitacao(s.id, {
         status: 'Confirmada',
-        condutor_ida: s.condutor_ida,
+        condutor_ida: s.condutor_ida || null,
         condutor_volta: s.condutor_volta || null
       });
       s.status = 'Confirmada';
@@ -603,7 +608,9 @@ async function marcarOcupadoGestor(id) {
       }).catch(e => console.warn('Erro ao notificar solicitante:', e));
 
       // E-mail "Sem veículo disponível" - só solicitações de escola.
-      if (_ehSolicitacaoEscola(solicitacao)) enviarEmailStatusSolicitacao(solicitacao.id, 'ocupado');
+      if (_ehSolicitacaoEscola(solicitacao) && !solicitacao.nome_ext) enviarEmailStatusSolicitacao(solicitacao.id, 'ocupado');
+      // E-mail "Viagem Ocupada" (ADM Escolar / Ass-Psico registradas pelo admin).
+      enviarEmailSolicitacao(solicitacao.id, 'ocupada');
     }
 
     carregarGerenciamentoSolicitacoes(true);
@@ -632,6 +639,9 @@ async function cancelarSolicitacaoGestor(id) {
         lida: false
       }).catch(e => console.warn('Erro ao notificar solicitante:', e));
     }
+
+    // E-mail "Viagem Cancelada" (ADM Escolar / Ass-Psico registradas pelo admin).
+    enviarEmailSolicitacao(id, 'cancelada');
 
     carregarGerenciamentoSolicitacoes(true);
   } catch (e) {

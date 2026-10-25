@@ -636,6 +636,8 @@ async function cancelarSolicitacao(id, opcoes) {
   try {
     await atualizarSolicitacao(id, { status: 'Desprezado' });
     Components.Toast.success('Solicitação cancelada');
+    // E-mail "Viagem Cancelada" (ADM Escolar / Ass-Psico registradas pelo admin).
+    enviarEmailSolicitacao(id, 'cancelada');
 
     if (solicitacao) {
       const trecho = `${solicitacao.origem} → ${solicitacao.destino}`;
