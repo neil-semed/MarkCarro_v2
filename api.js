@@ -814,9 +814,10 @@ async function enviarEmailStatusSolicitacao(id, tipo) {
   }
 }
 
-// E-mail da solicitação para a Unidade (escola/creche) + solicitante, nos eventos
-// 'registrada' | 'confirmada' | 'cancelada'. A Edge Function decide se envia
-// (origem/destino igual a uma Unidade ativa) e devolve { ignorado: true } se não.
+// E-mail da solicitação (setor ADM ESCOLAR / ASS - PSICO registrada pelo admin) para o
+// e-mail da Unidade escolhida (ou e-mail de contato), nos eventos 'registrada' |
+// 'confirmada' | 'ocupada' | 'cancelada'. A Edge Function decide se envia
+// e devolve { ignorado: true } se não.
 // Nunca lança erro: falha de e-mail não pode atrapalhar a operação.
 async function enviarEmailSolicitacao(id, evento) {
   try {
