@@ -148,7 +148,8 @@ function _renderizarGraficoHistoricoKm(registros) {
   let eixo;
   if (_kmPeriodoGrafico > 0) {
     eixo = [];
-    const fim = new Date(); fim.setHours(12, 0, 0, 0);
+    const [ay, am, ad] = dataLocalISO().split('-').map(Number);
+    const fim = new Date(ay, am - 1, ad, 12, 0, 0, 0);
     for (let k = _kmPeriodoGrafico - 1; k >= 0; k--) {
       const d = new Date(fim); d.setDate(d.getDate() - k);
       eixo.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
