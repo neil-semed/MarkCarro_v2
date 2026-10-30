@@ -39,11 +39,19 @@ function formatarDataHoraBR(valor) {
   return `${formatarDataBR(valor.split(" ")[0])} ${formatarHoraBR(valor.split(" ")[1])}`;
 }
 
-// Data de HOJE no fuso do aparelho (YYYY-MM-DD). new Date().toISOString() usa UTC:
-// no Brasil, depois das 21h ele já devolve o dia SEGUINTE.
+// Data de HOJE no horário de Brasília (YYYY-MM-DD), independente do fuso do aparelho.
+// O dia vira exatamente às 00:00 de Brasília. new Date().toISOString() usa UTC e
+// já devolvia o dia SEGUINTE depois das 21h.
 function dataLocalISO(d) {
   d = d || new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  try {
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d);
+    const g = t => p.find(x => x.type === t).value;
+    return `${g('year')}-${g('month')}-${g('day')}`;
+  } catch (e) {
+    const b = new Date(d.getTime() - 3 * 3600000);
+    return b.toISOString().slice(0, 10);
+  }
 }
 
 function dataBRparaISO(dataBR) {
