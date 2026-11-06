@@ -83,6 +83,13 @@ jobs:
         working-directory: mobile
         run: npx cap sync android
 
+      # Chave de assinatura FIXA (mobile/debug.keystore): sem isso cada build nasce com uma
+      # chave nova e o Android recusa instalar o APK novo por cima do antigo.
+      - name: Usar a chave de assinatura fixa
+        run: |
+          mkdir -p ~/.android
+          cp mobile/debug.keystore ~/.android/debug.keystore
+
       - name: Compilar o APK de debug
         working-directory: mobile/android
         run: |
