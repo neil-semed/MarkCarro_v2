@@ -364,6 +364,18 @@ async function listarCondutoresParaExibicao() {
   return data;
 }
 
+// Mapa e-mail (minúsculo) -> nome do cadastro, para mostrar o nome do solicitante no lugar do
+// e-mail (ver nomeSolicitante() em utils.js). Só traz o que a permissão do usuário deixa ver.
+async function carregarNomesUsuarios() {
+  _checarClient();
+  const { data, error } = await _sb.from('profiles').select('email, nome');
+  if (error) throw error;
+  const mapa = {};
+  (data || []).forEach(p => { if (p.email && p.nome) mapa[String(p.email).trim().toLowerCase()] = p.nome; });
+  cacheNomesUsuarios = mapa;
+  return mapa;
+}
+
 async function listarUsuarios() {
   _checarClient();
   const { data, error } = await _sb

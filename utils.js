@@ -54,6 +54,34 @@ function dataLocalISO(d) {
   }
 }
 
+// YYYY-MM-DD de um Date "de calendário" (criado com new Date(a, m, d, 12) ou a partir de 'AAAA-MM-DDT12:00:00'),
+// lendo os componentes locais - sem conversão de fuso.
+function isoDeDataCalendario(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Dia de Brasília deslocado N dias (0 = hoje, 1 = amanhã...). Sem horário de verão no Brasil: -03:00 fixo.
+function diaBrasilia(offsetDias) {
+  return dataLocalISO(new Date(Date.now() + (offsetDias || 0) * 86400000));
+}
+
+// Acha o condutor pelo e-mail sem diferenciar maiúscula/minúscula nem espaços.
+function condutorPorEmail(lista, email) {
+  const e = String(email || '').trim().toLowerCase();
+  if (!e) return undefined;
+  return (lista || []).find(x => String(x.email || '').trim().toLowerCase() === e);
+}
+
+// Nome do solicitante: nome digitado pelo gestor (externo) -> nome do cadastro do usuário
+// (achado pelo e-mail em cacheNomesUsuarios, preenchida por carregarNomesUsuarios()) -> e-mail.
+let cacheNomesUsuarios = {};
+function nomeSolicitante(s) {
+  if (!s) return '';
+  if (s.nome_ext) return s.nome_ext;
+  const e = String(s.email_solicitante || '').trim();
+  return cacheNomesUsuarios[e.toLowerCase()] || e;
+}
+
 function dataBRparaISO(dataBR) {
   if (!dataBR) return "";
   const partes = dataBR.split("/");
