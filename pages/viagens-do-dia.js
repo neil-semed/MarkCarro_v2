@@ -62,7 +62,8 @@ async function carregarViagensDoDia() {
     // em vez de listarCondutores() - esta tela é só de EXIBIÇÃO (nunca
     // atribui motorista a nada), então não deve perder um condutor que
     // tenha sido desativado depois. Ver comentário completo em api.js.
-    if (!cacheCondutoresParaExibicao || !cacheCondutoresParaExibicao.length) {
+    try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
+    {
       try { cacheCondutoresParaExibicao = await listarCondutoresParaExibicao(); } catch (e) { /* mostra e-mail se falhar */ }
     }
 
@@ -73,8 +74,7 @@ async function carregarViagensDoDia() {
     // erro nenhum, só nenhuma viagem pra aquela data errada). Mesmo ajuste
     // já usado em outras telas (ver filtrarAgendaHoje() em agenda.js):
     // soma/subtrai o offset do fuso do navegador antes de extrair a data.
-    const hoje = new Date();
-    const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const hojeISO = dataLocalISO();
     const dados = await buscarSolicitacoesPorData(hojeISO, hojeISO);
     // PEDIDO DO USUÁRIO ("carregar somente as viagens confirmadas e
     // canceladas do dia"): antes mostrava TODOS os status (Pendente/Em
@@ -94,7 +94,7 @@ async function carregarViagensDoDia() {
 
 function _condutorInfoViagensDoDia(email) {
   if (!email) return '';
-  const c = (typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : []).find(x => x.email === email);
+  const c = condutorPorEmail(typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : [], email);
   const nome = c?.nome || email;
   return c?.telefone ? `${nome} · ${c.telefone}` : nome;
 }
@@ -144,7 +144,7 @@ function renderizarViagensDoDia(dados) {
         <div class="trip-route-point origem"><span class="trip-route-label">Origem</span>${s.origem || '—'}</div>
         <div class="trip-route-point destino"><span class="trip-route-label">Destino</span>${s.destino || '—'}</div>
       </div>
-      <div class="trip-meta-row">${IconesViagem.usuario}<span>${s.nome_ext || s.email_solicitante}</span></div>
+      <div class="trip-meta-row">${IconesViagem.usuario}<span>${nomeSolicitante(s)}</span></div>
       ${_linhasMotoristaViagensDoDia(s).map(linha => `<div class="trip-meta-row">${IconesViagem.carro}<span>${linha}</span></div>`).join('')}
     </div>
   `).join('');

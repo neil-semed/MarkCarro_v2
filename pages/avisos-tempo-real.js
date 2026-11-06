@@ -26,7 +26,7 @@ async function verificarAvisosTempoReal() {
   if (!usuarioAtual || usuarioAtual.tipo?.toLowerCase() !== 'solicitante') return;
 
   try {
-    const hojeISO = new Date().toISOString().split('T')[0];
+    const hojeISO = dataLocalISO();
     const todas = await buscarSolicitacoesPorEmail(usuarioAtual.email);
     const agora = new Date();
 

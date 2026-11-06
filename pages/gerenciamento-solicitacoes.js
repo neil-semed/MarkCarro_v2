@@ -61,6 +61,7 @@ async function carregarGerenciamentoSolicitacoes(forcarAtualizacao = false) {
     ]);
 
     cacheCondutores = condutores || [];
+    try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
     cacheTodasSolicitacoesGestor = solicitacoes || [];
 
     renderizarAvisoCnh('aviso-cnh-gerenciamento', cacheCondutores);
@@ -135,8 +136,7 @@ function aplicarFiltrosGestor() {
 function filtrarGestorHoje() {
   const campo = document.getElementById('filtro-gestor-data-viagem');
   if (!campo) return;
-  const hoje = new Date();
-  const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const hojeISO = dataLocalISO();
   campo.value = hojeISO;
   aplicarFiltrosGestor();
 }
@@ -145,7 +145,7 @@ function filtrarGestorHoje() {
 function filtrarGestorAmanha() {
   const campo = document.getElementById('filtro-gestor-data-viagem');
   if (!campo) return;
-  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const amanhaISO = diaBrasilia(1);
   campo.value = amanhaISO;
   aplicarFiltrosGestor();
 }
@@ -194,7 +194,7 @@ function exportarSolicitacoesXlsxUI() {
     'Retorno': formatarHoraBR(s.hora_retorno),
     'Origem': s.origem,
     'Destino': s.destino,
-    'Solicitante': s.nome_ext || s.email_solicitante,
+    'Solicitante': nomeSolicitante(s),
     'Unidade': s.unidade || '',
     'Setor': s.setor || '',
     'Justificativa': s.justificativa,
@@ -311,7 +311,7 @@ function renderizarTabelaGestorCompleta(dados) {
 
   tbody.innerHTML = dados.map(s => {
     const status = s.status || 'Pendente';
-    const nomeCurto = primeiroNomeGestor(s.nome_ext) || s.email_solicitante;
+    const nomeCurto = primeiroNomeGestor(nomeSolicitante(s));
     // Se esta linha tem alterações ainda não salvas (usuário mudou o campo
     // mas não clicou "Salvar" - ou clicou e deu erro), mostra o valor
     // pendente em vez do valor antigo do banco, senão a alteração
@@ -348,7 +348,7 @@ function renderizarTabelaGestorCompleta(dados) {
         </select>
         <input type="text" value="${escGestor(v.destino)}" placeholder="Digite o local" class="input-field text-sm py-1.5 px-2 mt-1 hidden" onchange="marcarCampoAlteradoGestor('${s.id}', 'destino', this.value)">
       </td>
-      <td style="max-width:90px; white-space:normal; overflow-wrap:break-word;" title="${escGestor(s.nome_ext || s.email_solicitante)}">${nomeCurto}</td>
+      <td style="max-width:90px; white-space:normal; overflow-wrap:break-word;" title="${escGestor(nomeSolicitante(s))}">${nomeCurto}</td>
       <td>${s.setor || ''}</td>
       <!-- PEDIDO DO USUÁRIO: dar permissão pra editar a Justificativa aqui
            (antes era só texto fixo, sem como alterar) - segue o mesmo

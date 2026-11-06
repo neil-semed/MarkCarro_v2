@@ -26,14 +26,15 @@ const _chartsDashCond = { status: null, km: null, mes: null };
 // JavaScript: 0=domingo...6=sábado - o cálculo abaixo sempre volta pra
 // segunda-feira mais recente (inclusive hoje, se hoje já for segunda).
 function _limitesSemanaAtual() {
-  const hoje = new Date();
+  const [ay, am, ad] = dataLocalISO().split('-').map(Number);
+  const hoje = new Date(ay, am - 1, ad, 12, 0, 0, 0); // dia de Brasília, ao meio-dia (evita virada de dia)
   const diaSemana = hoje.getDay(); // 0=domingo
   const diffSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
   const segunda = new Date(hoje);
   segunda.setDate(hoje.getDate() + diffSegunda);
   const domingo = new Date(segunda);
   domingo.setDate(segunda.getDate() + 6);
-  const iso = d => d.toISOString().split('T')[0];
+  const iso = d => isoDeDataCalendario(d);
   return { inicio: iso(segunda), fim: iso(domingo) };
 }
 
@@ -70,10 +71,8 @@ async function carregarDashboardCondutor() {
 // diferente do filtro de período do select (que só afeta os cartões
 // agregados e os gráficos, igual ao Dashboard do Solicitante).
 function _renderizarHojeEProximasDashCond() {
-  const hojeISO = new Date().toISOString().split('T')[0];
-  const limite = new Date();
-  limite.setDate(limite.getDate() + 3);
-  const limiteISO = limite.toISOString().split('T')[0];
+  const hojeISO = dataLocalISO();
+  const limiteISO = diaBrasilia(3);
 
   // PEDIDO DO USUÁRIO: "Viagens do Dia"/"Passageiros do Dia" contam só
   // viagens já CONFIRMADAS (aprovadas) - antes "hoje" contava qualquer

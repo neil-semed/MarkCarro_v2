@@ -56,7 +56,8 @@ async function carregarAgendaCondutor() {
     // cacheCondutores - que é preenchida (só com ativos) por outras telas
     // como o Dashboard do Gestor, e sendo a MESMA variável global, uma
     // vez preenchida ali "vencia" aqui também e nunca era recarregada.
-    if (verTudo && (!cacheCondutoresParaExibicao || !cacheCondutoresParaExibicao.length)) {
+    try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
+    if (verTudo) {
       try { cacheCondutoresParaExibicao = await listarCondutoresParaExibicao(); } catch (e) { /* mostra e-mail se falhar */ }
     }
 
@@ -178,7 +179,7 @@ function papelDoCondutor(s) {
 // senão o e-mail mesmo) em vez de "Ida"/"Volta" relativos a "eu".
 function _nomeCondutor(email) {
   if (!email) return '';
-  const c = (typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : []).find(x => x.email === email);
+  const c = condutorPorEmail(typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : [], email);
   return c?.nome || email;
 }
 
@@ -187,7 +188,7 @@ function _nomeCondutor(email) {
 // (igual ao padrão já usado em Viagens do Dia - _condutorInfoViagensDoDia).
 function _nomeTelefoneCondutor(email) {
   if (!email) return '';
-  const c = (typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : []).find(x => x.email === email);
+  const c = condutorPorEmail(typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : [], email);
   const nome = c?.nome || email;
   return c?.telefone ? `${nome} · ${c.telefone}` : nome;
 }
@@ -259,7 +260,7 @@ function renderizarAgendaCondutor(dados, verTudo) {
       <td>${formatarHoraBR(s.hora_saida)}</td>
       <td>${formatarHoraBR(s.hora_retorno)}</td>
       <td>${s.origem} → ${s.destino}${ultimaHora ? '<div class="text-xs font-semibold" style="color:#c2410c;">⚠️ Última hora - agendada hoje para hoje</div>' : ''}</td>
-      <td>${s.nome_ext || s.email_solicitante}</td>
+      <td>${nomeSolicitante(s)}</td>
       <td>${verTudo ? linhasEscalacaoCondutores(s).join('<br>') : papelOuEscalacao(s, verTudo)}</td>
       <td>${s.justificativa || ''}</td>
       <td><span class="badge ${classeStatus(s.status)}">${s.status}</span></td>
@@ -294,7 +295,7 @@ function renderizarAgendaCondutor(dados, verTudo) {
           </div>
         </div>
         ${verTudo ? linhasEscalacaoCondutores(s).map(linha => `<div class="trip-meta-row">${IconesViagem.carro}<span>${linha}</span></div>`).join('') : ''}
-        <div class="trip-meta-row">${IconesViagem.usuario}<span>${s.nome_ext || s.email_solicitante}${s.telefone_ext ? ` · ${s.telefone_ext}` : ''}</span></div>
+        <div class="trip-meta-row">${IconesViagem.usuario}<span>${nomeSolicitante(s)}${s.telefone_ext ? ` · ${s.telefone_ext}` : ''}</span></div>
         <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
       </div>

@@ -196,7 +196,7 @@ function _mostraBadgeEditado(s) {
 
 function descreverCondutor(email) {
   if (!email) return 'Condutor ainda não atribuído';
-  const c = cacheCondutoresParaExibicao.find(x => x.email === email);
+  const c = condutorPorEmail(cacheCondutoresParaExibicao, email);
   if (!c) return email;
   let texto = c.nome;
   if (c.capacidade) texto += ` (${c.capacidade})`;
@@ -248,7 +248,7 @@ function limparFiltrosMinhasSolicitacoes() {
 // que preenche o filtro de Data Viagem com a data de hoje, sem precisar
 // abrir o calendário.
 function filtrarMinhasSolicitacoesHoje() {
-  const hojeISO = new Date().toISOString().split('T')[0];
+  const hojeISO = dataLocalISO();
   const campo = document.getElementById('filtro-minhas-solic-data-viagem');
   if (campo) campo.value = hojeISO;
   aplicarFiltroMinhasSolicitacoes();
@@ -277,7 +277,7 @@ function _ordenarCronologicamenteMinhasSolic(dados) {
 // futuras continuam na ordem cronológica normal (mais cedo/mais próxima
 // primeiro).
 function _agruparMinhasSolicPorPeriodo(dadosOrdenados) {
-  const hojeISO = new Date().toISOString().split('T')[0];
+  const hojeISO = dataLocalISO();
   const hoje = [];
   const futuras = [];
   const passadas = [];

@@ -16,7 +16,7 @@ const LOGO_PDF_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYA
 // exibição na tela), aqui só o nome, pra não poluir a coluna "Condutor".
 function nomeCondutorAgenda(email) {
   if (!email) return '';
-  const c = (cacheCondutoresParaExibicao || []).find(x => x.email === email);
+  const c = condutorPorEmail(cacheCondutoresParaExibicao, email);
   return c ? c.nome : email;
 }
 
@@ -44,7 +44,7 @@ function _primeiroNomeAgenda(nome) {
 }
 function _motoristaEscalaAgenda(email) {
   if (!email) return '';
-  const c = (cacheCondutoresParaExibicao || []).find(x => x.email === email);
+  const c = condutorPorEmail(cacheCondutoresParaExibicao, email);
   if (!c) return _primeiroNomeAgenda(String(email).split('@')[0]);
   return c.capacidade ? `${_primeiroNomeAgenda(c.nome)} (${c.capacidade})` : _primeiroNomeAgenda(c.nome);
 }
@@ -80,7 +80,8 @@ async function carregarTelaAgenda() {
     // corridas já confirmadas, não atribui motorista a nada aqui, então
     // não pode perder o nome de um condutor desativado depois. Ver
     // comentário completo em api.js.
-    if (!cacheCondutoresParaExibicao || !cacheCondutoresParaExibicao.length) {
+    {
+      try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
       try { cacheCondutoresParaExibicao = await listarCondutoresParaExibicao(); } catch (e) { /* mostra e-mail se falhar */ }
     }
     const dados = (inicio && fim)
@@ -134,15 +135,14 @@ function aplicarFiltrosAgenda() {
 // pela data daquele dia" preenche as duas com hoje (período de 1 dia só),
 // em vez de só travar o fim do período e deixar o início como estava.
 function filtrarAgendaHoje() {
-  const hoje = new Date();
-  const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const hojeISO = dataLocalISO();
   document.getElementById('agenda-data-inicio').value = hojeISO;
   document.getElementById('agenda-data-fim').value = hojeISO;
   carregarTelaAgenda();
 }
 
 function filtrarAgendaAmanha() {
-  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const amanhaISO = diaBrasilia(1);
   document.getElementById('agenda-data-inicio').value = amanhaISO;
   document.getElementById('agenda-data-fim').value = amanhaISO;
   carregarTelaAgenda();
@@ -161,7 +161,7 @@ function limparFiltrosAgenda() {
 // for encontrado em cacheCondutores (cadastro removido/renomeado etc.).
 function condutorLabelAgenda(email) {
   if (!email) return '';
-  const c = (cacheCondutoresParaExibicao || []).find(x => x.email === email);
+  const c = condutorPorEmail(cacheCondutoresParaExibicao, email);
   if (!c) return email;
   let texto = c.capacidade ? `${c.nome} - ${c.capacidade} ${c.capacidade == 1 ? 'lugar' : 'lugares'}` : c.nome;
   // CORREÇÃO (pedido do usuário: "apresentar nome e telefone do motorista"):
@@ -185,7 +185,7 @@ function renderizarAgenda(dados) {
       <td class="table-td">${formatarHoraBR(s.hora_retorno)}</td>
       <td class="table-td">${s.origem || ''}</td>
       <td class="table-td">${s.destino || ''}</td>
-      <td class="table-td">${s.nome_ext || s.email_solicitante}</td>
+      <td class="table-td">${nomeSolicitante(s)}</td>
       <td class="table-td">${s.unidade || ''}</td>
       <td class="table-td">${s.setor || ''}</td>
       <td class="table-td">${s.justificativa || ''}</td>
@@ -307,7 +307,7 @@ function exportarAgendaXlsxUI() {
     'Retorno': formatarHoraBR(s.hora_retorno),
     'Origem': s.origem,
     'Destino': s.destino,
-    'Solicitante': s.nome_ext || s.email_solicitante,
+    'Solicitante': nomeSolicitante(s),
     'Unidade': s.unidade || '',
     'Setor': s.setor || '',
     'Justificativa': s.justificativa || '',
@@ -349,7 +349,7 @@ function _gerarRelatorioAgendaPDF(dados, opcoes) {
     retorno: formatarHoraBR(s.hora_retorno),
     origem: s.origem,
     destino: s.destino,
-    solicitante: s.nome_ext || s.email_solicitante,
+    solicitante: nomeSolicitante(s),
     celular: s.telefone_ext,
     justificativa: s.justificativa,
     extra: s.qtd_pessoas,

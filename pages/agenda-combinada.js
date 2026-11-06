@@ -21,7 +21,7 @@ async function carregarAgendaCombinada() {
   Components.Loading.show(tbody);
 
   try {
-    if (!cacheCondutoresParaExibicao || !cacheCondutoresParaExibicao.length) {
+    {
       try { cacheCondutoresParaExibicao = await listarCondutoresParaExibicao(); } catch (e) { /* mostra sem nome se falhar */ }
     }
 
@@ -30,9 +30,8 @@ async function carregarAgendaCombinada() {
       (async () => {
         // Sem período definido, limita aos próximos 30 dias (a Edge
         // Function do Bora Lá recusa período maior que 90 dias).
-        const hoje = new Date();
-        const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-        const daqui30 = new Date(hoje.getTime() + 30 * 86400000 - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+        const hojeISO = dataLocalISO();
+        const daqui30 = diaBrasilia(30);
         return buscarAgendaBoraLa(inicio || hojeISO, fim || daqui30);
       })()
     ]);
@@ -52,7 +51,7 @@ async function carregarAgendaCombinada() {
           if (!emails.length) emails.push(null);
 
           emails.forEach(email => {
-            const c = email ? (cacheCondutoresParaExibicao || []).find(x => x.email === email) : null;
+            const c = email ? condutorPorEmail(cacheCondutoresParaExibicao, email) : null;
             linhas.push({
               sistema: 'markcarro',
               placa: c?.placa || null,
@@ -91,15 +90,14 @@ async function carregarAgendaCombinada() {
 // usado na Agenda de Corridas (pages/agenda.js) - preenche Data Inicial e
 // Final com hoje e recarrega.
 function filtrarAgendaCombinadaHoje() {
-  const hoje = new Date();
-  const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const hojeISO = dataLocalISO();
   document.getElementById('agenda-comb-data-inicio').value = hojeISO;
   document.getElementById('agenda-comb-data-fim').value = hojeISO;
   carregarAgendaCombinada();
 }
 
 function filtrarAgendaCombinadaAmanha() {
-  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const amanhaISO = diaBrasilia(1);
   document.getElementById('agenda-comb-data-inicio').value = amanhaISO;
   document.getElementById('agenda-comb-data-fim').value = amanhaISO;
   carregarAgendaCombinada();

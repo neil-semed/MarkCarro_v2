@@ -7,7 +7,7 @@
 // abrirNovaSolicitacaoGestor() em app.js sempre que a tela é aberta.
 async function prepararFormSolicitacao() {
   document.getElementById('form-solicitacao').reset();
-  document.getElementById('sol-data-viagem').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sol-data-viagem').value = dataLocalISO();
   document.getElementById('sol-qtd').value = 1;
   alternarLabelTipoViagem();
   document.getElementById('box-outro-origem').classList.add('hidden');
@@ -195,11 +195,11 @@ function alternarBlocoRecorrencia() {
 // incluídas) cujo dia da semana está em diasSemana (0=Dom...6=Sáb).
 function gerarDatasRecorrencia(dataInicio, dataFim, diasSemana) {
   const datas = [];
-  let atual = new Date(dataInicio + 'T00:00:00');
-  const fim = new Date(dataFim + 'T00:00:00');
+  let atual = new Date(dataInicio + 'T12:00:00');
+  const fim = new Date(dataFim + 'T12:00:00');
   while (atual <= fim) {
     if (diasSemana.includes(atual.getDay())) {
-      datas.push(atual.toISOString().split('T')[0]);
+      datas.push(isoDeDataCalendario(atual));
     }
     atual.setDate(atual.getDate() + 1);
   }

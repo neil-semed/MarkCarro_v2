@@ -19,6 +19,7 @@ async function carregarPainelDoDia() {
   if (!usuarioAtual) return;
 
   const hojeISO = dataLocalISO();
+  try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
   const elData = document.getElementById('painel-dia-data');
   if (elData) {
     elData.textContent = new Date(hojeISO + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -46,7 +47,7 @@ async function carregarPainelDoDia() {
       // ser quem está logado - ver papel/_nomeCondutorPainelDia mais
       // abaixo) - mesmo princípio de cacheCondutoresParaExibicao já usado
       // em Viagens do Dia e Agenda Geral.
-      if (!cacheCondutoresParaExibicao || !cacheCondutoresParaExibicao.length) {
+      {
         try { cacheCondutoresParaExibicao = await listarCondutoresParaExibicao(); } catch (e) { /* mostra e-mail se falhar */ }
       }
       const todasHoje = await buscarSolicitacoesPorData(hojeISO, hojeISO);
@@ -98,7 +99,7 @@ async function carregarPainelDoDia() {
 
 function _nomeCondutorPainelDia(email) {
   if (!email) return '';
-  const c = (typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : []).find(x => x.email === email);
+  const c = condutorPorEmail(typeof cacheCondutoresParaExibicao !== 'undefined' ? cacheCondutoresParaExibicao : [], email);
   return c?.nome || email;
 }
 
@@ -156,7 +157,7 @@ function renderizarPainelDoDia(lista) {
     const statusExibido = doBoraLa ? 'Confirmada' : (ehCancelado ? 'Cancelada' : s.status);
     // origem/destino/qtd_pessoas já vêm com os mesmos nomes de campo dos 2
     // lados (solicitacoes do MarkCarro e agenda-veiculos do Bora Lá).
-    const solicitante = doBoraLa ? (s.nome_solicitante || '') : (s.nome_ext || s.email_solicitante || '');
+    const solicitante = doBoraLa ? (s.nome_solicitante || '') : nomeSolicitante(s);
     const telefone = doBoraLa ? s.telefone_solicitante : s.telefone_ext;
 
     // PEDIDO DO USUÁRIO ("troque a cor do destaque do bora lá pra azul -
@@ -275,7 +276,7 @@ async function reportarPaneMecanicaGeral() {
   const nomeCondutor = usuarioAtual?.nome || usuarioAtual?.email || 'Condutor';
   const agora = new Date();
   const limiar = new Date(agora.getTime() + 60000); // T + 1 minuto
-  const hojeISO = new Date().toISOString().split('T')[0];
+  const hojeISO = dataLocalISO();
 
   try {
     const afetadas = (cachePainelDiaHoje || []).filter(s => {

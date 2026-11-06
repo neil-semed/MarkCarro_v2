@@ -24,6 +24,7 @@ async function carregarGerenciarMotoboyDocumentos(forcarAtualizacao = false) {
     ]);
 
     cacheCondutores = condutores || [];
+    try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
     cacheTodasMotoboy = (solicitacoes || []).filter(s => s.tipo_viagem === 'Motoboy');
 
     // Mesma transição automática Pendente -> "Em Análise" de Gerenciamento
@@ -59,8 +60,7 @@ function aplicarFiltrosMotoboy() {
 function filtrarMotoboyHoje() {
   const campo = document.getElementById('filtro-motoboy-data-viagem');
   if (!campo) return;
-  const hoje = new Date();
-  const hojeISO = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const hojeISO = dataLocalISO();
   campo.value = hojeISO;
   aplicarFiltrosMotoboy();
 }
@@ -68,7 +68,7 @@ function filtrarMotoboyHoje() {
 function filtrarMotoboyAmanha() {
   const campo = document.getElementById('filtro-motoboy-data-viagem');
   if (!campo) return;
-  const _d = new Date(); _d.setDate(_d.getDate() + 1); const amanhaISO = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const amanhaISO = diaBrasilia(1);
   campo.value = amanhaISO;
   aplicarFiltrosMotoboy();
 }
@@ -91,7 +91,7 @@ function exportarMotoboyXlsxUI() {
     'Retorno': formatarHoraBR(s.hora_retorno),
     'Origem': s.origem,
     'Destino': s.destino,
-    'Solicitante': s.nome_ext || s.email_solicitante,
+    'Solicitante': nomeSolicitante(s),
     'Unidade': s.unidade || '',
     'Setor': s.setor || '',
     'Justificativa': s.justificativa,
@@ -126,7 +126,7 @@ function exportarMotoboyPDF() {
     retorno: formatarHoraBR(s.hora_retorno),
     origem: s.origem,
     destino: s.destino,
-    solicitante: s.nome_ext || s.email_solicitante,
+    solicitante: nomeSolicitante(s),
     celular: s.telefone_ext,
     extra: s.qtd_pessoas,
     condutor: s.condutor_ida || '',
@@ -207,7 +207,7 @@ function renderizarTabelaMotoboyCompleta(dados) {
 
   tbody.innerHTML = dados.map(s => {
     const status = s.status || 'Pendente';
-    const nomeCurto = primeiroNomeGestor(s.nome_ext) || s.email_solicitante;
+    const nomeCurto = primeiroNomeGestor(nomeSolicitante(s));
     const pend = edicoesPendentesMotoboy[s.id] || {};
     const v = { ...s, ...pend };
     const temPendencia = Object.keys(pend).length > 0;
@@ -231,7 +231,7 @@ function renderizarTabelaMotoboyCompleta(dados) {
         </select>
         <input type="text" value="${escGestor(v.destino)}" placeholder="Digite o local" class="input-field text-sm py-1.5 px-2 mt-1 hidden" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'destino', this.value)">
       </td>
-      <td style="max-width:90px; white-space:normal; overflow-wrap:break-word;" title="${escGestor(s.nome_ext || s.email_solicitante)}">${nomeCurto}</td>
+      <td style="max-width:90px; white-space:normal; overflow-wrap:break-word;" title="${escGestor(nomeSolicitante(s))}">${nomeCurto}</td>
       <td>${s.setor || ''}</td>
       <td style="min-width:160px">
         <textarea rows="2" class="input-field text-sm py-1.5 px-2" style="min-width:150px" onchange="marcarCampoAlteradoMotoboy('${s.id}', 'justificativa', this.value)">${escGestor(v.justificativa)}</textarea>

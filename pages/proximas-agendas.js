@@ -10,9 +10,7 @@
 // que só fazem sentido pra corrida do dia atual.
 
 function _isoMaisDias(dias) {
-  const d = new Date();
-  d.setDate(d.getDate() + dias);
-  return d.toISOString().split('T')[0];
+  return diaBrasilia(dias);
 }
 
 async function carregarProximasAgendas() {
