@@ -161,16 +161,19 @@ Deno.serve(async (req: Request) => {
     // Resolve os e-mails de condutor_ida/condutor_volta pro NOME - a Edge
     // Function não tem acesso ao cache do navegador (cacheCondutoresParaExibicao
     // em api.js/agenda.js), então busca os perfis de condutor direto aqui.
-    const emailsCondutores = Array.from(new Set(
-      lista.flatMap((s) => [s.condutor_ida, s.condutor_volta]).filter((e): e is string => !!e)
-    ));
+    // Mapa e-mail (minúsculo) -> nome, de todos os perfis: serve para condutor
+    // (sem diferenciar maiúscula/minúscula) e para o Solicitante cadastrado pelo app.
     const mapaCondutores: Record<string, string> = {};
-    if (emailsCondutores.length) {
-      const { data: condutores } = await supabase
-        .from('profiles')
-        .select('email, nome')
-        .in('email', emailsCondutores);
-      (condutores || []).forEach((c: { email: string; nome: string }) => { mapaCondutores[c.email.trim().toLowerCase()] = c.nome; });
+    const { data: perfisNomes } = await supabase.from('profiles').select('email, nome');
+    (perfisNomes || []).forEach((c: { email: string | null; nome: string | null }) => {
+      if (c.email && c.nome) mapaCondutores[c.email.trim().toLowerCase()] = c.nome;
+    });
+
+    // Solicitante: nome digitado pelo gestor (externo) -> nome do cadastro -> e-mail.
+    function nomeSolicitante(s: Solicitacao): string {
+      if (s.nome_ext) return s.nome_ext;
+      const e = String(s.email_solicitante || '').trim();
+      return mapaCondutores[e.toLowerCase()] || e;
     }
 
     function nomeCondutor(email: string | null): string {
@@ -217,7 +220,7 @@ Deno.serve(async (req: Request) => {
       <tr>
         <td style="padding:4px 7px;border:1px solid #e2e8f0;">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ' &rarr; ' + formatarHoraBR(s.hora_retorno) : ''}</td>
         <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.origem || '-'))} &rarr; ${semLink(semAutoDeteccao(s.destino || '-'))}</td>
-        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.nome_ext || s.email_solicitante))}</td>
+        <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(nomeSolicitante(s)))}</td>
         <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(s.telefone_ext || '-'))}</td>
         <td style="padding:4px 7px;border:1px solid #e2e8f0;text-align:center;">${s.qtd_pessoas ?? '-'}</td>
         <td style="padding:4px 7px;border:1px solid #e2e8f0;">${semLink(semAutoDeteccao(celulaCondutor(s)))}</td>
