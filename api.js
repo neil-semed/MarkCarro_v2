@@ -386,10 +386,15 @@ async function listarCondutoresParaExibicao() {
 // e-mail (ver nomeSolicitante() em utils.js). Só traz o que a permissão do usuário deixa ver.
 async function carregarNomesUsuarios() {
   _checarClient();
-  const { data, error } = await _sb.from('profiles').select('email, nome');
+  const { data, error } = await _sb.from('profiles').select('email, nome, telefone');
   if (error) throw error;
   const mapa = {};
-  (data || []).forEach(p => { if (p.email && p.nome) mapa[String(p.email).trim().toLowerCase()] = p.nome; });
+  const telefones = {};
+  (data || []).forEach(p => {
+    const k = p.email ? String(p.email).trim().toLowerCase() : '';
+    if (k && p.nome) mapa[k] = p.nome;
+    if (k && p.telefone) telefones[k] = p.telefone;
+  });
   // Solicitantes que se cadastraram direto no app têm perfil que o motorista não consegue ler:
   // completa pelo nome liberado por nomes_solicitantes_viagens (supabase_nomes_solicitantes_viagens.sql).
   try {
@@ -398,10 +403,12 @@ async function carregarNomesUsuarios() {
       extra.forEach(x => {
         const k = String(x.email || '').trim().toLowerCase();
         if (k && x.nome && !mapa[k]) mapa[k] = x.nome;
+        if (k && x.telefone) telefones[k] = x.telefone;
       });
     }
   } catch (_e) { /* sem a função: usa só os perfis legíveis */ }
   cacheNomesUsuarios = mapa;
+  cacheTelefonesUsuarios = telefones;
   return mapa;
 }
 

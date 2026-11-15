@@ -88,6 +88,14 @@ function condutorPorEmail(lista, email) {
 // Nome do solicitante: nome digitado pelo gestor (externo) -> nome do cadastro do usuário
 // (achado pelo e-mail em cacheNomesUsuarios, preenchida por carregarNomesUsuarios()) -> e-mail.
 let cacheNomesUsuarios = {};
+let cacheTelefonesUsuarios = {};
+// Telefone do solicitante: o digitado pelo gestor (telefone_ext) ou o do cadastro dele
+// (cacheTelefonesUsuarios, preenchida por carregarNomesUsuarios()).
+function telefoneSolicitante(s) {
+  if (!s) return '';
+  if (s.telefone_ext) return s.telefone_ext;
+  return cacheTelefonesUsuarios[String(s.email_solicitante || '').trim().toLowerCase()] || '';
+}
 function nomeSolicitante(s) {
   if (!s) return '';
   if (s.nome_ext) return s.nome_ext;
