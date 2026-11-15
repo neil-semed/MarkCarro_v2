@@ -64,7 +64,8 @@ function isoDeDataCalendario(d) {
 const IDA_DESTAQUE = '<b><u>Ida</u></b>';
 const VOLTA_DESTAQUE = '<b><u>Volta</u></b>';
 function papelIdaVoltaHtml(papel) {
-  if (papel === 'Ida e Volta') return `${IDA_DESTAQUE} e ${VOLTA_DESTAQUE}`;
+  // O "e" é um <span> com margem: dentro de etiqueta inline-flex o espaço comum entre itens some (virava "IDAEVOLTA").
+  if (papel === 'Ida e Volta') return `${IDA_DESTAQUE}<span style="margin:0 .4em;text-transform:none;font-weight:700;text-decoration:none">e</span>${VOLTA_DESTAQUE}`;
   if (papel === 'Ida') return IDA_DESTAQUE;
   if (papel === 'Volta') return VOLTA_DESTAQUE;
   return papel;
