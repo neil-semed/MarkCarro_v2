@@ -90,6 +90,10 @@ jobs:
           mkdir -p ~/.android
           cp mobile/debug.keystore ~/.android/debug.keystore
 
+      - name: Ler a versao do app (usada pelo aviso de atualizacao dentro do APK)
+        id: ver
+        run: echo "v=$(grep -o 'app.js?v=[0-9a-z]*' index.html | head -1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
       - name: Compilar o APK de debug
         working-directory: mobile/android
         run: |
@@ -114,6 +118,7 @@ jobs:
             nao passa pela Play Store).
 
             Ultima atualizacao: ${{ github.event.head_commit.timestamp || github.run_id }}
+            Versao do app: ${{ steps.ver.outputs.v }}
           files: markcarro-debug.apk
           prerelease: true
         env:
