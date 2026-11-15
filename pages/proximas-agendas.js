@@ -29,6 +29,7 @@ async function carregarProximasAgendas() {
   if (lista) lista.innerHTML = '<div class="p-8 text-center text-slate-500 text-sm">Carregando próximas corridas...</div>';
 
   try {
+    try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
     const [todasResultado, boraLaResultado] = await Promise.allSettled([
       buscarSolicitacoesPorData(inicioISO, fimISO),
       usuarioAtual.placa ? buscarAgendaBoraLa(inicioISO, fimISO) : Promise.resolve([])
@@ -116,7 +117,7 @@ function renderizarProximasAgendas(lista) {
         ? 'Ida e Volta'
         : mesmoEmail(s.condutor_ida, usuarioAtual.email) ? 'Ida' : 'Volta');
       const statusExibido = doBoraLa ? 'Confirmada' : s.status;
-      const solicitante = doBoraLa ? (s.nome_solicitante || '') : (s.nome_ext || s.email_solicitante || '');
+      const solicitante = doBoraLa ? (s.nome_solicitante || '') : nomeSolicitante(s);
       const telefone = doBoraLa ? s.telefone_solicitante : s.telefone_ext;
       const classeBorda = doBoraLa ? 'trip-card-em-analise' : classeCorBordaViagem(statusExibido);
       const classeBadge = doBoraLa ? 'badge-em-analise' : classeStatus(statusExibido);
@@ -143,7 +144,7 @@ function renderizarProximasAgendas(lista) {
             <p class="trip-time">${formatarHoraBR(s.hora_saida)}${s.hora_retorno ? ` <span class="text-slate-300">–</span> ${formatarHoraBR(s.hora_retorno)}` : ''}</p>
             <span class="badge ${classeBadge} shrink-0">${doBoraLa ? '🚐 Bora Lá' : statusExibido}</span>
           </div>
-          ${papel ? `<span class="trip-tag mt-2 inline-block">${papel}</span>` : ''}
+          ${papel ? `<span class="trip-tag mt-2 inline-block">${papelIdaVoltaHtml(papel)}</span>` : ''}
           ${situacaoBoraLaHTML}
           <div class="trip-route">
             <div class="trip-route-point origem">

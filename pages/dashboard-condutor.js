@@ -137,7 +137,7 @@ function _renderizarHojeEProximasDashCond() {
           </div>
           <span class="badge ${classeStatus(s.status)} shrink-0">${s.status}</span>
         </div>
-        <span class="trip-tag mt-2 inline-block">${papel}</span>
+        <span class="trip-tag mt-2 inline-block">${papelIdaVoltaHtml(papel)}</span>
         <div class="trip-route">
           <div class="trip-route-point origem"><span class="trip-route-label">Origem</span>${s.origem || '—'}</div>
           <div class="trip-route-point destino"><span class="trip-route-label">Destino</span>${s.destino || '—'}</div>
@@ -180,7 +180,7 @@ function renderizarViagensHojeDashCond(hoje) {
           <span class="badge ${classeStatus(s.status)} shrink-0">${s.status}</span>
         </div>
         ${ehUltimaHora ? `<div class="trip-meta-row" style="color:#c2410c;"><span aria-hidden="true">⚠️</span><span class="font-semibold">Atribuição de última hora - agendada hoje para hoje</span></div>` : ''}
-        <span class="trip-tag mt-2 inline-block">${papel}</span>
+        <span class="trip-tag mt-2 inline-block">${papelIdaVoltaHtml(papel)}</span>
         <div class="trip-route">
           <div class="trip-route-point origem"><span class="trip-route-label">Origem</span>${s.origem || '—'}</div>
           <div class="trip-route-point destino"><span class="trip-route-label">Destino</span>${s.destino || '—'}</div>

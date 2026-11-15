@@ -177,11 +177,11 @@ function infoCondutorParaSolicitante(s) {
   const emailVolta = s.condutor_volta || '';
   if (!emailIda && !emailVolta) return ['Condutor ainda não atribuído'];
   if (emailIda && emailVolta && emailIda === emailVolta) {
-    return [`Ida e Volta: ${descreverCondutor(emailIda)}`];
+    return [`${papelIdaVoltaHtml('Ida e Volta')}: ${descreverCondutor(emailIda)}`];
   }
   const linhas = [];
-  if (emailIda) linhas.push(`Ida: ${descreverCondutor(emailIda)}`);
-  if (emailVolta) linhas.push(`Volta: ${descreverCondutor(emailVolta)}`);
+  if (emailIda) linhas.push(`${IDA_DESTAQUE}: ${descreverCondutor(emailIda)}`);
+  if (emailVolta) linhas.push(`${VOLTA_DESTAQUE}: ${descreverCondutor(emailVolta)}`);
   return linhas;
 }
 

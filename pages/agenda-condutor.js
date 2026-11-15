@@ -80,7 +80,7 @@ async function carregarAgendaCondutor() {
     // condutor_ida pra confirmar uma solicitação, então "condutor_ida"
     // vazio numa Confirmada não deveria acontecer - isso aqui é só uma
     // trava de segurança extra, garantindo direto na tela também.
-    dados = (dados || []).filter(s => (s.status || 'Pendente') === 'Confirmada' && !!s.condutor_ida);
+    dados = (dados || []).filter(s => (s.status || 'Pendente') === 'Confirmada' && (!!s.condutor_ida || !!s.condutor_volta));
 
     // PEDIDO DO USUÁRIO ("Agenda Geral - não mostrar agendas passadas, salvo
     // se definido em data"): sem data escolhida, só de hoje em diante.
@@ -212,7 +212,7 @@ function linhasEscalacaoCondutores(s) {
   const emailIda = s.condutor_ida || '';
   const emailVolta = s.condutor_volta || '';
   if (!emailIda && !emailVolta) return ['—'];
-  if (emailIda && emailVolta && emailIda === emailVolta) {
+  if (emailIda && emailVolta && mesmoEmail(emailIda, emailVolta)) {
     return [`Ida e Volta: ${_nomeTelefoneCondutor(emailIda)}`];
   }
   const linhas = [];
@@ -317,8 +317,12 @@ function limparFiltroAgendaCondutor() {
 
 // PEDIDO DO USUÁRIO ("coloque o botão hoje para filtro de data")
 function filtrarAgendaCondutorHoje() {
-  const d = new Date();
-  document.getElementById('agenda-condutor-data').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  document.getElementById('agenda-condutor-data').value = dataLocalISO();
+  carregarAgendaCondutor();
+}
+
+function filtrarAgendaCondutorAmanha() {
+  document.getElementById('agenda-condutor-data').value = diaBrasilia(1);
   carregarAgendaCondutor();
 }
 
@@ -326,4 +330,5 @@ function filtrarAgendaCondutorHoje() {
 window.carregarAgendaCondutor = carregarAgendaCondutor;
 window.limparFiltroAgendaCondutor = limparFiltroAgendaCondutor;
 window.filtrarAgendaCondutorHoje = filtrarAgendaCondutorHoje;
+window.filtrarAgendaCondutorAmanha = filtrarAgendaCondutorAmanha;
 window.aplicarFiltrosAgendaCondutor = aplicarFiltrosAgendaCondutor;

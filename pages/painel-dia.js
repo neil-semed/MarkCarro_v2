@@ -206,7 +206,7 @@ function renderizarPainelDoDia(lista) {
         </div>
         ${ehMotoboyItem ? '<span class="badge-motoboy-destaque mt-2 inline-block">🏍️ MOTOBOY</span>' : ''}
         ${avisoUltimaHoraHTML}
-        ${papel ? `<span class="trip-tag mt-2 inline-block">${papel}</span>` : ''}
+        ${papel ? `<span class="trip-tag mt-2 inline-block">${papelIdaVoltaHtml(papel)}</span>` : ''}
         ${situacaoBoraLaHTML}
         <div class="trip-route">
           <div class="trip-route-point origem">
