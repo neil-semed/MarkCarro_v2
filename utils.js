@@ -64,8 +64,10 @@ function isoDeDataCalendario(d) {
 const IDA_DESTAQUE = '<b><u>Ida</u></b>';
 const VOLTA_DESTAQUE = '<b><u>Volta</u></b>';
 function papelIdaVoltaHtml(papel) {
-  // O "e" é um <span> com margem: dentro de etiqueta inline-flex o espaço comum entre itens some (virava "IDAEVOLTA").
-  if (papel === 'Ida e Volta') return `${IDA_DESTAQUE}<span style="margin:0 .4em;text-transform:none;font-weight:700;text-decoration:none">e</span>${VOLTA_DESTAQUE}`;
+  // Tudo dentro de UM <span inline-block>: a etiqueta (.trip-tag) é inline-flex e, lá, o espaço
+  // entre itens soltos some (virava "IDAEVOLTA"). Os espaços ao redor do "e" são &nbsp; fixos.
+  const E = '&nbsp;<span style="text-transform:none;font-weight:700;text-decoration:none">e</span>&nbsp;';
+  if (papel === 'Ida e Volta') return `<span style="display:inline-block;white-space:nowrap">${IDA_DESTAQUE}${E}${VOLTA_DESTAQUE}</span>`;
   if (papel === 'Ida') return IDA_DESTAQUE;
   if (papel === 'Volta') return VOLTA_DESTAQUE;
   return papel;
