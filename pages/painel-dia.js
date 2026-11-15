@@ -158,7 +158,7 @@ function renderizarPainelDoDia(lista) {
     // origem/destino/qtd_pessoas já vêm com os mesmos nomes de campo dos 2
     // lados (solicitacoes do MarkCarro e agenda-veiculos do Bora Lá).
     const solicitante = doBoraLa ? (s.nome_solicitante || '') : nomeSolicitante(s);
-    const telefone = doBoraLa ? s.telefone_solicitante : s.telefone_ext;
+    const telefone = doBoraLa ? s.telefone_solicitante : telefoneSolicitante(s);
 
     // PEDIDO DO USUÁRIO ("troque a cor do destaque do bora lá pra azul -
     // mantenha o carrinho"): corrida do Bora Lá usa a faixa/badge azul já

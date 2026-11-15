@@ -295,7 +295,7 @@ function renderizarAgendaCondutor(dados, verTudo) {
           </div>
         </div>
         ${verTudo ? linhasEscalacaoCondutores(s).map(linha => `<div class="trip-meta-row">${IconesViagem.carro}<span>${linha}</span></div>`).join('') : ''}
-        <div class="trip-meta-row">${IconesViagem.usuario}<span>${nomeSolicitante(s)}${s.telefone_ext ? ` · ${s.telefone_ext}` : ''}</span></div>
+        <div class="trip-meta-row">${IconesViagem.usuario}<span>${nomeSolicitante(s)}${telefoneSolicitante(s) ? ` · ${telefoneSolicitante(s)}` : ''}</span></div>
         <div class="trip-meta-row">${IconesViagem.passageiros}<span>${s.qtd_pessoas || 1} passageiro${(s.qtd_pessoas || 1) === 1 ? '' : 's'}</span></div>
         ${s.justificativa ? `<div class="trip-meta-row"><span class="italic">${s.justificativa}</span></div>` : ''}
       </div>

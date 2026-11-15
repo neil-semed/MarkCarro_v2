@@ -118,7 +118,7 @@ function renderizarProximasAgendas(lista) {
         : mesmoEmail(s.condutor_ida, usuarioAtual.email) ? 'Ida' : 'Volta');
       const statusExibido = doBoraLa ? 'Confirmada' : s.status;
       const solicitante = doBoraLa ? (s.nome_solicitante || '') : nomeSolicitante(s);
-      const telefone = doBoraLa ? s.telefone_solicitante : s.telefone_ext;
+      const telefone = doBoraLa ? s.telefone_solicitante : telefoneSolicitante(s);
       const classeBorda = doBoraLa ? 'trip-card-em-analise' : classeCorBordaViagem(statusExibido);
       const classeBadge = doBoraLa ? 'badge-em-analise' : classeStatus(statusExibido);
 

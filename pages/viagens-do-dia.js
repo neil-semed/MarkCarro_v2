@@ -144,7 +144,7 @@ function renderizarViagensDoDia(dados) {
         <div class="trip-route-point origem"><span class="trip-route-label">Origem</span>${s.origem || '—'}</div>
         <div class="trip-route-point destino"><span class="trip-route-label">Destino</span>${s.destino || '—'}</div>
       </div>
-      <div class="trip-meta-row">${IconesViagem.usuario}<span>${nomeSolicitante(s)}</span></div>
+      <div class="trip-meta-row">${IconesViagem.usuario}<span>${nomeSolicitante(s)}${telefoneSolicitante(s) ? ` · ${telefoneSolicitante(s)}` : ''}</span></div>
       ${_linhasMotoristaViagensDoDia(s).map(linha => `<div class="trip-meta-row">${IconesViagem.carro}<span>${linha}</span></div>`).join('')}
     </div>
   `).join('');
