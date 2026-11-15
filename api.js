@@ -390,6 +390,17 @@ async function carregarNomesUsuarios() {
   if (error) throw error;
   const mapa = {};
   (data || []).forEach(p => { if (p.email && p.nome) mapa[String(p.email).trim().toLowerCase()] = p.nome; });
+  // Solicitantes que se cadastraram direto no app têm perfil que o motorista não consegue ler:
+  // completa pelo nome liberado por nomes_solicitantes_viagens (supabase_nomes_solicitantes_viagens.sql).
+  try {
+    const { data: extra, error: eRpc } = await _sb.rpc('nomes_solicitantes_viagens');
+    if (!eRpc && Array.isArray(extra)) {
+      extra.forEach(x => {
+        const k = String(x.email || '').trim().toLowerCase();
+        if (k && x.nome && !mapa[k]) mapa[k] = x.nome;
+      });
+    }
+  } catch (_e) { /* sem a função: usa só os perfis legíveis */ }
   cacheNomesUsuarios = mapa;
   return mapa;
 }

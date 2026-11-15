@@ -60,6 +60,16 @@ function isoDeDataCalendario(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// "Ida" / "Volta" em negrito e sublinhado (HTML) - usado nas etiquetas e linhas de motorista.
+const IDA_DESTAQUE = '<b><u>Ida</u></b>';
+const VOLTA_DESTAQUE = '<b><u>Volta</u></b>';
+function papelIdaVoltaHtml(papel) {
+  if (papel === 'Ida e Volta') return `${IDA_DESTAQUE} e ${VOLTA_DESTAQUE}`;
+  if (papel === 'Ida') return IDA_DESTAQUE;
+  if (papel === 'Volta') return VOLTA_DESTAQUE;
+  return papel;
+}
+
 // Dia de Brasília deslocado N dias (0 = hoje, 1 = amanhã...). Sem horário de verão no Brasil: -03:00 fixo.
 function diaBrasilia(offsetDias) {
   return dataLocalISO(new Date(Date.now() + (offsetDias || 0) * 86400000));
