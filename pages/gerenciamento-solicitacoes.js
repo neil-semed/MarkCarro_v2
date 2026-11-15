@@ -63,6 +63,7 @@ async function carregarGerenciamentoSolicitacoes(forcarAtualizacao = false) {
     cacheCondutores = condutores || [];
     try { await carregarNomesUsuarios(); } catch (e) { /* mostra e-mail se falhar */ }
     cacheTodasSolicitacoesGestor = solicitacoes || [];
+    popularFiltroSetorGestor();
 
     renderizarAvisoCnh('aviso-cnh-gerenciamento', cacheCondutores);
 
@@ -103,7 +104,31 @@ async function marcarPendentesComoEmAnalise(lista) {
   }
 }
 
-// Filtros da tela (Data da Solicitação / Data da Viagem / Status).
+// Texto sem acento/maiúscula para comparar nos filtros de busca.
+function _normFiltroGestor(v) {
+  return String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+// Preenche o filtro Setor com os setores existentes nas solicitações (mantém a escolha atual).
+function popularFiltroSetorGestor() {
+  const sel = document.getElementById('filtro-gestor-setor');
+  if (!sel) return;
+  const atual = sel.value;
+  const setores = [...new Set((cacheTodasSolicitacoesGestor || []).map(s => (s.setor || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Todos os setores</option>' +
+    setores.map(x => `<option value="${escGestor(x)}">${escGestor(x)}</option>`).join('');
+  if (atual && setores.includes(atual)) sel.value = atual;
+}
+
+// Digitação nos filtros de texto: espera um instante para não redesenhar a tabela a cada tecla.
+let _timerFiltroGestor = null;
+function aplicarFiltrosGestorDigitando() {
+  clearTimeout(_timerFiltroGestor);
+  _timerFiltroGestor = setTimeout(aplicarFiltrosGestor, 250);
+}
+
+// Filtros da tela (Data da Solicitação / Data da Viagem / Status / Origem / Destino / Solicitante / Setor).
 function aplicarFiltrosGestor() {
   const dataSolic = document.getElementById('filtro-gestor-data-solic')?.value;
   const dataViagem = document.getElementById('filtro-gestor-data-viagem')?.value;
@@ -119,6 +144,15 @@ function aplicarFiltrosGestor() {
   if (status !== 'TODOS') {
     filtrados = filtrados.filter(s => (s.status || 'Pendente') === status);
   }
+
+  const fOrigem = _normFiltroGestor(document.getElementById('filtro-gestor-origem')?.value);
+  const fDestino = _normFiltroGestor(document.getElementById('filtro-gestor-destino')?.value);
+  const fSolic = _normFiltroGestor(document.getElementById('filtro-gestor-solicitante')?.value);
+  const fSetor = document.getElementById('filtro-gestor-setor')?.value || '';
+  if (fOrigem) filtrados = filtrados.filter(s => _normFiltroGestor(s.origem).includes(fOrigem));
+  if (fDestino) filtrados = filtrados.filter(s => _normFiltroGestor(s.destino).includes(fDestino));
+  if (fSolic) filtrados = filtrados.filter(s => _normFiltroGestor(nomeSolicitante(s) + ' ' + (s.email_solicitante || '')).includes(fSolic));
+  if (fSetor) filtrados = filtrados.filter(s => (s.setor || '').trim() === fSetor);
 
   // PEDIDO DO USUÁRIO: ordem crescente, 1º por Data da Viagem, 2º por
   // Horário de Saída - usa .slice() antes de ordenar pra nunca alterar a
@@ -180,6 +214,9 @@ function limparFiltrosGestor() {
   document.getElementById('filtro-gestor-data-solic').value = '';
   document.getElementById('filtro-gestor-data-viagem').value = '';
   document.getElementById('filtro-gestor-status').value = 'TODOS';
+  ['filtro-gestor-origem', 'filtro-gestor-destino', 'filtro-gestor-solicitante', 'filtro-gestor-setor'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
   aplicarFiltrosGestor();
 }
 
@@ -730,6 +767,7 @@ window.marcarCampoAlteradoGestor = marcarCampoAlteradoGestor;
 window.salvarEdicoesLinhaGestor = salvarEdicoesLinhaGestor;
 window.aplicarFiltrosGestor = aplicarFiltrosGestor;
 window.limparFiltrosGestor = limparFiltrosGestor;
+window.aplicarFiltrosGestorDigitando = aplicarFiltrosGestorDigitando;
 window.handleSelectLocalGestor = handleSelectLocalGestor;
 window.ordenarPorDataEHoraSaida = ordenarPorDataEHoraSaida;
 window.filtrarGestorHoje = filtrarGestorHoje;
