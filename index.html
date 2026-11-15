@@ -134,9 +134,9 @@
     }
   </script>
   
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261106a">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261106a">
-  <link rel="icon" href="favicon.png?v=20261106a">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=20261115a">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20261115a">
+  <link rel="icon" href="favicon.png?v=20261115a">
 
   <style type="text/tailwindcss">
     /* Visual atualizado (pedido do usuário: reskin baseado no modelo
@@ -2295,6 +2295,22 @@
                   <option value="Desprezado">Desprezado</option>
                 </select>
               </div>
+              <div>
+                <label for="filtro-gestor-origem" class="block text-[10px] font-medium text-slate-500">Origem</label>
+                <input type="text" id="filtro-gestor-origem" class="input-field text-sm" style="width:9rem" placeholder="Parte do nome" autocomplete="off" oninput="aplicarFiltrosGestorDigitando()">
+              </div>
+              <div>
+                <label for="filtro-gestor-destino" class="block text-[10px] font-medium text-slate-500">Destino</label>
+                <input type="text" id="filtro-gestor-destino" class="input-field text-sm" style="width:9rem" placeholder="Parte do nome" autocomplete="off" oninput="aplicarFiltrosGestorDigitando()">
+              </div>
+              <div>
+                <label for="filtro-gestor-solicitante" class="block text-[10px] font-medium text-slate-500">Solicitante</label>
+                <input type="text" id="filtro-gestor-solicitante" class="input-field text-sm" style="width:9rem" placeholder="Nome ou e-mail" autocomplete="off" oninput="aplicarFiltrosGestorDigitando()">
+              </div>
+              <div>
+                <label for="filtro-gestor-setor" class="block text-[10px] font-medium text-slate-500">Setor</label>
+                <select id="filtro-gestor-setor" class="input-field text-sm" style="width:10.5rem" onchange="aplicarFiltrosGestor()"><option value="">Todos os setores</option></select>
+              </div>
               <button onclick="limparFiltrosGestor()" class="btn-outline text-sm">Limpar</button>
               <div class="flex flex-wrap items-center gap-1 ml-auto">
                 <button onclick="confirmarGeralGestor()" class="btn-success text-sm">Confirmar geral</button>
@@ -4036,41 +4052,41 @@
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=20261106a"></script>
-  <script src="Supabase/supabase-client.js?v=20261106a"></script>
-  <script src="api.js?v=20261106a"></script>
-  <script src="utils.js?v=20261106a"></script>
-  <script src="components.js?v=20261106a"></script>
-  <script src="pages/login.js?v=20261106a"></script>
-  <script src="pages/avisos-tempo-real.js?v=20261106a"></script>
-  <script src="pages/cadastro.js?v=20261106a"></script>
-  <script src="pages/nova-solicitacao.js?v=20261106a"></script>
-  <script src="pages/minhas-solicitacoes.js?v=20261106a"></script>
-  <script src="pages/dashboard-solicitante.js?v=20261106a"></script>
-  <script src="pages/viagens-do-dia.js?v=20261106a"></script>
-  <script src="pages/notificacoes.js?v=20261106a"></script>
-  <script src="pages/dashboard-condutor.js?v=20261106a"></script>
-  <script src="pages/painel-dia.js?v=20261106a"></script>
-  <script src="pages/proximas-agendas.js?v=20261106a"></script>
-  <script src="pages/agenda.js?v=20261106a"></script>
-  <script src="pages/agenda-combinada.js?v=20261106a"></script>
-  <script src="pages/agenda-condutor.js?v=20261106a"></script>
-  <script src="pages/registro-km.js?v=20261106a"></script>
-  <script src="pages/gestor.js?v=20261106a"></script>
-  <script src="pages/gerenciamento-solicitacoes.js?v=20261106a"></script>
-  <script src="pages/gerenciar-motoboy-documentos.js?v=20261106a"></script>
-  <script src="pages/gerenciar-condutores.js?v=20261106a"></script>
-  <script src="pages/gerenciar-km.js?v=20261106a"></script>
-  <script src="pages/gerenciar-usuarios.js?v=20261106a"></script>
-  <script src="pages/gerenciar-unidades.js?v=20261106a"></script>
-  <script src="pages/gerenciar-cooperativas.js?v=20261106a"></script>
-  <script src="pages/gerenciar-perfis-acesso.js?v=20261106a"></script>
-  <script src="pages/relatorios.js?v=20261106a"></script>
-  <script src="pages/avisos.js?v=20261106a"></script>
-  <script src="pages/atualizacao-apk.js?v=20261106a"></script>
-  <script src="pages/alterar-senha.js?v=20261106a"></script>
-  <script src="ui-layout.js?v=20261106a"></script>
-  <script src="app.js?v=20261106a"></script>
+  <script src="config.js?v=20261115a"></script>
+  <script src="Supabase/supabase-client.js?v=20261115a"></script>
+  <script src="api.js?v=20261115a"></script>
+  <script src="utils.js?v=20261115a"></script>
+  <script src="components.js?v=20261115a"></script>
+  <script src="pages/login.js?v=20261115a"></script>
+  <script src="pages/avisos-tempo-real.js?v=20261115a"></script>
+  <script src="pages/cadastro.js?v=20261115a"></script>
+  <script src="pages/nova-solicitacao.js?v=20261115a"></script>
+  <script src="pages/minhas-solicitacoes.js?v=20261115a"></script>
+  <script src="pages/dashboard-solicitante.js?v=20261115a"></script>
+  <script src="pages/viagens-do-dia.js?v=20261115a"></script>
+  <script src="pages/notificacoes.js?v=20261115a"></script>
+  <script src="pages/dashboard-condutor.js?v=20261115a"></script>
+  <script src="pages/painel-dia.js?v=20261115a"></script>
+  <script src="pages/proximas-agendas.js?v=20261115a"></script>
+  <script src="pages/agenda.js?v=20261115a"></script>
+  <script src="pages/agenda-combinada.js?v=20261115a"></script>
+  <script src="pages/agenda-condutor.js?v=20261115a"></script>
+  <script src="pages/registro-km.js?v=20261115a"></script>
+  <script src="pages/gestor.js?v=20261115a"></script>
+  <script src="pages/gerenciamento-solicitacoes.js?v=20261115a"></script>
+  <script src="pages/gerenciar-motoboy-documentos.js?v=20261115a"></script>
+  <script src="pages/gerenciar-condutores.js?v=20261115a"></script>
+  <script src="pages/gerenciar-km.js?v=20261115a"></script>
+  <script src="pages/gerenciar-usuarios.js?v=20261115a"></script>
+  <script src="pages/gerenciar-unidades.js?v=20261115a"></script>
+  <script src="pages/gerenciar-cooperativas.js?v=20261115a"></script>
+  <script src="pages/gerenciar-perfis-acesso.js?v=20261115a"></script>
+  <script src="pages/relatorios.js?v=20261115a"></script>
+  <script src="pages/avisos.js?v=20261115a"></script>
+  <script src="pages/atualizacao-apk.js?v=20261115a"></script>
+  <script src="pages/alterar-senha.js?v=20261115a"></script>
+  <script src="ui-layout.js?v=20261115a"></script>
+  <script src="app.js?v=20261115a"></script>
 
   <!-- Proteção contra erro fatal de JavaScript:
        se um arquivo externo falhar, o usuário ainda consegue visualizar o login. -->

@@ -361,7 +361,25 @@ async function listarCondutoresParaExibicao() {
     .eq('tipo', 'condutor')
     .order('nome');
   if (error) throw error;
-  return data;
+  const lista = (data || []).slice();
+  // Completa com quem está escalado em alguma viagem mas cujo perfil a permissão não
+  // deixa ler (ex.: login criado direto pelo app) - função nomes_condutores_escalados
+  // (supabase_nomes_condutores_escalados.sql). Se ainda não existir, segue sem ela.
+  try {
+    const { data: extra, error: eRpc } = await _sb.rpc('nomes_condutores_escalados');
+    if (!eRpc && Array.isArray(extra)) {
+      extra.forEach(x => {
+        const k = String(x.email || '').trim().toLowerCase();
+        if (!k) return;
+        const ja = lista.find(c => String(c.email || '').trim().toLowerCase() === k);
+        if (!ja) lista.push(x);
+        else {
+          ['nome', 'telefone', 'placa', 'capacidade', 'categoria'].forEach(f => { if (!ja[f] && x[f]) ja[f] = x[f]; });
+        }
+      });
+    }
+  } catch (_e) { /* sem a função: usa só os perfis legíveis */ }
+  return lista;
 }
 
 // Mapa e-mail (minúsculo) -> nome do cadastro, para mostrar o nome do solicitante no lugar do
